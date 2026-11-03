@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS โดยใช้ตัวเลือกที่เสถียรไม่เกิด Error
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -95,35 +95,20 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === ปรับขนาดเฉพาะตารางบน (DCSBx / DCSB) แบบอิสระและเป็นสีดำเข้ม === */
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
-        font-size: {int(dcs_size * 0.75)}px !important;
+    /* === ตั้งค่าพื้นฐานตารางทั่วไป (สีดำเข้มชัดเจน ป้องกัน Error) === */
+    div[data-testid="stDataFrame"] {{
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+        border: 1px solid #cbd5e1;
+    }}
+    div[data-testid="stDataFrame"] th {{
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
         padding: 10px !important;
     }}
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
-        font-size: {dcs_size}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        padding: 12px !important;
-    }}
-
-    /* === ปรับขนาดเฉพาะตารางล่าง (Vendors CARD & COINS) แบบอิสระและเป็นสีดำเข้ม === */
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] th {{
-        font-size: {int(vendor_size * 0.85)}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-        padding: 10px !important;
-    }}
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] td {{
-        font-size: {vendor_size}px !important;
+    div[data-testid="stDataFrame"] td {{
         font-weight: 900 !important;
         color: #000000 !important;
         padding: 10px !important;
@@ -416,17 +401,39 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ตาราง DCSBx / DCSB ---
+        # --- ตาราง DCSBx / DCSB (ใช้ st.html / column_config เพื่อความปลอดภัย) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]}
-            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+            dcsbx_data = pd.DataFrame({"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]})
+            st.dataframe(
+                dcsbx_data, 
+                use_container_width=True, 
+                hide_index=True,
+                column_config={
+                    "Date": st.column_config.TextColumn("Date", width="medium"),
+                    "Item": st.column_config.NumberColumn("Item", format="%d"),
+                    "Palletes": st.column_config.NumberColumn("Palletes", format="%d"),
+                    "PO": st.column_config.NumberColumn("PO", format="%d"),
+                    "%": st.column_config.TextColumn("%")
+                }
+            )
         with sub_c2:
             st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]}
-            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+            dcsb_data = pd.DataFrame({"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]})
+            st.dataframe(
+                dcsb_data, 
+                use_container_width=True, 
+                hide_index=True,
+                column_config={
+                    "Date": st.column_config.TextColumn("Date", width="medium"),
+                    "Item": st.column_config.NumberColumn("Item", format="%d"),
+                    "Palletes": st.column_config.NumberColumn("Palletes", format="%d"),
+                    "PO": st.column_config.NumberColumn("PO", format="%d"),
+                    "%": st.column_config.TextColumn("%")
+                }
+            )
 
         st.markdown("---")
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
@@ -465,7 +472,19 @@ if active_source is not None and not df.empty:
                 unique_special = special_df.drop_duplicates(subset=['PO_clean'])
                 vendor_table = unique_special[['Vendor_str', sup_col, 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
-                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+                st.dataframe(
+                    vendor_table, 
+                    use_container_width=True, 
+                    hide_index=True,
+                    column_config={
+                        "Vendor ID": st.column_config.TextColumn("Vendor ID"),
+                        "Vendor Name": st.column_config.TextColumn("Vendor Name"),
+                        "P/O": st.column_config.TextColumn("P/O"),
+                        "Sum of Pallets Qty": st.column_config.NumberColumn("Sum of Pallets Qty", format="%.0f"),
+                        "Sum of UOM Qty": st.column_config.NumberColumn("Sum of UOM Qty", format="%,.0f"),
+                        "Status": st.column_config.TextColumn("Status")
+                    }
+                )
             else:
                 st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
         else:
