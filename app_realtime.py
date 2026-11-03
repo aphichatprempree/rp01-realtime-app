@@ -25,7 +25,7 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับแต่ง Sidebar ใหม่ให้ทันสมัย
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มสไตล์ขยายฟอนต์ตาราง DCSBx / DCSB เฉพาะเจาะจง
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -96,6 +96,23 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
+    /* === ปรับแต่งเฉพาะตาราง DCSBx / DCSB ให้ฟอนต์ใหญ่และหนาขึ้นเป็นพิเศษ === */
+    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
+    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        color: #1e293b !important;
+        background-color: #cbd5e1 !important;
+        padding: 14px !important;
+    }}
+    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
+    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
+        font-size: {int(font_size_val * 0.95)}px !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        padding: 14px !important;
+    }}
+
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
     @keyframes pulse-night {{
         0% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }}
@@ -138,22 +155,7 @@ st.markdown(f"""
         color: #15803d !important;
     }}
 
-    /* ดีไซน์ตารางหลัก */
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
-        font-size: {int(font_size_val * 0.8)}px !important;
-        font-weight: {weight_val} !important;
-        color: #1e293b !important;
-        background-color: #e2e8f0 !important;
-        padding: 12px !important;
-    }}
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {{
-        font-size: {font_size_val}px !important;
-        font-weight: {weight_val} !important;
-        color: #0f172a !important;
-        padding: 12px !important;
-    }}
-
-    /* ตารางอื่นๆ */
+    /* ตารางอื่นๆ ทั่วไป */
     div[data-testid="stDataFrame"] {{
         border-radius: 10px;
         overflow: hidden;
@@ -406,7 +408,7 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ซ่อนตารางภาพรวม และนำตาราง DCSBx / DCSB มาขยายเต็มความกว้าง (1 โคลัมน์เดี่ยวเต็มจอ) ---
+        # --- ตาราง DCSBx / DCSB ขยายเต็มความกว้าง (ฟอนต์ใหญ่หนาพิเศษตามที่ขอ) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
@@ -475,7 +477,6 @@ if active_source is not None and not df.empty:
         col_dl1, col_dl2, col_dl3 = st.columns(3)
         
         with col_dl1:
-            # สร้าง summary_df สำรองไว้สำหรับส่งออกข้อมูล CSV โดยไม่กระทบการแสดงผลหน้าจอ
             summary_df_export = pd.DataFrame({
                 "Date": [current_date],
                 "Total Sup.": [total_sup],
