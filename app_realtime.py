@@ -25,7 +25,7 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเปิดแสดงแถบเมนูด้านบนสุดของ Streamlit
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มคำสั่งจัดรูปแบบสำหรับการพิมพ์ PDF โดยเฉพาะ
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -43,7 +43,7 @@ st.markdown(f"""
         background-color: #f8fafc !important;
     }}
     
-    /* กรอบหัวข้อหลัก (Header Box) ปรับ padding บน-ล่าง และเพิ่ม line-height ให้ตัวหนังสือสวยงามพอดี */
+    /* กรอบหัวข้อหลัก (Header Box) */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
         padding: 22px 24px 20px 24px; 
@@ -235,6 +235,16 @@ st.markdown(f"""
         box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         border: 1px solid #e2e8f0;
         margin-bottom: 8px;
+    }}
+
+    /* === คำสั่งบังคับสำหรับ Print / Save PDF ให้แสดงผลสวยงามเต็มหน้ากระดาษ === * /
+    @media print {{
+        section[data-testid="stSidebar"], button, .stDownloadButton {{
+            display: none !important;
+        }}
+        .stApp {{
+            background-color: #ffffff !important;
+        }}
     }}
     </style>
 """, unsafe_allow_html=True)
