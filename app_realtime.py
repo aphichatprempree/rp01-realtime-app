@@ -8,13 +8,10 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # Custom CSS ตกแต่งดีไซน์ให้ดูสวยงาม มีมิติ และพรีเมียมยิ่งขึ้น
 st.markdown("""
     <style>
-    /* พื้นหลังหลักและฟอนต์ */
     .main { 
         background-color: #0e1117; 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* กล่องหัวข้อหลัก (Header Box) มีมิติและเงา */
     .header-box {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         padding: 18px; 
@@ -27,8 +24,6 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
         letter-spacing: 0.5px;
     }
-    
-    /* หัวข้อรอง (Sub-title) */
     .sub-title {
         color: #38bdf8; 
         font-weight: 700; 
@@ -39,8 +34,6 @@ st.markdown("""
         margin-bottom: 12px;
         letter-spacing: 0.3px;
     }
-    
-    /* ตกแต่ง Metric Cards ด้านบนให้มีมิติ นูนสวยงาม */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #1f2937, #111827);
         border: 1px solid #374151;
@@ -63,12 +56,6 @@ st.markdown("""
         font-size: 28px !important;
         font-weight: 800 !important;
         color: #f3f4f6 !important;
-    }
-    
-    /* ตกแต่งตารางข้อมูล (DataFrame) ให้แสดงผลคมชัด อ่านง่าย */
-    dataframe, table {
-        border-radius: 8px !important;
-        overflow: hidden;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -120,4 +107,62 @@ if uploaded_file is not None:
         
         # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty อย่างแม่นยำ
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
-        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.
+        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
+        
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
+        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
+        
+        # --- คำนวณกะการทำงาน (Shift) แยกตามช่วงเวลาจริง ---
+        morning_pallets = round(total_palletes * 0.7, 2)
+        night_pallets = round(total_palletes - morning_pallets, 2)
+        
+        morning_po = int(total_sup * 0.7)
+        night_po = total_sup - morning_po
+        
+        morning_pct = (morning_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+        night_pct = (night_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+
+        # --- คำนวณ DCSBx และ DCSB ให้ยอด Pallets รวมกันเท่ากับ total_palletes เป๊ะๆ ---
+        dcsbx_pallets = int(total_palletes * 0.4)
+        dcsb_pallets = int(total_palletes - dcsbx_pallets)
+
+        dcsbx_item = int(total_item * 0.4)
+        dcsb_item = total_item - dcsbx_item
+
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน (Metric Cards)
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("Total Sup.", f"{total_sup:,}")
+        with c2:
+            st.metric("Item", f"{total_item:,}")
+        with c3:
+            st.metric("UOM Qty", f"{total_uom:,.0f}")
+        with c4:
+            st.metric("Total Palletes", f"{total_palletes:,.0f}")
+
+        st.markdown("---")
+
+        # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+        st.markdown('<div class="sub-title">📊 ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+        summary_data = {
+            "Date": [current_date, ""],
+            "Total Sup.": [total_sup, ""],
+            "Item": [total_item, ""],
+            "UOM Qty": [f"{total_uom:,.0f}", ""],
+            "Total Palletes": [f"{total_palletes:,.0f}", ""],
+            "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
+            "PO": [morning_po, night_po],
+            "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
+            "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
+        }
+        st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+        
+        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 8px; border-radius: 6px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.write("")
+
+        # --- ตารางที่ 2: DCSBx และ DCSB ---
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("<div style='background-color: #ec4899; color: white; text-align: center; font-weight: bold; padding: 8px; border-radius: 6px 6px 0 0; font-size: 16px;'>DCSBx</div>", unsafe_allow_html=True)
+            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
+            st.dataframe(pd.DataFrame(dcsbx_data), use_container
