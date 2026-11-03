@@ -25,7 +25,7 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าฟอนต์มาบังคับใช้ พร้อมปรับแต่งสีและขนาดตารางทั้งหมดให้เป็นสีดำเข้มชัดเจน
+# นำค่าฟอนต์มาบังคับใช้ พร้อมปรับแต่งสีและขนาดตารางทุกตารางให้เป็นสีดำเข้มชัดเจน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -96,53 +96,19 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === ขยายขนาดและเพิ่มความเข้มเฉพาะตารางบน (DCSBx / DCSB) === */
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
-        font-size: 24px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-        padding: 12px !important;
-    }}
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
-        font-size: 42px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        padding: 14px !important;
-    }}
-
-    /* === ขยายขนาดและปรับสีดำเข้มให้กับตารางล่าง (Vendors CARD & COINS) โดยเฉพาะ === */
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] th {{
-        font-size: 22px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-        padding: 12px !important;
-    }}
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] td {{
-        font-size: 26px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        padding: 12px !important;
-    }}
-
-    /* ตารางอื่นๆ ทั่วไป */
+    /* === บังคับขนาดและสีตัวอักษรทุกตารางในหน้าเว็บให้เป็นสีดำเข้มชัดเจน === */
     div[data-testid="stDataFrame"] th {{
-        font-size: 18px !important;
-        font-weight: 800 !important;
+        font-size: 20px !important;
+        font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
-        padding: 10px !important;
+        padding: 12px !important;
     }}
     div[data-testid="stDataFrame"] td {{
-        font-size: 24px !important;
+        font-size: 28px !important;
         font-weight: 900 !important;
         color: #000000 !important;
-        padding: 10px !important;
+        padding: 12px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -432,7 +398,7 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ตาราง DCSBx / DCSB ขยายใหญ่และดำเข้มพิเศษ ---
+        # --- ตาราง DCSBx / DCSB ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
