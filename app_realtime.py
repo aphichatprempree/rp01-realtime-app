@@ -29,48 +29,32 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และเลือกชีทแรกโดยอัตโนมัติ (แก้ปัญหาชื่อชีทไม่ตรง)
+        # เปิดไฟล์ Excel และตรวจสอบชีทที่มีข้อมูลรายละเอียด
         xls = pd.ExcelFile(uploaded_file)
-        sheet_name = xls.sheet_names[0]
+        target_sheet = 'Detail Schedule' if 'Detail Schedule' in xls.sheet_names else xls.sheet_names[0]
         
-        # อ่านข้อมูลโดยค้นหาแถวที่เป็นหัวตารางจริง
-        df_raw = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=None)
-        
-        header_row = 1
-        for idx, row in df_raw.iterrows():
-            row_str = str(row.values)
-            if 'Vendor' in row_str or 'Item Name' in row_str or 'UOM Qty' in row_str:
-                header_row = idx
-                break
-                
-        df = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=header_row)
+        # อ่านชีทโดยกำหนดให้แถวที่ 2 (index = 1) เป็นหัวตาราง (ตัดบรรทัด 1 ทิ้ง)
+        df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=1)
         current_date = datetime.date.today().strftime("%d %b %y")
         
-        # ทำความสะอาดข้อมูล
+        # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
-        # ค้นหาคอลัมน์ Item Name และ UOM Qty / Pallets แบบยืดหยุ่น
-        item_col = next((col for col in df.columns if 'item name' in str(col).lower() or 'item' in str(col).lower()), df.columns[2] if len(df.columns) > 2 else None)
-        
-        if item_col:
-            df = df[df[item_col].notna()]
+        # กรองเฉพาะแถวที่มีชื่อสินค้า (Item Name) หรือ Vendor เพื่อไม่เอาแถวว่างมารวม
+        if 'Item Name' in df.columns:
+            df = df[df['Item Name'].notna()]
+        elif len(df.columns) > 13:
+            df = df[df.iloc[:, 13].notna()]
             
         total_sup = df.shape[0]
-        total_item = df[item_col].nunique() if item_col else total_sup
+        total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ดึงยอดรวมจาก Column R (UOM Qty - Index 13) และ Column V (Pallets Qty - Index 17) หรือค้นหาจากชื่อ
-        uom_col = next((col for col in df.columns if 'uom qty' in str(col).lower()), None)
-        pallets_col = next((col for col in df.columns if 'pallets qty' in str(col).lower() or 'pallet' in str(col).lower()), None)
+        # ดึงยอดรวมจากคอลัมน์ 'UOM Qty' และ 'Pallets Qty' อย่างแม่นยำ (หรือใช้ Index R=13 และ V=17)
+        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[13]
+        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[17]
         
-        if uom_col and uom_col in df.columns:
-            total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
-        else:
-            total_uom = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0).sum() if df.shape[1] > 13 else 0
-            
-        if pallets_col and pallets_col in df.columns:
-            total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
-        else:
-            total_palletes = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0).sum() if df.shape[1] > 17 else 0
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
+        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
@@ -118,14 +102,24 @@ if uploaded_file is not None:
         # --- ตารางที่ 3: Vendors CARD & COINS ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS</div>', unsafe_allow_html=True)
         
-        # ตรวจสอบและดึงข้อมูล Vendor จากไฟล์
-        possible_vendor_cols = [col for col in df.columns if 'vendor' in str(col).lower()]
-        if possible_vendor_cols:
-            vendor_table = df[[possible_vendor_cols[0], df.columns[4] if len(df.columns) > 4 else df.columns[1], pallets_col if pallets_col else df.columns[17], uom_col if uom_col else df.columns[13]]].copy()
-            vendor_table.columns = ["Vendor", "Vendor Name", "Sum of Pallets Qty", "Sum of UOM Qty"]
-            st.dataframe(vendor_table.head(15), use_container_width=True, hide_index=True)
+        if 'Information Sup. Card & Coin' in xls.sheet_names:
+            card_info = pd.read_excel(uploaded_file, sheet_name='Information Sup. Card & Coin')
+            card_ids = card_info['VENDOR'].astype(str).tolist()
+            
+            if 'Vendor' in df.columns:
+                df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0]
+                card_df = df[df['Vendor_str'].isin(card_ids)]
+                
+                if not card_df.empty:
+                    vendor_table = card_df[['Vendor_str', 'Vendor Name', 'P/O', pallets_col, uom_col]].copy()
+                    vendor_table.columns = ["Vendor", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty"]
+                    st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+                else:
+                    st.info("ไม่พบรายการ Vendor CARD & COINS ในรอบเวลานี้")
+            else:
+                st.warning("ไม่พบคอลัมน์ Vendor ในข้อมูลรายละเอียด")
         else:
-            st.warning("ไม่พบข้อมูลตาราง Vendor ในชีทนี้")
+            st.warning("ไม่พบชีทข้อมูล Information Sup. Card & Coin ในไฟล์ Excel")
         
         # Grand Total Bar
         st.markdown(f"""
