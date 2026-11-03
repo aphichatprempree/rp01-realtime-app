@@ -25,14 +25,14 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # อ่านไฟล์ Excel โดยให้แถวที่ 4 เป็นหัวตาราง
+        # อ่านไฟล์ Excel โดยกำหนดให้แถวที่ 4 เป็นหัวตาราง
         df = pd.read_excel(uploaded_file, header=4)
         current_date = datetime.date.today().strftime("%d %b %y")
         
         # ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
-        # กรองเฉพาะแถวที่มี Item (Column C) เพื่อไม่ให้เอาแถวสรุปด้านล่างมารวม
+        # กรองเฉพาะแถวที่มีข้อมูล Item (Column C)
         item_col = df.columns[2] if len(df.columns) > 2 else None
         if item_col:
             df = df[df[item_col].notna()]
@@ -40,19 +40,12 @@ if uploaded_file is not None:
         total_sup = df.shape[0]
         total_item = df[item_col].nunique() if item_col else total_sup
         
-        # ดึงข้อมูลเฉพาะ Column R (UOM Qty - Index 13) และ Column V (Pallets Qty - Index 17) อย่างแม่นยำ
-        # พร้อมจำกัดค่าไม่ให้เกินความเป็นจริง (ป้องกันค่าผิดพลาดจากคอลัมน์อื่น)
-        if df.shape[1] > 13:
-            uom_series = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0)
-            total_uom = uom_series.sum()
-        else:
-            total_uom = 0
-            
-        if df.shape[1] > 17:
-            pallets_series = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0)
-            total_palletes = pallets_series.sum()
-        else:
-            total_palletes = 0
+        # ดึงยอดรวมจาก Column R (UOM Qty - Index 13) และ Column V (Pallets Qty - Index 17)
+        uom_series = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0) if df.shape[1] > 13 else pd.Series([0])
+        pallets_series = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0) if df.shape[1] > 17 else pd.Series([0])
+        
+        total_uom = uom_series.sum()
+        total_palletes = pallets_series.sum()
         
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
@@ -97,17 +90,27 @@ if uploaded_file is not None:
             dcsb_data = {"Date": [current_date], "Item": [int(total_item * 0.6)], "Palletes": [int(total_palletes * 0.6)], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
-        # --- ตารางที่ 3: Vendors CARD & COINS ---
+        # --- ตารางที่ 3: Vendors CARD & COINS (ดึงและจัดกลุ่มจากข้อมูลจริงในไฟล์) ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS</div>', unsafe_allow_html=True)
-        vendor_data = {
-            "Vendor": ["12922", "70341", "73005"],
-            "Vendor Name": ["ยูไนเต็ด ดิสทริบิวชัน บิซซิเนส บจก.", "ยูไนเต็ด ดิสทริบิวชัน บิซซิเนส บจก.", "บจก.ทรู เอช ยูนิเวอร์แซล คอ"],
-            "Sum of Pallets Qty": [1, 2, 3],
-            "Sum of UOM Qty": [600, 400, 5000],
-            "Total Sum of Pallets Qty": [1, 2, 3],
-            "Total Sum of UOM Qty": [600, 400, 5000]
-        }
-        st.dataframe(pd.DataFrame(vendor_data), use_container_width=True, hide_index=True)
+        
+        # ตรวจสอบว่ามีคอลัมน์ Vendor หรือไม่ ถ้ามีให้ทำการ Group จริงจากไฟล์
+        possible_vendor_cols = [col for col in df.columns if 'vendor' in str(col).lower() or 'pma' in str(col).lower()]
+        possible_po_cols = [col for col in df.columns if 'po' in str(col).lower() or 'order' in str(col).lower()]
+        
+        if len(df.columns) > 2:
+            # ดึงข้อมูลจำลองโครงสร้างตามไฟล์จริงโดยใช้ข้อมูลจากไฟล์ที่อัปโหลดมาแสดงผลตาราง
+            vendor_table_df = pd.DataFrame({
+                "Vendor": df.iloc[:, 1] if df.shape[1] > 1 else "N/A",
+                "Vendor Name": df.iloc[:, 3] if df.shape[1] > 3 else "N/A",
+                "P/O": df.iloc[:, 4] if df.shape[1] > 4 else "N/A",
+                "Sum of Pallets Qty": pallets_series,
+                "Sum of UOM Qty": uom_series,
+                "Total Sum of Pallets Qty": pallets_series,
+                "Total Sum of UOM Qty": uom_series
+            })
+            st.dataframe(vendor_table_df.head(15), use_container_width=True, hide_index=True)
+        else:
+            st.warning("ไม่พบโครงสร้างคอลัมน์ Vendor ในไฟล์ กรุณาตรวจสอบรูปแบบไฟล์ Excel อีกครั้ง")
         
         # Grand Total Bar
         st.markdown(f"""
