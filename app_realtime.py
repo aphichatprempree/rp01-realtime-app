@@ -6,13 +6,13 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์และการแสดงผลภายในตารางทุกตารางให้ใหญ่สะใจ หนา คมชัด
+# Custom CSS: ขยายขนาดฟอนต์ในตารางให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มตัวอักษรแบบจัดเต็ม
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
     .stApp { 
         background-color: #ffffff !important;
-        color: #111827 !important;
+        color: #000000 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .main { 
@@ -22,12 +22,12 @@ st.markdown("""
     /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        padding: 24px; 
+        padding: 28px; 
         border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 900; 
-        font-size: 32px; 
+        font-size: 36px; 
         margin-bottom: 25px;
         box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35);
         border: 1px solid #3b82f6;
@@ -37,7 +37,7 @@ st.markdown("""
     .sub-title {
         color: #1e40af; 
         font-weight: 900; 
-        font-size: 26px;
+        font-size: 30px;
         border-left: 8px solid #1e40af; 
         padding-left: 14px; 
         margin-top: 35px; 
@@ -50,9 +50,9 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 16px; 
+        padding: 18px; 
         border-radius: 8px; 
-        font-size: 24px; 
+        font-size: 28px; 
         box-shadow: 0 6px 15px rgba(23, 37, 84, 0.25); 
         border: 1px solid #3b82f6;
     }
@@ -63,57 +63,57 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 14px; 
+        padding: 16px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 24px;
+        font-size: 28px;
     }
     .dcsb-box {
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 14px; 
+        padding: 16px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 24px;
+        font-size: 28px;
     }
     
-    /* === บังคับขยายฟอนต์และเพิ่มความสูงแถวในตารางทั้งหมด (Dataframe) ให้ใหญ่หนาเป็นพิเศษ === */
+    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) ให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มขั้นสุด === */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 24px !important;
+        font-size: 32px !important;
     }
     div[data-testid="stDataFrame"] th {
-        font-size: 22px !important;
+        font-size: 28px !important;
         font-weight: 900 !important;
-        color: #111827 !important;
-        background-color: #f1f5f9 !important;
-        padding-top: 14px !important;
-        padding-bottom: 14px !important;
+        color: #000000 !important;
+        background-color: #e2e8f0 !important;
+        padding-top: 18px !important;
+        padding-bottom: 18px !important;
     }
     div[data-testid="stDataFrame"] td {
-        font-size: 24px !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        padding-top: 12px !important;
-        padding-bottom: 12px !important;
+        font-size: 32px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        padding-top: 16px !important;
+        padding-bottom: 16px !important;
     }
     
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่สะใจ */
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่และเข้มสะใจ */
     div[data-testid="stMetric"] {
-        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
-        border: 2px solid #cbd5e1;
-        padding: 22px 28px;
+        background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
+        border: 2px solid #94a3b8;
+        padding: 24px 30px;
         border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     }
     div[data-testid="stMetric"] label {
-        font-size: 20px !important;
-        font-weight: 800 !important;
-        color: #334155 !important;
+        font-size: 24px !important;
+        font-weight: 900 !important;
+        color: #1e293b !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 40px !important;
+        font-size: 48px !important;
         font-weight: 900 !important;
-        color: #0f172a !important;
+        color: #000000 !important;
     }
     
     /* แถบ Sidebar ด้านข้าง */
@@ -122,8 +122,8 @@ st.markdown("""
         border-right: 1px solid #e2e8f0;
     }
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-        font-size: 18px !important;
-        font-weight: 700 !important;
+        font-size: 20px !important;
+        font-weight: 800 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -303,7 +303,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 22px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 20px 30px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
                 <span>Grand Total (Filtered)</span>
                 <span>Pallets: {total_palletes:,.0f}</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -333,20 +333,20 @@ if uploaded_file is not None:
                 <meta charset='utf-8'>
                 <title>Report {current_date}</title>
                 <style>
-                    body {{ background-color: #ffffff; color: #111827; font-family: sans-serif; padding: 20px; }}
-                    h2 {{ color: #1e40af; text-align: center; font-size: 26px; }}
+                    body {{ background-color: #ffffff; color: #000000; font-family: sans-serif; padding: 20px; }}
+                    h2 {{ color: #1e40af; text-align: center; font-size: 30px; }}
                     table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                    th, td {{ border: 1px solid #cbd5e1; padding: 14px; text-align: center; font-size: 20px; font-weight: bold; }}
+                    th, td {{ border: 2px solid #94a3b8; padding: 16px; text-align: center; font-size: 24px; font-weight: 900; }}
                     th {{ background-color: #1e3a8a; color: white; }}
-                    td {{ background-color: #f8fafc; }}
+                    td {{ background-color: #f1f5f9; color: #000000; }}
                 </style>
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 18px;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
+                <p style="font-size: 22px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
-                <p style="text-align: center; color: #64748b; font-size: 16px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+                <p style="text-align: center; color: #475569; font-size: 18px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
             </body>
             </html>
             """
