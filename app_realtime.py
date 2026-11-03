@@ -25,21 +25,10 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มโค้ดซ่อนแถบเมนูด้านบนสุดของ Streamlit
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเปิดแสดงแถบเมนูด้านบนสุดของ Streamlit
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
-
-    /* === ซ่อนแถบเมนูด้านบนสุดของ Streamlit (Header & Deploy Button) === */
-    header[data-testid="stHeader"] {{
-        display: none !important;
-    }}
-    #MainMenu {{
-        visibility: hidden !important;
-    }}
-    footer {{
-        visibility: hidden !important;
-    }}
 
     .block-container {{
         padding-top: 1rem !important;
