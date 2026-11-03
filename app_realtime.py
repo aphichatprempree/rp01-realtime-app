@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ในตารางให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มขั้นสุด
+# Custom CSS: ขยายขนาดฟอนต์ในตาราง ช่องกรอก และข้อความแจ้งเตือนให้ใหญ่เท่ากับภาพรวมสรุปการทำงาน
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -77,7 +77,7 @@ st.markdown("""
         font-size: 28px;
     }
     
-    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) ให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มขั้นสุด === */
+    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) และช่องกรอกข้อมูลให้ใหญ่เท่ากัน === */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
         font-size: 32px !important;
     }
@@ -97,6 +97,23 @@ st.markdown("""
         padding-bottom: 16px !important;
     }
     
+    /* ขยายขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) และ Label ด้านบน */
+    label[data-baseweb="label"], div[data-baseweb="input"] input {
+        font-size: 24px !important;
+        font-weight: 800 !important;
+    }
+    div[data-baseweb="input"] input {
+        font-size: 28px !important;
+        font-weight: 900 !important;
+        height: 55px !important;
+    }
+    
+    /* ขยายขนาดตัวอักษรในกล่องข้อความแจ้งเตือน (Warning / Info) */
+    div.stAlert p {
+        font-size: 22px !important;
+        font-weight: 800 !important;
+    }
+
     /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่และเข้มสะใจ */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
