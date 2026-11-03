@@ -6,36 +6,45 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ตกแต่งพื้นหลังและดีไซน์ให้สวยงาม มีมิติ และพรีเมียม
+# Custom CSS พื้นหลังแบบดั้งเดิม (Dark Theme เรียบหรู สบายตา) และขยายขนาดตัวอักษร
 st.markdown("""
     <style>
-    .stApp { 
-        background: linear-gradient(135deg, #070b14 0%, #0b1329 50%, #04070d 100%);
+    /* พื้นหลังหลักแบบดั้งเดิม */
+    .main { 
+        background-color: #0e1117; 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    .stApp { 
+        background-color: #0e1117; 
+    }
+    
+    /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
-        background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         padding: 22px; 
         border-radius: 12px; 
-        color: #ffffff;
+        color: #000000;
         text-align: center; 
         font-weight: 800; 
         font-size: 28px; 
         margin-bottom: 25px;
-        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.5);
-        border: 1px solid #3b82f6;
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
         letter-spacing: 0.5px;
     }
+    
+    /* หัวข้อรอง (Sub-title) */
     .sub-title {
-        color: #60a5fa; 
+        color: #38bdf8; 
         font-weight: 800; 
         font-size: 22px;
-        border-left: 6px solid #3b82f6; 
+        border-left: 6px solid #38bdf8; 
         padding-left: 12px; 
         margin-top: 30px; 
         margin-bottom: 15px;
         letter-spacing: 0.3px;
     }
+    
+    /* ขยายขนาดและเพิ่มความเข้มตัวอักษรภายในตาราง (Dataframe) */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
         font-size: 18px !important;
     }
@@ -49,27 +58,30 @@ st.markdown("""
         font-weight: 600 !important;
         color: #f1f5f9 !important;
     }
+    
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) */
     div[data-testid="stMetric"] {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        background: linear-gradient(145deg, #1f2937, #111827);
+        border: 1px solid #374151;
         padding: 20px 25px;
         border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
     div[data-testid="stMetric"] label {
         font-size: 18px !important;
         font-weight: 700 !important;
-        color: #cbd5e1 !important;
+        color: #9ca3af !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
         font-size: 34px !important;
         font-weight: 900 !important;
-        color: #ffffff !important;
+        color: #f3f4f6 !important;
     }
+    
+    /* แถบ Sidebar ดั้งเดิม */
     section[data-testid="stSidebar"] {
-        background-color: #05080f;
-        border-right: 1px solid #1e293b;
+        background-color: #111827;
+        border-right: 1px solid #1f2937;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -92,7 +104,6 @@ if uploaded_file is not None:
         if 'Delivery Date' in df_raw.columns:
             df_raw['Parsed_Date'] = pd.to_datetime(df_raw['Delivery Date'], errors='coerce', dayfirst=True)
             
-            # บันทึกข้อมูลลงในระบบความจำ Streamlit Session State เพื่อสะสมประวัติวันเก่าๆ ไว้เปิดดูได้ตลอด
             if 'historical_data' not in st.session_state:
                 st.session_state['historical_data'] = {}
                 
@@ -102,12 +113,9 @@ if uploaded_file is not None:
 
         st.sidebar.markdown("---")
         
-        # เมนูเลือกดูข้อมูลย้อนหลังตามวันที่ที่มีในคลังประวัติ
         if 'historical_data' in st.session_state and st.session_state['historical_data']:
             available_dates = sorted(list(st.session_state['historical_data'].keys()))
             selected_date_str = st.sidebar.selectbox("📅 เลือกวันที่ต้องการดูยอดงานย้อนหลัง", available_dates, index=len(available_dates)-1)
-            
-            # ดึงข้อมูลของวันที่เลือกมาแสดงผล
             df = st.session_state['historical_data'][selected_date_str].copy()
         else:
             df = df_raw.copy()
@@ -133,13 +141,13 @@ if uploaded_file is not None:
         # กำหนดรูปแบบวันที่แสดงผลหัวข้อ
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
-            months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+            months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
             current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
         except:
             current_date = selected_date_str
         
         # แสดงหัวรีพอร์ต
-        st.markdown(f'<div class="header-box">📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
         if enable_time_filter:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
@@ -188,7 +196,7 @@ if uploaded_file is not None:
         st.markdown("---")
 
         # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
-        st.markdown('<div class="sub-title">📋 ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
         summary_df = pd.DataFrame({
             "Date": [current_date, ""],
             "Total Sup.": [total_sup, ""],
@@ -202,23 +210,23 @@ if uploaded_file is not None:
         })
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
         
-        st.markdown(f"<div style='background-color: #1e3a8a; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 1px solid #3b82f6;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3);'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
         st.write("")
 
         # --- ตารางที่ 2: DCSBx และ DCSB ---
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div style='background-color: #1d4ed8; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSBx</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #ec4899; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSBx</div>", unsafe_allow_html=True)
             dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
             st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
             
         with col2:
-            st.markdown("<div style='background-color: #0369a1; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSB</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #06b6d4; color: black; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSB</div>", unsafe_allow_html=True)
             dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
         # --- ตารางที่ 3: Vendors CARD & COINS ---
-        st.markdown('<div class="sub-title">⭐ Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
         card_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
@@ -253,7 +261,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 20px; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4); border: 1px solid #3b82f6;'>
+            <div style='background-color: #047857; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 20px; box-shadow: 0 4px 15px rgba(4, 120, 87, 0.4);'>
                 <span>Grand Total (Filtered)</span>
                 <span>Pallets: {total_palletes:,.0f}</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -283,20 +291,20 @@ if uploaded_file is not None:
                 <meta charset='utf-8'>
                 <title>Report {current_date}</title>
                 <style>
-                    body {{ background-color: #0b0f19; color: #ffffff; font-family: sans-serif; padding: 20px; }}
-                    h2 {{ color: #60a5fa; text-align: center; }}
+                    body {{ background-color: #0e1117; color: #ffffff; font-family: sans-serif; padding: 20px; }}
+                    h2 {{ color: #f59e0b; text-align: center; }}
                     table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                    th, td {{ border: 1px solid #334155; padding: 12px; text-align: center; font-size: 16px; }}
-                    th {{ background-color: #1e3a8a; }}
-                    td {{ background-color: #0f172a; }}
+                    th, td {{ border: 1px solid #374151; padding: 12px; text-align: center; font-size: 16px; }}
+                    th {{ background-color: #d97706; color: black; }}
+                    td {{ background-color: #1f2937; }}
                 </style>
             </head>
             <body>
-                <h2>📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
+                <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
                 <p><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
-                <p style="text-align: center; color: #94a3b8;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+                <p style="text-align: center; color: #9ca3af;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
             </body>
             </html>
             """
