@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ทุกตารางและข้อความให้ใหญ่หนาและชัดเจนขั้นสุด อ่านง่ายในทุกหน้าจอ
+# Custom CSS: ขยายขนาดฟอนต์ทุกตารางให้ใหญ่ขึ้นอีก 5 ระดับ (36px) หนาและชัดเจนขั้นสุด
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -22,12 +22,12 @@ st.markdown("""
     /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        padding: 28px; 
+        padding: 30px; 
         border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 900; 
-        font-size: 36px; 
+        font-size: 40px; 
         margin-bottom: 25px;
         box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35);
         border: 2px solid #3b82f6;
@@ -37,12 +37,12 @@ st.markdown("""
     .sub-title {
         color: #1e40af; 
         font-weight: 900; 
-        font-size: 32px;
-        border-left: 10px solid #1e40af; 
-        padding-left: 15px; 
-        margin-top: 25px; 
-        margin-bottom: 15px;
-        height: 45px;
+        font-size: 36px;
+        border-left: 12px solid #1e40af; 
+        padding-left: 18px; 
+        margin-top: 30px; 
+        margin-bottom: 18px;
+        height: 50px;
         display: flex;
         align-items: center;
     }
@@ -53,9 +53,9 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 16px; 
-        border-radius: 8px; 
-        font-size: 28px; 
+        padding: 20px; 
+        border-radius: 10px; 
+        font-size: 32px; 
         box-shadow: 0 6px 15px rgba(23, 37, 84, 0.25); 
         border: 2px solid #3b82f6;
         margin-top: 15px;
@@ -67,49 +67,49 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 14px; 
+        padding: 16px; 
         border-radius: 10px 10px 0 0; 
-        font-size: 26px;
+        font-size: 30px;
     }
     .dcsb-box {
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 14px; 
+        padding: 16px; 
         border-radius: 10px 10px 0 0; 
-        font-size: 26px;
+        font-size: 30px;
     }
     
-    /* === ขยายขนาดฟอนต์ในทุกตาราง (DataFrame) ให้ใหญ่หนาและชัดเจนขั้นสุด === */
+    /* === ขยายขนาดฟอนต์ในทุกตาราง (DataFrame) ให้ใหญ่จัมโบ้ (36px) หนาชัดเจนขั้นสุด === */
     div[data-testid="stDataFrame"] th {
-        font-size: 26px !important;
+        font-size: 32px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
-        padding: 16px !important;
+        padding: 20px !important;
     }
     div[data-testid="stDataFrame"] td {
-        font-size: 28px !important;
+        font-size: 36px !important;
         font-weight: 900 !important;
         color: #000000 !important;
-        padding: 14px !important;
+        padding: 18px !important;
     }
     
     /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
     label[data-baseweb="label"], div[data-baseweb="input"] input {
-        font-size: 26px !important;
+        font-size: 30px !important;
         font-weight: 900 !important;
     }
     div[data-baseweb="input"] input {
-        font-size: 32px !important;
+        font-size: 36px !important;
         font-weight: 900 !important;
-        height: 60px !important;
+        height: 65px !important;
     }
     
     /* ขนาดตัวอักษรในกล่องข้อความแจ้งเตือน */
     div.stAlert p {
-        font-size: 24px !important;
+        font-size: 28px !important;
         font-weight: 900 !important;
     }
 
@@ -117,17 +117,17 @@ st.markdown("""
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
         border: 3px solid #94a3b8;
-        padding: 20px 25px;
+        padding: 24px 30px;
         border-radius: 14px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     }
     div[data-testid="stMetric"] label {
-        font-size: 22px !important;
+        font-size: 26px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 44px !important;
+        font-size: 52px !important;
         font-weight: 900 !important;
         color: #000000 !important;
     }
@@ -138,7 +138,7 @@ st.markdown("""
         border-right: 2px solid #e2e8f0;
     }
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-        font-size: 22px !important;
+        font-size: 24px !important;
         font-weight: 900 !important;
     }
     </style>
@@ -339,7 +339,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 20px 30px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 2px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 22px 32px; border-radius: 10px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 30px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
                 <span>Pallets: {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -370,19 +370,19 @@ if uploaded_file is not None:
                 <title>Report {current_date}</title>
                 <style>
                     body {{ background-color: #ffffff; color: #000000; font-family: sans-serif; padding: 20px; }}
-                    h2 {{ color: #1e40af; text-align: center; font-size: 32px; }}
+                    h2 {{ color: #1e40af; text-align: center; font-size: 36px; }}
                     table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                    th, td {{ border: 2px solid #94a3b8; padding: 16px; text-align: center; font-size: 24px; font-weight: 900; }}
+                    th, td {{ border: 2px solid #94a3b8; padding: 18px; text-align: center; font-size: 28px; font-weight: 900; }}
                     th {{ background-color: #1e3a8a; color: white; }}
                     td {{ background-color: #f1f5f9; color: #000000; }}
                 </style>
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 24px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+                <p style="font-size: 28px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
-                <p style="text-align: center; color: #475569; font-size: 18px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+                <p style="text-align: center; color: #475569; font-size: 20px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
             </body>
             </html>
             """
