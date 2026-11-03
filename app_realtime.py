@@ -11,9 +11,9 @@ SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
 # --- กำหนดค่าเริ่มต้นใน Session State สำหรับแยกส่วนควบคุม ---
 if 'dcs_font_size' not in st.session_state:
-    st.session_state['dcs_font_size'] = 36  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
+    st.session_state['dcs_font_size'] = 32  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
 if 'vendor_font_size' not in st.session_state:
-    st.session_state['vendor_font_size'] = 24  # ขนาดฟอนต์ตารางล่าง (Vendors CARD & COINS)
+    st.session_state['vendor_font_size'] = 22  # ขนาดฟอนต์ตารางล่าง (Vendors CARD & COINS)
 if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS โดยใช้ตัวเลือกที่เสถียรไม่เกิด Error
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS (แบบปลอดภัยไม่เกิด Error)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -93,25 +93,6 @@ st.markdown(f"""
         border-radius: 8px 8px 0 0; 
         font-size: 22px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-    
-    /* === ตั้งค่าพื้นฐานตารางทั่วไป (สีดำเข้มชัดเจน ป้องกัน Error) === */
-    div[data-testid="stDataFrame"] {{
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
-        border: 1px solid #cbd5e1;
-    }}
-    div[data-testid="stDataFrame"] th {{
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-        padding: 10px !important;
-    }}
-    div[data-testid="stDataFrame"] td {{
-        font-weight: 900 !important;
-        color: #000000 !important;
-        padding: 10px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -401,39 +382,62 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ตาราง DCSBx / DCSB (ใช้ st.html / column_config เพื่อความปลอดภัย) ---
+        # --- ตาราง DCSBx / DCSB (เรนเดอร์ผ่าน Custom HTML Table เพื่อความเสถียรและกำหนดฟอนต์ได้ตามใจ) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_data = pd.DataFrame({"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]})
-            st.dataframe(
-                dcsbx_data, 
-                use_container_width=True, 
-                hide_index=True,
-                column_config={
-                    "Date": st.column_config.TextColumn("Date", width="medium"),
-                    "Item": st.column_config.NumberColumn("Item", format="%d"),
-                    "Palletes": st.column_config.NumberColumn("Palletes", format="%d"),
-                    "PO": st.column_config.NumberColumn("PO", format="%d"),
-                    "%": st.column_config.TextColumn("%")
-                }
-            )
+            st.markdown(f"""
+                <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.04);">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr style="background-color: #cbd5e1; color: #000000; font-size: {int(dcs_size * 0.75)}px; font-weight: 900;">
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Date</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Item</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Palletes</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">PO</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{current_date}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{dcsbx_item:,}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{dcsbx_pallets:,}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">100</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">37.73%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            """, unsafe_allow_html=True)
+
         with sub_c2:
             st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_data = pd.DataFrame({"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]})
-            st.dataframe(
-                dcsb_data, 
-                use_container_width=True, 
-                hide_index=True,
-                column_config={
-                    "Date": st.column_config.TextColumn("Date", width="medium"),
-                    "Item": st.column_config.NumberColumn("Item", format="%d"),
-                    "Palletes": st.column_config.NumberColumn("Palletes", format="%d"),
-                    "PO": st.column_config.NumberColumn("PO", format="%d"),
-                    "%": st.column_config.TextColumn("%")
-                }
-            )
+            st.markdown(f"""
+                <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.04);">
+                    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr style="background-color: #cbd5e1; color: #000000; font-size: {int(dcs_size * 0.75)}px; font-weight: 900;">
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Date</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Item</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Palletes</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">PO</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{current_date}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{dcsb_item:,}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">{dcsb_pallets:,}</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">150</td>
+                                <td style="padding: 12px; color: #000000; font-size: {dcs_size}px; font-weight: 900;">62.27%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            """, unsafe_allow_html=True)
 
         st.markdown("---")
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
@@ -472,19 +476,44 @@ if active_source is not None and not df.empty:
                 unique_special = special_df.drop_duplicates(subset=['PO_clean'])
                 vendor_table = unique_special[['Vendor_str', sup_col, 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
-                st.dataframe(
-                    vendor_table, 
-                    use_container_width=True, 
-                    hide_index=True,
-                    column_config={
-                        "Vendor ID": st.column_config.TextColumn("Vendor ID"),
-                        "Vendor Name": st.column_config.TextColumn("Vendor Name"),
-                        "P/O": st.column_config.TextColumn("P/O"),
-                        "Sum of Pallets Qty": st.column_config.NumberColumn("Sum of Pallets Qty", format="%.0f"),
-                        "Sum of UOM Qty": st.column_config.NumberColumn("Sum of UOM Qty", format="%,.0f"),
-                        "Status": st.column_config.TextColumn("Status")
-                    }
-                )
+                
+                # สร้างตาราง HTML ด้านล่างสำหรับตาราง Vendor เพื่อควบคุมขนาดฟอนต์ได้อิสระและคมชัด
+                table_html = f"""
+                <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.04);">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background-color: #cbd5e1; color: #000000; font-size: {int(vendor_size * 0.85)}px; font-weight: 900;">
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Vendor ID</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">Vendor Name</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8;">P/O</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8; text-align: right;">Sum of Pallets Qty</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8; text-align: right;">Sum of UOM Qty</th>
+                                <th style="padding: 10px; border-bottom: 2px solid #94a3b8; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """
+                
+                for _, row in vendor_table.iterrows():
+                    p_val = f"{pd.to_numeric(row['Sum of Pallets Qty'], errors='coerce'):,.0f}" if pd.notna(row['Sum of Pallets Qty']) else "0"
+                    u_val = f"{pd.to_numeric(row['Sum of UOM Qty'], errors='coerce'):,.0f}" if pd.notna(row['Sum of UOM Qty']) else "0"
+                    table_html += f"""
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900;">{row['Vendor ID']}</td>
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900;">{row['Vendor Name']}</td>
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900;">{row['P/O']}</td>
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900; text-align: right;">{p_val}</td>
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900; text-align: right;">{u_val}</td>
+                                <td style="padding: 10px; color: #000000; font-size: {vendor_size}px; font-weight: 900; text-align: center;">{row['Status']}</td>
+                            </tr>
+                    """
+                
+                table_html += """
+                        </tbody>
+                    </table>
+                </div>
+                """
+                st.markdown(table_html, unsafe_allow_html=True)
             else:
                 st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
         else:
