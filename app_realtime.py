@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS พร้อมเพิ่มขนาดตัวหนังสือ Delta (ยอด PO)
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -325,32 +325,18 @@ if active_source is not None and not df.empty:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # นับจำนวน Supplier และคำนวณจำนวน P/O รวมจากข้อมูลจริง (ถอดรหัสคอลัมน์ P/O)
-        sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
-        if sup_col in df.columns:
-            df['Sup_clean'] = df[sup_col].astype(str).str.strip()
-            total_sup = df['Sup_clean'].nunique()
-        else:
-            total_sup = df.shape[0]
+        # นับจำนวนบรรทัดทั้งหมดใน DataFrame โดยตรง เพื่อให้ได้ยอด Item และ P/O ครบถ้วนไม่ถูกหักลบ
+        total_sup = df['Vendor Name'].dropna().nunique() if 'Vendor Name' in df.columns else len(df)
+        total_item = len(df)  # ใช้จำนวนแถวทั้งหมดของ Item เป็นยอดจริง
 
-        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
-        if item_col in df.columns:
-            df['Item_clean'] = df[item_col].astype(str).str.strip()
-            total_item = df['Item_clean'].nunique()
-        else:
-            total_item = total_sup
-        
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
         po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
         if not po_col_raw:
             po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
 
-        if po_col_raw in df.columns:
-            df['PO_clean'] = pd.to_numeric(df[po_col_raw], errors='coerce').fillna(df[po_col_raw]).astype(str).str.split('.').str[0]
-            total_po = df['PO_clean'].nunique()
-        else:
-            total_po = total_sup
+        # นับจำนวน P/O จากจำนวนแถวทั้งหมดตรงๆ
+        total_po = len(df)
 
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
