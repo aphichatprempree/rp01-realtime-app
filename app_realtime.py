@@ -49,96 +49,114 @@ active_source = None
 if os.path.exists(SERVER_SAVE_FILE):
     active_source = SERVER_SAVE_FILE
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มเอฟเฟกต์สีสันและการ์ดกะทำงาน
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มฟอนต์พรีเมียมและกรอบมีมิติ
 st.markdown(f"""
     <style>
+    /* นำเข้าฟอนต์ Prompt จาก Google Fonts เพื่อความสวยงามพรีเมียม */
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
+
     .block-container {{
         padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }}
     .stApp {{ 
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        font-family: 'Prompt', sans-serif !important;
     }}
     .main {{ 
-        background-color: #ffffff !important;
+        background-color: #f8fafc !important;
     }}
+    
+    /* กรอบหัวข้อหลัก (Header Box) แบบพรีเมียม มีมิติและเงาซ้อน */
     .header-box {{
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        padding: 18px; 
-        border-radius: 10px; 
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
+        padding: 22px; 
+        border-radius: 14px; 
         color: #ffffff;
         text-align: center; 
-        font-weight: 900; 
-        font-size: 32px; 
-        margin-bottom: 12px;
-        box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3);
-        border: 2px solid #3b82f6;
+        font-weight: 800; 
+        font-size: 34px; 
+        margin-bottom: 16px;
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(30, 58, 138, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        letter-spacing: 0.5px;
     }}
+    
+    /* หัวข้อรอง (Sub-title) */
     .sub-title {{
-        color: #1e40af; 
-        font-weight: 900; 
+        color: #1e3a8a; 
+        font-weight: 800; 
         font-size: 26px;
-        border-left: 8px solid #1e40af; 
-        padding-left: 12px; 
-        margin-top: 15px; 
-        margin-bottom: 10px;
+        border-left: 8px solid #2563eb; 
+        padding-left: 14px; 
+        margin-top: 18px; 
+        margin-bottom: 12px;
         height: 38px;
         display: flex;
         align-items: center;
-    }}
-    .total-box {{
-        background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
-        color: white; 
-        text-align: center; 
-        font-weight: 900; 
-        padding: 12px; 
-        border-radius: 8px; 
-        font-size: 24px; 
-        box-shadow: 0 4px 10px rgba(23, 37, 84, 0.25); 
-        border: 2px solid #3b82f6;
-        margin-top: 10px;
-    }}
-    .dcsbx-box {{
-        background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-        color: white; 
-        text-align: center; 
-        font-weight: 900; 
-        padding: 10px; 
-        border-radius: 8px 8px 0 0; 
-        font-size: 22px;
-    }}
-    .dcsb-box {{
-        background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-        color: white; 
-        text-align: center; 
-        font-weight: 900; 
-        padding: 10px; 
-        border-radius: 8px 8px 0 0; 
-        font-size: 22px;
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+        border-radius: 0 8px 8px 0;
     }}
     
-    /* === เอฟเฟกต์และสีสันการ์ดกะดึก (โทนส้ม-ทอง อุ่นๆ) และกะเช้า (โทนฟ้า-คราม สว่าง) === */
+    /* แถบ TOTAL PALLETS แบบมีมิติ */
+    .total-box {{
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        color: white; 
+        text-align: center; 
+        font-weight: 800; 
+        padding: 14px; 
+        border-radius: 10px; 
+        font-size: 24px; 
+        box-shadow: 0 6px 15px rgba(15, 23, 42, 0.25); 
+        border: 2px solid #3b82f6;
+        margin-top: 12px;
+    }}
+
+    /* กล่อง DCSBx และ DCSB */
+    .dcsbx-box {{
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white; 
+        text-align: center; 
+        font-weight: 800; 
+        padding: 12px; 
+        border-radius: 10px 10px 0 0; 
+        font-size: 22px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }}
+    .dcsb-box {{
+        background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+        color: white; 
+        text-align: center; 
+        font-weight: 800; 
+        padding: 12px; 
+        border-radius: 10px 10px 0 0; 
+        font-size: 22px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }}
+    
+    /* === เอฟเฟกต์และสีสันการ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
     @keyframes pulse-night {{
-        0% {{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }}
-        70% {{ box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }}
-        100% {{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }}
+        0% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }}
+        70% {{ box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }}
     }}
     @keyframes pulse-morning {{
-        0% {{ box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4); }}
-        70% {{ box-shadow: 0 0 0 10px rgba(2, 132, 199, 0); }}
-        100% {{ box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }}
+        0% {{ box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }}
+        70% {{ box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }}
     }}
 
     /* การ์ดกะดึก */
     div.element-container:has(div.metric-night) div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #fffbeb, #fef3c7) !important;
-        border: 3px solid #f59e0b !important;
+        border: 2px solid #f59e0b !important;
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25) !important;
         animation: pulse-night 2.5s infinite;
+        border-radius: 12px !important;
     }}
     div.element-container:has(div.metric-night) div[data-testid="stMetric"] label {{
-        color: #b45309 !important;
+        color: #92400e !important;
     }}
     div.element-container:has(div.metric-night) div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         color: #b45309 !important;
@@ -147,79 +165,100 @@ st.markdown(f"""
     /* การ์ดกะเช้า */
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #f0fdf4, #dcfce7) !important;
-        border: 3px solid #22c55e !important;
+        border: 2px solid #22c55e !important;
+        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25) !important;
         animation: pulse-morning 2.5s infinite;
+        border-radius: 12px !important;
     }}
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] label {{
-        color: #15803d !important;
+        color: #166534 !important;
     }}
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         color: #15803d !important;
     }}
 
+    /* ดีไซน์ตารางหลัก */
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
         font-size: {int(st.session_state['font_size'] * 0.8)}px !important;
         font-weight: {weight_val} !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
+        color: #1e293b !important;
+        background-color: #e2e8f0 !important;
         padding: 12px !important;
     }}
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {{
         font-size: {st.session_state['font_size']}px !important;
         font-weight: {weight_val} !important;
-        color: #000000 !important;
+        color: #0f172a !important;
         padding: 12px !important;
+    }}
+
+    /* ตารางอื่นๆ */
+    div[data-testid="stDataFrame"] {{
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #cbd5e1;
     }}
     div[data-testid="stDataFrame"] th {{
         font-size: 18px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #e2e8f0 !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        background-color: #cbd5e1 !important;
         padding: 10px !important;
     }}
     div[data-testid="stDataFrame"] td {{
         font-size: 20px !important;
-        font-weight: 800 !important;
-        color: #000000 !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
         padding: 10px !important;
     }}
+    
+    /* ช่องกรอกตัวเลข */
     label[data-baseweb="label"], div[data-baseweb="input"] input {{
         font-size: 20px !important;
-        font-weight: 900 !important;
+        font-weight: 800 !important;
     }}
     div[data-baseweb="input"] input {{
         font-size: 24px !important;
-        font-weight: 900 !important;
+        font-weight: 800 !important;
         height: 48px !important;
+        border-radius: 8px !important;
+        border: 2px solid #94a3b8 !important;
     }}
+    
     div.stAlert p {{
         font-size: 18px !important;
-        font-weight: 900 !important;
+        font-weight: 800 !important;
     }}
+
+    /* การ์ด Metric ทั่วไป */
     div[data-testid="stMetric"] {{
-        background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
-        border: 2px solid #94a3b8;
-        padding: 12px 18px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background: linear-gradient(145deg, #ffffff, #f1f5f9);
+        border: 2px solid #cbd5e1;
+        padding: 14px 18px;
+        border-radius: 12px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
     }}
     div[data-testid="stMetric"] label {{
         font-size: 18px !important;
-        font-weight: 900 !important;
-        color: #1e293b !important;
+        font-weight: 800 !important;
+        color: #334155 !important;
     }}
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         font-size: 34px !important;
         font-weight: 900 !important;
-        color: #000000 !important;
+        color: #0f172a !important;
     }}
+    
+    /* แถบ Sidebar ด้านข้าง */
     section[data-testid="stSidebar"] {{
-        background-color: #f8fafc;
+        background-color: #f1f5f9;
         border-right: 2px solid #e2e8f0;
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {{
         font-size: 18px !important;
-        font-weight: 900 !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -334,7 +373,7 @@ if active_source is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน (พร้อมใส่ Tag กำหนด CSS Effect)
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -416,7 +455,7 @@ if active_source is not None:
             st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); border: 2px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 10px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
                 <span>Pallets: {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
