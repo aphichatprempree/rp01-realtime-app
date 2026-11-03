@@ -1,12 +1,15 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import io
+import os
 
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# --- กำหนดค่าเริ่มต้นใน Session State เพื่อให้จำค่าเดิมเสมอ ---
+# กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
+SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
+
+# --- กำหนดค่าเริ่มต้นใน Session State ---
 if 'font_size' not in st.session_state:
     st.session_state['font_size'] = 40
 if 'font_weight' not in st.session_state:
@@ -32,11 +35,19 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 📂 คลังข้อมูล & ตัวกรอง")
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
-# บันทึกไฟล์ลง Session State เพื่อไม่ให้หายเวลาหน้าเว็บรีเฟรช
+# หากมีการอัปโหลดไฟล์ใหม่ ให้บันทึกทับลงบน Server ทันที
 if uploaded_file is not None:
-    st.session_state['uploaded_file'] = uploaded_file
+    try:
+        with open(SERVER_SAVE_FILE, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์ลง Server เรียบร้อย!")
+    except Exception as e:
+        st.sidebar.error(f"ไม่สามารถบันทึกไฟล์บน Server ได้: {e}")
 
-active_file = st.session_state.get('uploaded_file', None)
+# ตรวจสอบว่ามีไฟล์เซฟไว้บน Server หรือไม่ (เพื่อให้คนอื่นเข้ามาแล้วเจอข้อมูลเดิม)
+active_source = None
+if os.path.exists(SERVER_SAVE_FILE):
+    active_source = SERVER_SAVE_FILE
 
 # นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที
 st.markdown(f"""
@@ -191,11 +202,11 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-if active_file is not None:
+if active_source is not None:
     try:
-        xls = pd.ExcelFile(active_file)
+        xls = pd.ExcelFile(active_source)
         target_sheet = xls.sheet_names[0]
-        df_raw = pd.read_excel(active_file, sheet_name=target_sheet, header=3)
+        df_raw = pd.read_excel(active_source, sheet_name=target_sheet, header=3)
         
         df_raw = df_raw.dropna(how='all')
         if 'Item Name' in df_raw.columns:
@@ -447,4 +458,4 @@ if active_file is not None:
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกประวัติสะสมและคงค่าหน้าจอเดิมไว้ให้คุณเสมอ")
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกข้อมูลไว้บน Server เพื่อให้ทุกคนเปิดมาเจอหน้าจอและข้อมูลเดิมเสมอครับ")
