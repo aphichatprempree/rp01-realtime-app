@@ -56,8 +56,12 @@ if uploaded_file is not None:
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
-        total_sup = df.shape[0]
-        total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
+        # คำนวณ Total Sup. จากจำนวน P/O ที่ไม่ซ้ำกัน (Unique P/O) และ Item จาก Item Name ที่ไม่ซ้ำกัน
+        po_col = 'P/O' if 'P/O' in df.columns else df.columns[9]
+        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
+        
+        total_sup = df[po_col].nunique() if po_col in df.columns else df.shape[0]
+        total_item = df[item_col].nunique() if item_col in df.columns else total_sup
         
         # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
