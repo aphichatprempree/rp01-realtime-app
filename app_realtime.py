@@ -39,18 +39,17 @@ if uploaded_file is not None:
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
-        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name หรือ Vendor) เพื่อไม่เอาแถวสรุปมารวม
+        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
         total_sup = df.shape[0]
         total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ล็อกตำแหน่งคอลัมน์ UOM Qty และ Pallets Qty ให้แม่นยำ (ป้องกันการดึงคอลัมน์อื่นมาบวกรวม)
+        # ล็อกตำแหน่งคอลัมน์ UOM Qty และ Pallets Qty ให้แม่นยำ (Column R=18, Column V=22)
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[18]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[22]
         
-        # แปลงเป็นตัวเลขและรวมยอดอย่างถูกต้อง
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
@@ -97,38 +96,15 @@ if uploaded_file is not None:
             dcsb_data = {"Date": [current_date], "Item": [int(total_item * 0.6)], "Palletes": [int(total_palletes * 0.6)], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
-        # --- ตารางที่ 3: Vendors CARD & COINS ---
-        st.markdown('<div class="sub-title">Vendors CARD & COINS</div>', unsafe_allow_html=True)
+        # --- ตารางที่ 3: Vendors CARD & COINS (ตรวจสอบจาก Master Data พิเศษ และกรอง P/O ไม่ให้ซ้ำ) ---
+        st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
-        if 'Information Sup. Card & Coin' in xls.sheet_names:
-            card_info = pd.read_excel(uploaded_file, sheet_name='Information Sup. Card & Coin')
-            card_ids = card_info['VENDOR'].astype(str).tolist()
-            
-            if 'Vendor' in df.columns:
-                df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0]
-                card_df = df[df['Vendor_str'].isin(card_ids)]
-                
-                if not card_df.empty:
-                    vendor_table = card_df[['Vendor_str', 'Vendor Name', 'P/O', pallets_col, uom_col]].copy()
-                    vendor_table.columns = ["Vendor", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty"]
-                    st.dataframe(vendor_table, use_container_width=True, hide_index=True)
-                else:
-                    st.info("ไม่พบรายการ Vendor CARD & COINS ในรอบเวลานี้")
-            else:
-                st.warning("ไม่พบคอลัมน์ Vendor ในข้อมูลรายละเอียด")
-        else:
-            st.warning("ไม่พบชีทข้อมูล Information Sup. Card & Coin ในไฟล์ Excel")
-        
-        # Grand Total Bar
-        st.markdown(f"""
-            <div style='background-color: #047857; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; font-size: 15px;'>
-                <span>Grand Total</span>
-                <span>Pallets: {total_palletes:,.0f}</span>
-                <span>UOM Qty: {total_uom:,.0f}</span>
-            </div>
-        """, unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
-else:
-    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อเริ่มแสดงผลรายงานประมาณการรับสินค้า")
+        # ฐานข้อมูล Master Supplier พิเศษที่คุณให้มา
+        special_data = [
+            (592, "ไปรษณีย์ไทย บจก", "CARD"), (3751, "เลนโซ่ คอมมิวเค", "CARD"), (3924, "ฮาตาริเทคโนโลยี", "CARD"),
+            (12457, "ซันร้อยแปด บจก.", "CARD"), (12790, "เค เอส ซี คอมเม", "CARD"), (12810, "เอเชียซอฟท์ คอร", "CARD"),
+            (12922, "ยูไนเต็ดดิสทริบ", "CARD"), (12990, "ทรู ดิสทริบิวชั", "CARD"), (13725, "ซีเอส ล็อกซอินโ", "CARD"),
+            (17157, "ไทยสมาร์ทการ์ด", "CARD"), (21189, "ที.เค.เอส.สยามเพรส แมเนจเม้นท์", "STAMP"), (21265, "พิกุล แย้มขยาย", "COIN"),
+            (21541, "เกตุ แย้มขยาย", "COIN"), (21653, "แจ๊คริช", "COIN"), (21738, "รมิตา เพ็งเพ็ชร", "COIN"),
+            (40334, "กิตติภัทร เหล็กกล้า", "COIN"), (40352, "ประกิจ แย้มขยาย", "COIN"), (40678, "ภัสมน ชาว", "COIN"),
+            (41068, "ภัสสมน บจก.", "COIN"), (
