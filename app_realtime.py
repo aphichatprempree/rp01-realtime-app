@@ -29,11 +29,11 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และเลือกชีทรายละเอียด 'Detail Schedule' (ตัดแถวหัวข้อ 1 บรรทัดออกโดยใช้ header=1)
+        # เปิดไฟล์ Excel และอ่านข้อมูลจากแถวหัวตารางจริง (header=3 สำหรับไฟล์รูปแบบใหม่)
         xls = pd.ExcelFile(uploaded_file)
-        target_sheet = 'Detail Schedule' if 'Detail Schedule' in xls.sheet_names else xls.sheet_names[0]
+        target_sheet = xls.sheet_names[0]
         
-        df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=1)
+        df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
         current_date = datetime.date.today().strftime("%d %b %y")
         
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
@@ -46,9 +46,9 @@ if uploaded_file is not None:
         total_sup = df.shape[0]
         total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ล็อกตำแหน่งคอลัมน์ UOM Qty (Index 18) และ Pallets Qty (Index 22) ให้แม่นยำ
-        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[18]
-        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[22]
+        # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
+        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
+        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
         
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
@@ -96,7 +96,7 @@ if uploaded_file is not None:
             dcsb_data = {"Date": [current_date], "Item": [int(total_item * 0.6)], "Palletes": [int(total_palletes * 0.6)], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
-        # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers) ---
+        # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers - กรอง P/O ไม่ให้ซ้ำ) ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
         special_data = [
