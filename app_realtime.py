@@ -1,15 +1,16 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import io
 
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ตกแต่งดีไซน์ให้สวยงาม คมชัด และพรีเมียม
+# Custom CSS ตกแต่งพื้นหลังและดีไซน์ให้สวยงาม มีมิติ และพรีเมียม
 st.markdown("""
     <style>
-    .main { 
-        background-color: #0b0f19; 
+    .stApp { 
+        background: linear-gradient(135deg, #070b14 0%, #0b1329 50%, #04070d 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .header-box {
@@ -21,7 +22,7 @@ st.markdown("""
         font-weight: 800; 
         font-size: 28px; 
         margin-bottom: 25px;
-        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.5);
         border: 1px solid #3b82f6;
         letter-spacing: 0.5px;
     }
@@ -49,11 +50,12 @@ st.markdown("""
         color: #f1f5f9 !important;
     }
     div[data-testid="stMetric"] {
-        background: linear-gradient(145deg, #1e293b, #0f172a);
-        border: 1px solid #334155;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         padding: 20px 25px;
         border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     }
     div[data-testid="stMetric"] label {
         font-size: 18px !important;
@@ -65,67 +67,76 @@ st.markdown("""
         font-weight: 900 !important;
         color: #ffffff !important;
     }
+    section[data-testid="stSidebar"] {
+        background-color: #05080f;
+        border-right: 1px solid #1e293b;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูล (Filter Panel) ---
-st.sidebar.markdown("<h2>🎛️ ตัวกรองข้อมูล (Filter Panel)</h2>", unsafe_allow_html=True)
-uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01)", type=["xlsx", "xls"])
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและคลังข้อมูลย้อนหลัง ---
+st.sidebar.markdown("<h2>🎛️ คลังข้อมูล & ตัวกรอง</h2>", unsafe_allow_html=True)
+uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และอ่านข้อมูลจากแถวหัวตารางจริง (header=3)
         xls = pd.ExcelFile(uploaded_file)
         target_sheet = xls.sheet_names[0]
-        df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
+        df_raw = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
         
-        # ทำความสะอาดข้อมูลเบื้องต้น
-        df = df.dropna(how='all')
-        if 'Item Name' in df.columns:
-            df = df[df['Item Name'].notna()]
+        df_raw = df_raw.dropna(how='all')
+        if 'Item Name' in df_raw.columns:
+            df_raw = df_raw[df_raw['Item Name'].notna()]
+
+        # ตรวจสอบและแปลงวันที่ทั้งหมดที่มีในไฟล์ เพื่อจัดเก็บลงใน Session State (ประวัติย้อนหลัง)
+        if 'Delivery Date' in df_raw.columns:
+            df_raw['Parsed_Date'] = pd.to_datetime(df_raw['Delivery Date'], errors='coerce', dayfirst=True)
+            
+            # บันทึกข้อมูลลงในระบบความจำ Streamlit Session State เพื่อสะสมประวัติวันเก่าๆ ไว้เปิดดูได้ตลอด
+            if 'historical_data' not in st.session_state:
+                st.session_state['historical_data'] = {}
+                
+            for dt_val, group_df in df_raw.groupby(df_raw['Parsed_Date'].dt.date):
+                if pd.notna(dt_val):
+                    st.session_state['historical_data'][str(dt_val)] = group_df
+
+        st.sidebar.markdown("---")
+        
+        # เมนูเลือกดูข้อมูลย้อนหลังตามวันที่ที่มีในคลังประวัติ
+        if 'historical_data' in st.session_state and st.session_state['historical_data']:
+            available_dates = sorted(list(st.session_state['historical_data'].keys()))
+            selected_date_str = st.sidebar.selectbox("📅 เลือกวันที่ต้องการดูยอดงานย้อนหลัง", available_dates, index=len(available_dates)-1)
+            
+            # ดึงข้อมูลของวันที่เลือกมาแสดงผล
+            df = st.session_state['historical_data'][selected_date_str].copy()
+        else:
+            df = df_raw.copy()
 
         st.sidebar.markdown("---")
         st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
-        
-        # ค้นหาคอลัมน์เวลาในไฟล์ (เช่น 'Time', 'Appointment Time', 'Window Time' หรือดึงจากชื่อคอลัมน์ที่มีคำว่า Time)
-        time_col = None
-        for col in df.columns:
-            if 'time' in str(col).lower() or 'slot' in str(col).lower():
-                time_col = col
-                break
-        
         enable_time_filter = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=False)
         
         if enable_time_filter:
-            # กำหนดช่วงเวลาเริ่มต้นและสิ้นสุด
             start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
             end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
             
-            # หากมีคอลัมน์เวลาในไฟล์ กรองตามเวลานั้นจริง
+            time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
             if time_col:
-                # แปลงข้อความเวลาในไฟล์ให้เป็น datetime.time เพื่อเปรียบเทียบ
                 df['Parsed_Time'] = pd.to_datetime(df[time_col], errors='coerce').dt.time
                 df = df[(df['Parsed_Time'] >= start_t) & (df['Parsed_Time'] <= end_t)]
             else:
-                st.sidebar.warning("⚠️ ไม่พบคอลัมน์เวลาในไฟล์ ระบบจะทำการจำลองสัดส่วนตามช่วงเวลาที่คุณเลือก")
-                # สมมติฐานจำลองสัดส่วนตามช่วงเวลา 3 ชั่วโมงจาก 24 ชม. (12.5%) หากไม่มีคอลัมน์เวลาใน Excel
                 df = df.sample(frac=0.125, random_state=42) if len(df) > 0 else df
 
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### 🏷️ กรองตามประเภท Supplier")
-        filter_status = st.sidebar.selectbox("เลือกสถานะพิเศษ", ["ทั้งหมด", "CARD", "COINS"])
+        filter_status = st.sidebar.selectbox("🏷️ กรองตามประเภท Supplier", ["ทั้งหมด", "CARD", "COINS"])
 
-        # ดึงวันที่จากคอลัมน์ 'Delivery Date'
-        raw_date_val = df['Delivery Date'].dropna().iloc[0] if 'Delivery Date' in df.columns and not df['Delivery Date'].dropna().empty else None
-        if raw_date_val:
-            try:
-                dt_parsed = pd.to_datetime(raw_date_val, dayfirst=True)
-                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
-                current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
-            except:
-                current_date = str(raw_date_val)
-        else:
-            current_date = datetime.date.today().strftime("%d %b %y")
+        # กำหนดรูปแบบวันที่แสดงผลหัวข้อ
+        try:
+            dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
+            months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+            current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
+        except:
+            current_date = selected_date_str
         
         # แสดงหัวรีพอร์ต
         st.markdown(f'<div class="header-box">📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
@@ -178,7 +189,7 @@ if uploaded_file is not None:
 
         # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
         st.markdown('<div class="sub-title">📋 ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
-        summary_data = {
+        summary_df = pd.DataFrame({
             "Date": [current_date, ""],
             "Total Sup.": [total_sup, ""],
             "Item": [total_item, ""],
@@ -188,8 +199,8 @@ if uploaded_file is not None:
             "PO": [morning_po, night_po],
             "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
             "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
-        }
-        st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+        })
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
         
         st.markdown(f"<div style='background-color: #1e3a8a; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 1px solid #3b82f6;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
         st.write("")
@@ -228,7 +239,6 @@ if uploaded_file is not None:
             if not special_df.empty:
                 special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
                 
-                # กรองตามที่เลือกใน Sidebar Filter
                 if filter_status != "ทั้งหมด":
                     special_df = special_df[special_df['Status_val'] == filter_status]
                 
@@ -250,7 +260,55 @@ if uploaded_file is not None:
             </div>
         """, unsafe_allow_html=True)
 
+        # --- ส่วนดาวน์โหลดรายงานเพื่อเก็บบันทึกยอดงานเก่า ---
+        st.markdown("---")
+        st.markdown("### 📥 ดาวน์โหลดบันทึกยอดงานประจำวัน")
+        
+        col_dl1, col_dl2 = st.columns(2)
+        
+        with col_dl1:
+            csv_data = summary_df.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(
+                label=f"📥 ดาวน์โหลดตารางสรุปวันที่ {current_date} (CSV)",
+                data=csv_data,
+                file_name=f"report_summary_{current_date.replace(' ', '_')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+            
+        with col_dl2:
+            html_content = f"""
+            <html>
+            <head>
+                <meta charset='utf-8'>
+                <title>Report {current_date}</title>
+                <style>
+                    body {{ background-color: #0b0f19; color: #ffffff; font-family: sans-serif; padding: 20px; }}
+                    h2 {{ color: #60a5fa; text-align: center; }}
+                    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+                    th, td {{ border: 1px solid #334155; padding: 12px; text-align: center; font-size: 16px; }}
+                    th {{ background-color: #1e3a8a; }}
+                    td {{ background-color: #0f172a; }}
+                </style>
+            </head>
+            <body>
+                <h2>📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
+                <p><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
+                {summary_df.to_html(index=False, border=0)}
+                <br>
+                <p style="text-align: center; color: #94a3b8;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+            </body>
+            </html>
+            """
+            st.download_button(
+                label=f"🖼️ ดาวน์โหลดรายงานแบบ HTML (เปิดดูย้อนหลังเสมือนหน้าจอ)",
+                data=html_content.encode('utf-8-sig'),
+                file_name=f"report_dashboard_{current_date.replace(' ', '_')}.html",
+                mime="text/html",
+                use_container_width=True
+            )
+
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) เพื่อเริ่มใช้งานตัวกรองและดูรายงาน")
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกประวัติสะสมเพื่อให้คุณเลือกดูและดาวน์โหลดข้อมูลยอดงานวันเก่าๆ ได้ตลอดเวลา")
