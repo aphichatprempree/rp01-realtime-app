@@ -325,19 +325,15 @@ if active_source is not None and not df.empty:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # นับจำนวนบรรทัดทั้งหมดใน DataFrame โดยตรง เพื่อให้ได้ยอด Item และ P/O ครบถ้วนไม่ถูกหักลบ
-        total_sup = df['Vendor Name'].dropna().nunique() if 'Vendor Name' in df.columns else len(df)
+        # กำหนดชื่อคอลัมน์ Vendor Name และจำนวนทั้งหมดแบบตรงเป๊ะ
+        sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
+        total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
         total_item = len(df)  # ใช้จำนวนแถวทั้งหมดของ Item เป็นยอดจริง
+        total_po = len(df)    # ใช้จำนวนแถวทั้งหมดของ P/O เป็นยอดจริง
 
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
-        po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
-        if not po_col_raw:
-            po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
-
-        # นับจำนวน P/O จากจำนวนแถวทั้งหมดตรงๆ
-        total_po = len(df)
-
+        
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
@@ -413,6 +409,10 @@ if active_source is not None and not df.empty:
         v_col = next((c for c in df.columns if 'vendor' in str(c).lower() and 'name' not in str(c).lower()), None)
         if not v_col:
             v_col = 'Vendor' if 'Vendor' in df.columns else df.columns[3]
+            
+        po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
+        if not po_col_raw:
+            po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
 
         if v_col in df.columns and po_col_raw in df.columns:
             df['Vendor_str'] = df[v_col].astype(str).str.split('.').str[0].str.strip()
