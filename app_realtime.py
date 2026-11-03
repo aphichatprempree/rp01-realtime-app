@@ -406,36 +406,17 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        col_main_left, col_main_right = st.columns([1.1, 1])
-
-        with col_main_left:
-            st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
-            summary_df = pd.DataFrame({
-                "Date": [current_date, ""],
-                "Total Sup.": [total_sup, ""],
-                "Item": [total_item, ""],
-                "UOM Qty": [f"{total_uom:,.0f}", ""],
-                "Net Pallets": [f"{total_pallets:,.0f}", ""],
-                "Shift": ["Shift Night [05:00-17:00]", "Shift Morning [17:00-05:00]"],
-                "PO": [night_po, morning_po],
-                "Total": [f"{night_pallets:,.0f}", f"{morning_pallets:,.0f}"],
-                "คิดเป็น %": [f"{night_pct:.2f}%", f"{morning_pct:.2f}%"]
-            })
-            st.dataframe(summary_df, use_container_width=True, hide_index=True)
-            # ซ่อนแถบแสดงผล TOTAL PALLETS ด้านล่างนี้ แต่ยังเก็บค่าตัวแปรไว้ใช้งานตามปกติ
-            # st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
-
-        with col_main_right:
-            st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
-            sub_c1, sub_c2 = st.columns(2)
-            with sub_c1:
-                st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-                dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]}
-                st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
-            with sub_c2:
-                st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-                dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]}
-                st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+        # --- ซ่อนตารางภาพรวม และนำตาราง DCSBx / DCSB มาขยายเต็มความกว้าง (1 โคลัมน์เดี่ยวเต็มจอ) ---
+        st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
+        sub_c1, sub_c2 = st.columns(2)
+        with sub_c1:
+            st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
+            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]}
+            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+        with sub_c2:
+            st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
+            dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]}
+            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
         st.markdown("---")
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
@@ -494,7 +475,15 @@ if active_source is not None and not df.empty:
         col_dl1, col_dl2, col_dl3 = st.columns(3)
         
         with col_dl1:
-            csv_data = summary_df.to_csv(index=False).encode('utf-8-sig')
+            # สร้าง summary_df สำรองไว้สำหรับส่งออกข้อมูล CSV โดยไม่กระทบการแสดงผลหน้าจอ
+            summary_df_export = pd.DataFrame({
+                "Date": [current_date],
+                "Total Sup.": [total_sup],
+                "Item": [total_item],
+                "UOM Qty": [f"{total_uom:,.0f}"],
+                "Net Pallets": [f"{total_pallets:,.0f}"]
+            })
+            csv_data = summary_df_export.to_csv(index=False).encode('utf-8-sig')
             st.download_button(
                 label=f"📥 ดาวน์โหลดตารางสรุป (CSV)",
                 data=csv_data,
@@ -522,7 +511,6 @@ if active_source is not None and not df.empty:
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
                 <p style="font-size: 22px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
-                {summary_df.to_html(index=False, border=0)}
                 <br>
                 <div style="text-align: center;">
                     <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 14px 28px; font-size: 20px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
