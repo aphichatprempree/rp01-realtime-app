@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS (ควบคุมขนาดและสีดำเข้มของตารางทั้งหมดอย่างไร้รอยต่อ)
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -93,36 +93,6 @@ st.markdown(f"""
         border-radius: 8px 8px 0 0; 
         font-size: 22px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-
-    /* === ควบคุมขนาดและสีดำเข้มสำหรับตารางบน (DCSBx / DCSB) === */
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
-        font-size: {int(dcs_size * 0.75)}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-    }}
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
-        font-size: {dcs_size}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-    }}
-
-    /* === ควบคุมขนาดและสีดำเข้มสำหรับตารางล่าง (Vendors CARD & COINS) === */
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] th {{
-        font-size: {int(vendor_size * 0.85)}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
-        background-color: #cbd5e1 !important;
-    }}
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] td {{
-        font-size: {vendor_size}px !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -349,7 +319,7 @@ if active_source is not None and not df.empty:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # นับจำนวน Supplier เฉพาะชื่อไม่ซ้ำกัน
+        # นับจำนวน Supplier และคำนวณจำนวน P/O รวมจากข้อมูลจริง (ถอดรหัสคอลัมน์ P/O)
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         if sup_col in df.columns:
             df['Sup_clean'] = df[sup_col].astype(str).str.strip()
@@ -366,7 +336,16 @@ if active_source is not None and not df.empty:
         
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
-        
+        po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
+        if not po_col_raw:
+            po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
+
+        if po_col_raw in df.columns:
+            df['PO_clean'] = pd.to_numeric(df[po_col_raw], errors='coerce').fillna(df[po_col_raw]).astype(str).str.split('.').str[0]
+            total_po = df['PO_clean'].nunique()
+        else:
+            total_po = total_sup
+
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
@@ -383,8 +362,9 @@ if active_source is not None and not df.empty:
         night_pallets = round(total_pallets * ratio_night, 2)
         morning_pallets = round(total_pallets - night_pallets, 2)
 
-        night_po = int(total_sup * ratio_night)
-        morning_po = total_sup - night_po
+        # คำนวณยอด PO แยกกะตามสัดส่วนพาเลท
+        night_po = round(total_po * ratio_night)
+        morning_po = total_po - night_po
         
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
@@ -395,7 +375,7 @@ if active_source is not None and not df.empty:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน (เพิ่ม PO กะดึกและกะเช้าให้ตรงกัน)
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -407,21 +387,21 @@ if active_source is not None and not df.empty:
             st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
-            st.metric("🌙 ยอดกะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
+            st.metric("🌙 กะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_po:,} PO ({night_pct:.1f}%)")
         with c6:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
-            st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
+            st.metric("☀️ กะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_po:,} PO ({morning_pct:.1f}%)")
 
-        # --- ตาราง DCSBx / DCSB (ใช้ st.dataframe มาตรฐานปลอดภัยสูง) ---
+        # --- ตาราง DCSBx / DCSB ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_df = pd.DataFrame({"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]})
+            dcsbx_df = pd.DataFrame({"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [int(total_po * 0.4)], "%": ["37.73%"]})
             st.dataframe(dcsbx_df, use_container_width=True, hide_index=True)
         with sub_c2:
             st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_df = pd.DataFrame({"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]})
+            dcsb_df = pd.DataFrame({"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [total_po - int(total_po * 0.4)], "%": ["62.27%"]})
             st.dataframe(dcsb_df, use_container_width=True, hide_index=True)
 
         st.markdown("---")
@@ -437,18 +417,14 @@ if active_source is not None and not df.empty:
             "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
         ]
         
-        # ค้นหาคอลัมน์ Vendor และ P/O แบบยืดหยุ่น ป้องกันชื่อคอลัมน์ไม่ตรง
+        # ค้นหาคอลัมน์ Vendor และ P/O แบบยืดหยุ่น
         v_col = next((c for c in df.columns if 'vendor' in str(c).lower() and 'name' not in str(c).lower()), None)
         if not v_col:
             v_col = 'Vendor' if 'Vendor' in df.columns else df.columns[3]
-            
-        po_col = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
-        if not po_col:
-            po_col = 'P/O' if 'P/O' in df.columns else df.columns[1]
 
-        if v_col in df.columns and po_col in df.columns:
+        if v_col in df.columns and po_col_raw in df.columns:
             df['Vendor_str'] = df[v_col].astype(str).str.split('.').str[0].str.strip()
-            df['PO_clean'] = pd.to_numeric(df[po_col], errors='coerce').fillna(df[po_col]).astype(str).str.split('.').str[0]
+            df['PO_clean'] = pd.to_numeric(df[po_col_raw], errors='coerce').fillna(df[po_col_raw]).astype(str).str.split('.').str[0]
             
             special_df = df[df['Vendor_str'].isin(card_vendors + coins_vendors)].copy()
             
@@ -462,7 +438,6 @@ if active_source is not None and not df.empty:
                 vendor_table = unique_special[['Vendor_str', sup_col, 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
                 
-                # แสดงผลตาราง Vendor ด้วย st.dataframe ตามมาตรฐาน Streamlit
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
             else:
                 st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
