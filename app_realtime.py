@@ -11,7 +11,7 @@ SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
 # --- กำหนดค่าเริ่มต้นใน Session State ---
 if 'font_size' not in st.session_state:
-    st.session_state['font_size'] = 36  # ปรับขนาดเริ่มต้นให้พอดีตาและประหยัดพื้นที่
+    st.session_state['font_size'] = 36
 if 'font_weight' not in st.session_state:
     st.session_state['font_weight'] = "900 (หนาพิเศษ)"
 if 'enable_time_filter' not in st.session_state:
@@ -49,7 +49,7 @@ active_source = None
 if os.path.exists(SERVER_SAVE_FILE):
     active_source = SERVER_SAVE_FILE
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที (ลด Padding ให้กระชับขึ้น)
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที
 st.markdown(f"""
     <style>
     /* ลดระยะห่างขอบบน-ล่างของหน้าเว็บหลักเพื่อให้เนื้อหาแน่นขึ้น */
@@ -316,7 +316,7 @@ if active_source is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards)
+        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards) - สลับให้กะเช้าอยู่ซ้าย กะดึกอยู่ขวาถูกต้อง
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
