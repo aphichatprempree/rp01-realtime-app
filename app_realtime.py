@@ -301,8 +301,8 @@ if active_file is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน (Metric Cards)
-        c1, c2, c3, c4 = st.columns(4)
+        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards)
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
         with c2:
@@ -311,6 +311,10 @@ if active_file is not None:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
             st.metric("Net Pallets", f"{total_palletes:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
+        with c5:
+            st.metric("☀️ ยอดกะเช้า", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
+        with c6:
+            st.metric("🌙 ยอดกะดึก", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
 
         st.markdown("---")
 
@@ -335,7 +339,7 @@ if active_file is not None:
             st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
-            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน (เอาคำว่า สัดส่วนคลัง ออก เหลือแค่ DCSBx / DCSB) ---
+            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
             st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
             sub_c1, sub_c2 = st.columns(2)
             with sub_c1:
