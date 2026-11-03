@@ -67,7 +67,7 @@ if uploaded_file is not None:
         else:
             total_item = total_sup
         
-        # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
+        # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty อย่างแม่นยำ
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
         
@@ -129,16 +129,3 @@ if uploaded_file is not None:
         ]
         
         if 'Vendor' in df.columns and 'P/O' in df.columns:
-            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
-            df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
-            
-            special_df = df[df['Vendor_str'].isin(special_vendors)]
-            
-            if not special_df.empty:
-                unique_special = special_df.drop_duplicates(subset=['PO_clean'])
-                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col]].copy()
-                vendor_table['Status'] = "SPECIAL"
-                vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
-                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
-            else:
-                st.info("💡 ไม่พบรายการ
