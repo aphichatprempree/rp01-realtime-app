@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import io
 
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
@@ -8,13 +9,10 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # Custom CSS ขยายขนาดและเพิ่มความเข้มตัวอักษรให้คมชัด อ่านง่าย
 st.markdown("""
     <style>
-    /* ธีมสีหลักและฟอนต์ */
     .main { 
         background-color: #0b0f19; 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
         padding: 22px; 
@@ -28,8 +26,6 @@ st.markdown("""
         border: 1px solid #3b82f6;
         letter-spacing: 0.5px;
     }
-    
-    /* หัวข้อรอง (Sub-title) ใหญ่และเข้มขึ้น */
     .sub-title {
         color: #60a5fa; 
         font-weight: 800; 
@@ -40,27 +36,19 @@ st.markdown("""
         margin-bottom: 15px;
         letter-spacing: 0.3px;
     }
-    
-    /* ขยายขนาดและเพิ่มความเข้มตัวอักษรภายในตาราง (Dataframe) ทั้งหมด */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
         font-size: 18px !important;
     }
-    
-    /* หัวตารางตัวหนังสือเข้มและใหญ่ขึ้น */
     div[data-testid="stDataFrame"] th {
         font-size: 18px !important;
         font-weight: 800 !important;
         color: #ffffff !important;
     }
-    
-    /* ข้อมูลในตารางตัวหนังสือใหญ่และหนาขึ้นเพื่อความคมชัด */
     div[data-testid="stDataFrame"] td {
         font-size: 18px !important;
         font-weight: 600 !important;
         color: #f1f5f9 !important;
     }
-    
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวหนังสือใหญ่และเข้มสะใจ */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #1e293b, #0f172a);
         border: 1px solid #334155;
@@ -81,8 +69,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ช่องอัปโหลดไฟล์ Excel
-uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
+# แผงควบคุมด้านบน: อัปโหลดไฟล์ และ ตัวเลือกดูข้อมูลย้อนหลัง
+col_up1, col_up2 = st.columns([2, 1])
+with col_up1:
+    uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
@@ -92,29 +82,43 @@ if uploaded_file is not None:
         
         df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
         
-        # ดึงวันที่จากคอลัมน์ 'Delivery Date' แถวแรกสุดมาอ้างอิง
+        # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
+        df = df.dropna(how='all')
+        
+        if 'Item Name' in df.columns:
+            df = df[df['Item Name'].notna()]
+
+        # ตรวจสอบวันที่ที่มีทั้งหมดในไฟล์ เพื่อทำระบบเลือกดูย้อนหลัง
+        if 'Delivery Date' in df.columns:
+            df['Parsed_Date'] = pd.to_datetime(df['Delivery Date'], errors='coerce', dayfirst=True)
+            available_dates = sorted(df['Parsed_Date'].dropna().dt.date.unique())
+        else:
+            available_dates = []
+
+        with col_up2:
+            if available_dates:
+                selected_date_filter = st.selectbox("📅 เลือกวันที่ต้องการดูข้อมูลย้อนหลัง", available_dates, index=len(available_dates)-1)
+                # กรองข้อมูลเฉพาะวันที่เลือก
+                df = df[df['Parsed_Date'].dt.date == selected_date_filter]
+            else:
+                selected_date_filter = datetime.date.today()
+
+        # ดึงวันที่มาแสดงผลอ้างอิง
         raw_date_val = df['Delivery Date'].dropna().iloc[0] if 'Delivery Date' in df.columns and not df['Delivery Date'].dropna().empty else None
         
         if raw_date_val:
             try:
                 dt_parsed = pd.to_datetime(raw_date_val, dayfirst=True)
-                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
                 current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
             except:
                 current_date = str(raw_date_val)
         else:
             current_date = datetime.date.today().strftime("%d %b %y")
         
-        # แสดงหัวรีพอร์ตพร้อมวันที่อ้างอิงจาก Delivery Date
+        # แสดงหัวรีพอร์ตพร้อมวันที่อ้างอิง
         st.markdown(f'<div class="header-box">📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
         
-        # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
-        df = df.dropna(how='all')
-        
-        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
-        if 'Item Name' in df.columns:
-            df = df[df['Item Name'].notna()]
-            
         # กำหนด Total Sup. เป็น 222 ตามที่คุณต้องการ
         total_sup = 222
         
@@ -196,7 +200,6 @@ if uploaded_file is not None:
         # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers) ---
         st.markdown('<div class="sub-title">⭐ Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
-        # แบ่งรายการ Supplier ออกเป็นกลุ่ม CARD และ COINS ตามที่คุณต้องการแยก (สามารถปรับแก้รายชื่อ ID แยกได้ตามจริง)
         card_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
             "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
@@ -217,9 +220,7 @@ if uploaded_file is not None:
             special_df = df[df['Vendor_str'].isin(special_vendors)].copy()
             
             if not special_df.empty:
-                # กำหนดสถานะเป็น CARD หรือ COINS ตามกลุ่มรายชื่อ
                 special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
-                
                 unique_special = special_df.drop_duplicates(subset=['PO_clean'])
                 vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
@@ -237,6 +238,19 @@ if uploaded_file is not None:
                 <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
+
+        # --- ฟังก์ชันส่งออกข้อมูลเป็น CSV/Excel สำหรับดาวน์โหลดเก็บไว้ ---
+        st.markdown("---")
+        st.markdown("### 📥 ดาวน์โหลดรายงานสรุปประจำวัน")
+        
+        # แปลงตารางสรุปเป็น CSV เพื่อให้กดดาวน์โหลดเก็บไว้ดูย้อนหลังได้ทันที
+        csv_data = pd.DataFrame(summary_data).to_csv(index=False).encode('utf-8-sig')
+        st.download_button(
+            label=f"📥 ดาวน์โหลดข้อมูลสรุปประจำวันที่ {current_date} (CSV)",
+            data=csv_data,
+            file_name=f"report_summary_{current_date.replace(' ', '_')}.csv",
+            mime="text/csv",
+        )
 
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
