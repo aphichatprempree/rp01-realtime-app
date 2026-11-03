@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ทุกตารางให้ใหญ่ขึ้นอีก 5 ระดับ (36px) หนาและชัดเจนขั้นสุด
+# Custom CSS: ขยายขนาดฟอนต์เฉพาะตารางภาพรวมสรุปกะการทำงานเป็น 40px
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -81,19 +81,34 @@ st.markdown("""
         font-size: 30px;
     }
     
-    /* === ขยายขนาดฟอนต์ในทุกตาราง (DataFrame) ให้ใหญ่จัมโบ้ (36px) หนาชัดเจนขั้นสุด === */
-    div[data-testid="stDataFrame"] th {
-        font-size: 32px !important;
+    /* === ขยายขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ให้เป็นขนาด 40px === */
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {
+        font-size: 34px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
-        padding: 20px !important;
+        padding: 22px !important;
     }
-    div[data-testid="stDataFrame"] td {
-        font-size: 36px !important;
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {
+        font-size: 40px !important;
         font-weight: 900 !important;
         color: #000000 !important;
-        padding: 18px !important;
+        padding: 22px !important;
+    }
+
+    /* ตารางอื่นๆ (DCSBx/DCSB และ Special Suppliers) ให้ขนาดมาตรฐานชัดเจน */
+    div[data-testid="stDataFrame"] th {
+        font-size: 24px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        background-color: #e2e8f0 !important;
+        padding: 14px !important;
+    }
+    div[data-testid="stDataFrame"] td {
+        font-size: 26px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        padding: 14px !important;
     }
     
     /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
@@ -272,7 +287,7 @@ if uploaded_file is not None:
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (ฟอนต์ขนาดใหญ่ 40px) ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
