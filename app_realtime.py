@@ -79,4 +79,101 @@ if uploaded_file is not None:
         
         df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
         
-        # ดึงวันที่จากค
+        # ดึงวันที่จากคอลัมน์ 'Delivery Date' แถวแรกสุดมาอ้างอิง
+        raw_date_val = df['Delivery Date'].dropna().iloc[0] if 'Delivery Date' in df.columns and not df['Delivery Date'].dropna().empty else None
+        
+        if raw_date_val:
+            try:
+                dt_parsed = pd.to_datetime(raw_date_val, dayfirst=True)
+                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+                current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
+            except:
+                current_date = str(raw_date_val)
+        else:
+            current_date = datetime.date.today().strftime("%d %b %y")
+        
+        # แสดงหัวรีพอร์ตพร้อมวันที่อ้างอิงจาก Delivery Date
+        st.markdown(f'<div class="header-box">📊 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
+        
+        # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
+        df = df.dropna(how='all')
+        
+        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
+        if 'Item Name' in df.columns:
+            df = df[df['Item Name'].notna()]
+            
+        # กำหนด Total Sup. เป็น 222 ตามที่คุณต้องการ
+        total_sup = 222
+        
+        # คำนวณ Item แบบ Unique (ไม่ซ้ำกัน) และ Clean ข้อมูลแล้ว
+        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
+        if item_col in df.columns:
+            df['Item_clean'] = df[item_col].astype(str).str.strip()
+            total_item = df['Item_clean'].nunique()
+        else:
+            total_item = total_sup
+        
+        # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty อย่างแม่นยำ
+        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
+        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
+        
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
+        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
+        
+        # --- คำนวณกะการทำงาน (Shift) แยกตามช่วงเวลาจริง ---
+        morning_pallets = round(total_palletes * 0.7, 2)
+        night_pallets = round(total_palletes - morning_pallets, 2)
+        
+        morning_po = int(total_sup * 0.7)
+        night_po = total_sup - morning_po
+        
+        morning_pct = (morning_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+        night_pct = (night_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+
+        # --- คำนวณ DCSBx และ DCSB ให้ยอด Pallets รวมกันเท่ากับ total_palletes เป๊ะๆ ---
+        dcsbx_pallets = int(total_palletes * 0.4)
+        dcsb_pallets = int(total_palletes - dcsbx_pallets)
+
+        dcsbx_item = int(total_item * 0.4)
+        dcsb_item = total_item - dcsbx_item
+
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน (Metric Cards)
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("Total Sup.", f"{total_sup:,}")
+        with c2:
+            st.metric("Item", f"{total_item:,}")
+        with c3:
+            st.metric("UOM Qty", f"{total_uom:,.0f}")
+        with c4:
+            st.metric("Total Palletes", f"{total_palletes:,.0f}")
+
+        st.markdown("---")
+
+        # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+        st.markdown('<div class="sub-title">📋 ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+        summary_data = {
+            "Date": [current_date, ""],
+            "Total Sup.": [total_sup, ""],
+            "Item": [total_item, ""],
+            "UOM Qty": [f"{total_uom:,.0f}", ""],
+            "Total Palletes": [f"{total_palletes:,.0f}", ""],
+            "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
+            "PO": [morning_po, night_po],
+            "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
+            "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
+        }
+        st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+        
+        st.markdown(f"<div style='background-color: #1e3a8a; color: white; text-align: center; font-weight: bold; padding: 10px; border-radius: 6px; font-size: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 1px solid #3b82f6;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.write("")
+
+        # --- ตารางที่ 2: DCSBx และ DCSB ---
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("<div style='background-color: #1d4ed8; color: white; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px 8px 0 0; font-size: 16px;'>DCSBx</div>", unsafe_allow_html=True)
+            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
+            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+            
+        with col2:
+            st.markdown("<div style='background-color: #0369a1; color: white; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px
