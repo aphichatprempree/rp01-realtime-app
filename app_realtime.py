@@ -12,6 +12,8 @@ SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 # --- กำหนดค่าเริ่มต้นใน Session State ---
 if 'font_size' not in st.session_state:
     st.session_state['font_size'] = 32
+if 'table_font_size' not in st.session_state:
+    st.session_state['table_font_size'] = 28  # ค่าเริ่มต้นขนาดฟอนต์ในตาราง
 if 'font_weight' not in st.session_state:
     st.session_state['font_weight'] = "900 (หนาพิเศษ)"
 if 'enable_time_filter' not in st.session_state:
@@ -23,9 +25,9 @@ if 'postpone_pallets' not in st.session_state:
 
 # กำหนดค่าตัวแปร weight_val ล่วงหน้า
 weight_val = st.session_state['font_weight'].split()[0]
-font_size_val = st.session_state['font_size']
+table_font_size_val = st.session_state['table_font_size']
 
-# นำค่าฟอนต์มาบังคับใช้ พร้อมปรับแต่งสีและขนาดตารางทุกตารางให้เป็นสีดำเข้มชัดเจน
+# นำค่าฟอนต์มาบังคับใช้ พร้อมรับค่าจากตัวเลื่อน Sidebar ให้ตารางเปลี่ยนขนาดและเป็นสีดำเข้มได้ตามต้องการ
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -96,19 +98,19 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === บังคับขนาดและสีตัวอักษรทุกตารางในหน้าเว็บให้เป็นสีดำเข้มชัดเจน === */
+    /* === บังคับขนาดและสีตัวอักษรทุกตารางในหน้าเว็บตามตัวเลื่อนใน Sidebar === */
     div[data-testid="stDataFrame"] th {{
-        font-size: 20px !important;
+        font-size: {int(table_font_size_val * 0.85)}px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
-        padding: 12px !important;
+        padding: 10px !important;
     }}
     div[data-testid="stDataFrame"] td {{
-        font-size: 28px !important;
+        font-size: {table_font_size_val}px !important;
         font-weight: 900 !important;
         color: #000000 !important;
-        padding: 12px !important;
+        padding: 10px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -305,10 +307,9 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนปรับแต่งขนาดฟอนต์หน้าจอ
-st.sidebar.markdown("### 🔠 4. ปรับแต่งขนาดตัวอักษร")
-st.session_state['font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=14, max_value=45, value=st.session_state['font_size'], step=2)
-st.session_state['font_weight'] = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"].index(st.session_state['font_weight']))
+# 4. ส่วนปรับแต่งขนาดฟอนต์ตารางเองได้อิสระ
+st.sidebar.markdown("### 🔠 4. ปรับขนาดตัวอักษรในตาราง")
+st.session_state['table_font_size'] = st.sidebar.slider("ขนาดฟอนต์ข้อมูลในตาราง (Pixel)", min_value=16, max_value=45, value=st.session_state['table_font_size'], step=2)
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
