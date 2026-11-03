@@ -56,7 +56,7 @@ if uploaded_file is not None:
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
-        # คำนวณ Total Sup. จากจำนวน Supplier ที่ไม่ซ้ำกัน (Unique Vendor)
+        # คำนวณ Total Sup. จากจำนวน Supplier (Vendor) ที่ไม่ซ้ำกัน
         vendor_col = 'Vendor' if 'Vendor' in df.columns else df.columns[2]
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
         
@@ -77,59 +77,4 @@ if uploaded_file is not None:
         with c2:
             st.metric("Item", f"{total_item:,}")
         with c3:
-            st.metric("UOM Qty", f"{total_uom:,.0f}")
-        with c4:
-            st.metric("Total Palletes", f"{total_palletes:,.0f}")
-
-        st.markdown("---")
-
-        # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
-        st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
-        summary_data = {
-            "Date": [current_date, ""],
-            "Total Sup.": [total_sup, ""],
-            "Item": [total_item, ""],
-            "UOM Qty": [f"{total_uom:,.0f}", ""],
-            "Total Palletes": [f"{total_palletes:,.0f}", ""],
-            "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
-            "PO": [int(total_sup * 0.3), int(total_sup * 0.7)],
-            "Total": [int(total_uom * 0.2), int(total_uom * 0.8)],
-            "คิดเป็น %": ["19.91%", "80.09%"]
-        }
-        st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
-        
-        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 6px; border-radius: 4px; font-size: 15px;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
-        st.write("")
-
-        # --- ตารางที่ 2: DCSBx และ DCSB ---
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("<div style='background-color: #ec4899; color: white; text-align: center; font-weight: bold; padding: 6px; border-radius: 4px 4px 0 0;'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_data = {"Date": [current_date], "Item": [int(total_item * 0.4)], "Palletes": [int(total_palletes * 0.4)], "PO": [100], "คิดเป็น %": ["37.73%"]}
-            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
-            
-        with col2:
-            st.markdown("<div style='background-color: #06b6d4; color: black; text-align: center; font-weight: bold; padding: 6px; border-radius: 4px 4px 0 0;'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_data = {"Date": [current_date], "Item": [int(total_item * 0.6)], "Palletes": [int(total_palletes * 0.6)], "PO": [150], "คิดเป็น %": ["62.27%"]}
-            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
-
-        # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers - กรอง P/O ไม่ให้ซ้ำ) ---
-        st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
-        
-        special_data = [
-            (592, "ไปรษณีย์ไทย บจก", "CARD"), 
-            (3751, "เลนโซ่ คอมมิวเค", "CARD"), 
-            (3924, "ฮาตาริเทคโนโลยี", "CARD"),
-            (12457, "ซันร้อยแปด บจก.", "CARD"), 
-            (12790, "เค เอส ซี คอมเม", "CARD"), 
-            (12810, "เอเชียซอฟท์ คอร", "CARD"),
-            (12922, "ยูไนเต็ดดิสทริบ", "CARD"), 
-            (12990, "ทรู ดิสทริบิวชั", "CARD"), 
-            (13725, "ซีเอส ล็อกซอินโ", "CARD"),
-            (17157, "ไทยสมาร์ทการ์ด", "CARD"), 
-            (21189, "ที.เค.เอส.สยามเพรส แมเนจเม้นท์", "STAMP"), 
-            (21265, "พิกุล แย้มขยาย", "COIN"),
-            (21541, "เกตุ แย้มขยาย", "COIN"), 
-            (21653, "แจ๊คริช", "COIN"), 
-            (21738, "รมิตา เพ็งเพ็ชร", "COIN"),
-            (40334, "กิตติภัท
+            st.metric("UOM Qty", f"{total_uom:,.0
