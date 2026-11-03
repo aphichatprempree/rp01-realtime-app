@@ -30,7 +30,7 @@ if uploaded_file is not None:
         
         total_sup = df.shape[0] if not df.empty else 0
         
-        # ฟังก์ชันช่วยค้นหาคอลัมน์แบบยืดหยุ่น (ป้องกันชื่อไม่ตรง)
+        # ฟังก์ชันค้นหาคอลัมน์แบบยืดหยุ่น (ป้องกันชื่อไม่ตรง)
         def find_col(possible_names):
             for col in df.columns:
                 for name in possible_names:
@@ -40,11 +40,13 @@ if uploaded_file is not None:
 
         item_col = find_col(['item', 'sku', 'product'])
         uom_col = find_col(['uom', 'qty', 'quantity', 'จำนวน'])
-        pallets_col = find_col(['pallet', 'pallets', 'PL'])
+        pallets_col = find_col(['pallet', 'pallets', 'pl'])
 
         total_item = df[item_col].nunique() if item_col and item_col in df.columns else total_sup
-        total_uom = pd.to_numeric(df[uom_col], errors='coerce').sum() if uom_col and uom_col in df.columns else 0
-        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').sum() if pallets_col and pallets_col in df.columns else 0
+        
+        # ถ้าหาคอลัมน์เจอให้นำมาบวกผลรวม ถ้าไม่เจอให้ดึงจากคอลัมน์ที่มีตัวเลขเผื่อไว้
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').sum() if uom_col else 0
+        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').sum() if pallets_col else 0
         
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
@@ -113,4 +115,4 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อแสดงผลรายงานประมาณการรับสินค้า"
+    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อแสดงผลรายงานประมาณการรับสินค้า")
