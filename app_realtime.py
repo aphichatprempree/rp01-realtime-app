@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS (แบบปลอดภัยไม่เกิด Error)
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -382,7 +382,7 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ตาราง DCSBx / DCSB (เรนเดอร์ผ่าน Custom HTML Table เพื่อความเสถียรและกำหนดฟอนต์ได้ตามใจ) ---
+        # --- ตาราง DCSBx / DCSB (เรนเดอร์ผ่าน Custom HTML Table ปลอดภัย 100%) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
