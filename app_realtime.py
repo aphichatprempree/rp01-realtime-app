@@ -9,7 +9,7 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
-# --- กำหนดค่าเริ่มต้นใน Session State ---
+# --- กำหนดค่าเริ่มต้นใน Session State (ต้องประกาศค่าพารามิเตอร์ทั้งหมดไว้บนสุดเพื่อป้องกัน Error) ---
 if 'font_size' not in st.session_state:
     st.session_state['font_size'] = 36
 if 'font_weight' not in st.session_state:
@@ -21,7 +21,11 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับแต่ง Sidebar ใหม่ให้โมเดิร์น
+# กำหนดค่าตัวแปร weight_val ล่วงหน้าเพื่อไม่ให้เกิด NameError
+weight_val = st.session_state['font_weight'].split()[0]
+font_size_val = st.session_state['font_size']
+
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับแต่ง Sidebar ใหม่ให้ทันสมัย
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -150,14 +154,14 @@ st.markdown(f"""
 
     /* ดีไซน์ตารางหลัก */
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
-        font-size: {int(st.session_state['font_size'] * 0.8)}px !important;
+        font-size: {int(font_size_val * 0.8)}px !important;
         font-weight: {weight_val} !important;
         color: #1e293b !important;
         background-color: #e2e8f0 !important;
         padding: 12px !important;
     }}
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {{
-        font-size: {st.session_state['font_size']}px !important;
+        font-size: {font_size_val}px !important;
         font-weight: {weight_val} !important;
         color: #0f172a !important;
         padding: 12px !important;
@@ -232,7 +236,6 @@ st.markdown(f"""
         font-weight: 800 !important;
         color: #1e293b !important;
     }}
-    /* ตกแต่งกรองกล่องควบคุมใน Sidebar ให้เป็น Card UI */
     section[data-testid="stSidebar"] .stSelectbox, section[data-testid="stSidebar"] .stSlider, section[data-testid="stSidebar"] .stFileUploader {{
         background: #ffffff;
         padding: 12px;
@@ -244,10 +247,10 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล (จัดลำดับใหม่ให้สวยงามใช้งานง่าย) ---
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
 st.sidebar.markdown("<h2 style='color: #1e40af; border-bottom: 3px solid #2563eb; padding-bottom: 8px;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
 
-# 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์ (วางไว้บนสุดเพื่อให้สะดวกต่อการใช้งานอันดับแรก)
+# 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์
 st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์ (RP01)")
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน", type=["xlsx", "xls"])
 
@@ -328,7 +331,6 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🔠 4. ปรับแต่งขนาดตัวอักษร")
 st.session_state['font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=14, max_value=45, value=st.session_state['font_size'], step=2)
 st.session_state['font_weight'] = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"].index(st.session_state['font_weight']))
-weight_val = st.session_state['font_weight'].split()[0]
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
