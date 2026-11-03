@@ -6,21 +6,39 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
+# --- กำหนดค่าเริ่มต้นใน Session State เพื่อให้จำค่าเดิมเสมอ ---
+if 'font_size' not in st.session_state:
+    st.session_state['font_size'] = 40
+if 'font_weight' not in st.session_state:
+    st.session_state['font_weight'] = "900 (หนาพิเศษ)"
+if 'enable_time_filter' not in st.session_state:
+    st.session_state['enable_time_filter'] = False
+if 'filter_status' not in st.session_state:
+    st.session_state['filter_status'] = "ทั้งหมด"
+if 'postpone_pallets' not in st.session_state:
+    st.session_state['postpone_pallets'] = 0.0
+
 # --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
 st.sidebar.markdown("<h2>🎛️ ควบคุมการแสดงผล</h2>", unsafe_allow_html=True)
 
 # 1. ส่วนควบคุมขนาดและฟอนต์ (Font Controls)
 st.sidebar.markdown("### 🔠 ปรับแต่งตัวอักษรหน้าจอ")
-custom_font_size = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=16, max_value=50, value=40, step=2)
-custom_font_weight = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=0)
-weight_val = custom_font_weight.split()[0]
+st.session_state['font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=16, max_value=50, value=st.session_state['font_size'], step=2)
+st.session_state['font_weight'] = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"].index(st.session_state['font_weight']))
+weight_val = st.session_state['font_weight'].split()[0]
 
 # 2. ส่วนอัปโหลดไฟล์ Excel
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📂 คลังข้อมูล & ตัวกรอง")
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
-# นำค่าที่ผู้ใช้สไลด์ใน Sidebar มาใส่ลงใน Dynamic CSS ทันที (แก้ไขการ Escape ปีกกาด้วย {{ และ }})
+# บันทึกไฟล์ลง Session State เพื่อไม่ให้หายเวลาหน้าเว็บรีเฟรช
+if uploaded_file is not None:
+    st.session_state['uploaded_file'] = uploaded_file
+
+active_file = st.session_state.get('uploaded_file', None)
+
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที
 st.markdown(f"""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -95,16 +113,16 @@ st.markdown(f"""
         font-size: 30px;
     }}
     
-    /* === ปรับขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ตามที่ผู้ใช้สไลด์เลือกใน Sidebar === */
+    /* === ปรับขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ตามที่ผู้ใช้ตั้งค่าไว้ === */
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
-        font-size: {int(custom_font_size * 0.85)}px !important;
+        font-size: {int(st.session_state['font_size'] * 0.85)}px !important;
         font-weight: {weight_val} !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
         padding: 22px !important;
     }}
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {{
-        font-size: {custom_font_size}px !important;
+        font-size: {st.session_state['font_size']}px !important;
         font-weight: {weight_val} !important;
         color: #000000 !important;
         padding: 22px !important;
@@ -173,11 +191,11 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-if uploaded_file is not None:
+if active_file is not None:
     try:
-        xls = pd.ExcelFile(uploaded_file)
+        xls = pd.ExcelFile(active_file)
         target_sheet = xls.sheet_names[0]
-        df_raw = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
+        df_raw = pd.read_excel(active_file, sheet_name=target_sheet, header=3)
         
         df_raw = df_raw.dropna(how='all')
         if 'Item Name' in df_raw.columns:
@@ -205,9 +223,9 @@ if uploaded_file is not None:
 
         st.sidebar.markdown("---")
         st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
-        enable_time_filter = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=False)
+        st.session_state['enable_time_filter'] = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=st.session_state['enable_time_filter'])
         
-        if enable_time_filter:
+        if st.session_state['enable_time_filter']:
             start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
             end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
             
@@ -219,7 +237,9 @@ if uploaded_file is not None:
                 df = df.sample(frac=0.125, random_state=42) if len(df) > 0 else df
 
         st.sidebar.markdown("---")
-        filter_status = st.sidebar.selectbox("🏷️ กรองตามประเภท Supplier", ["ทั้งหมด", "CARD", "COINS"])
+        status_options = ["ทั้งหมด", "CARD", "COINS"]
+        st.session_state['filter_status'] = st.sidebar.selectbox("🏷️ กรองตามประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']))
+        filter_status = st.session_state['filter_status']
 
         # กำหนดรูปแบบวันที่แสดงผลหัวข้อ
         try:
@@ -231,14 +251,15 @@ if uploaded_file is not None:
         
         # แสดงหัวรีพอร์ต
         st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
-        if enable_time_filter:
+        if st.session_state['enable_time_filter']:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
-        # --- ช่องกรอกยอดพาเลทที่เลื่อนส่ง ให้อยู่เหนือภาพรวมสรุปการทำงาน ---
+        # --- ช่องกรอกยอดพาเลทที่เลื่อนส่ง (จำค่าเดิมเสมอผ่าน Session State) ---
         st.markdown("---")
         col_postpone1, col_postpone2 = st.columns([1, 2])
         with col_postpone1:
-            postpone_pallets = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=0.0, step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม (หากไม่มีปล่อยเป็น 0)")
+            st.session_state['postpone_pallets'] = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม (หากไม่มีปล่อยเป็น 0)")
+            postpone_pallets = st.session_state['postpone_pallets']
         with col_postpone2:
             if postpone_pallets > 0:
                 st.warning(f"⚠️ มีการเลื่อนส่งงานออกจำนวน **{postpone_pallets:,.0f} พาเลท** ระบบได้ทำการหักลบออกจากยอดรวมสุทธิให้เรียบร้อยแล้ว")
@@ -297,7 +318,7 @@ if uploaded_file is not None:
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (ปรับขนาดและน้ำหนักฟอนต์ได้แบบ Real-time) ---
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
@@ -422,4 +443,4 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกประวัติสะสมเพื่อให้คุณเลือกดูและดาวน์โหลดข้อมูลยอดงานวันเก่าๆ ได้ตลอดเวลา")
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกประวัติสะสมและคงค่าหน้าจอเดิมไว้ให้คุณเสมอ")
