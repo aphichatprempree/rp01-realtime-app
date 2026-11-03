@@ -25,7 +25,7 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับความสูงกล่องหัวข้อให้แสดงผลครบถ้วน
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับแต่งกล่องหัวข้อให้แสดงผลตัวหนังสือเต็มสวยงาม
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -43,19 +43,19 @@ st.markdown(f"""
         background-color: #f8fafc !important;
     }}
     
-    /* กรอบหัวข้อหลัก (Header Box) ขยาย Padding บน-ล่างให้พอดี ตัวหนังสือไม่โดนตัดขอบ */
+    /* กรอบหัวข้อหลัก (Header Box) ปรับ Padding บน-ล่าง และเพิ่ม line-height ป้องกันตัวหนังสือโดนตัดขอบ */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
-        padding: 18px 24px; 
+        padding: 24px 24px; 
         border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 800; 
-        font-size: 28px; 
-        margin-bottom: 12px;
+        font-size: 30px; 
+        margin-bottom: 14px;
         box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4);
         border: 2px solid rgba(255, 255, 255, 0.2);
-        line-height: 1.4;
+        line-height: 1.6;
     }}
     
     /* หัวข้อรอง (Sub-title) */
