@@ -5,7 +5,7 @@ import datetime
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ตกแต่งดีไซน์ให้สวยงาม มีมิติ และอ่านง่าย
+# Custom CSS ปรับดีไซน์ให้ตัวหนังสืออ่านง่าย ชัดเจน และกระชับ
 st.markdown("""
     <style>
     .main {
@@ -13,22 +13,27 @@ st.markdown("""
     }
     .header-box {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        padding: 15px;
-        border-radius: 8px;
-        color: black;
+        padding: 12px;
+        border-radius: 6px;
+        color: #000000;
         text-align: center;
         font-weight: bold;
-        font-size: 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        font-size: 22px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .sub-title {
-        color: #f3f4f6;
-        font-weight: 600;
-        border-left: 4px solid #f59e0b;
-        padding-left: 10px;
-        margin-top: 25px;
-        margin-bottom: 10px;
+        color: #38bdf8;
+        font-weight: bold;
+        font-size: 16px;
+        border-left: 4px solid #38bdf8;
+        padding-left: 8px;
+        margin-top: 15px;
+        margin-bottom: 8px;
+    }
+    /* ปรับแต่งตารางให้ตัวหนังสือคมชัดและกระชับ */
+    dataframe, table {
+        font-size: 14px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -36,7 +41,7 @@ st.markdown("""
 # ส่วนหัวรายงาน
 st.markdown('<div class="header-box">📋 รายงานประมาณการรับสินค้า</div>', unsafe_allow_html=True)
 
-# ช่องอัปโหลดไฟล์ RP01
+# ช่องอัปโหลดไฟล์ RP01 (ทำให้กระชับขึ้น)
 uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
@@ -50,7 +55,7 @@ if uploaded_file is not None:
         total_uom = df['UOM Qty'].sum() if 'UOM Qty' in df.columns else 0
         total_palletes = df['Pallets'].sum() if 'Pallets' in df.columns else 0
         
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน
+        # แสดงผลการ์ดสรุปตัวเลขด้านบนแบบกระชับ
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -78,7 +83,7 @@ if uploaded_file is not None:
         }
         st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
         
-        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 8px; border-radius: 4px;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 6px; border-radius: 4px; font-size: 15px;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
         st.write("")
 
         # --- ตารางที่ 2: DCSBx และ DCSB ---
@@ -107,7 +112,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background-color: #047857; color: white; padding: 12px 20px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 15px;'>
+            <div style='background-color: #047857; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; font-size: 15px;'>
                 <span>Grand Total</span>
                 <span>Pallets: {total_palletes}</span>
                 <span>UOM Qty: {total_uom:,}</span>
