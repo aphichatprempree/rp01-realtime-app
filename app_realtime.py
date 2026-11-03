@@ -29,7 +29,7 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และเลือกชีทรายละเอียด (ตัดบรรทัดหัวข้อออกโดยใช้ header=1)
+        # เปิดไฟล์ Excel และเลือกชีตรายละเอียด (ตัดบรรทัดหัวข้อออกโดยใช้ header=1)
         xls = pd.ExcelFile(uploaded_file)
         target_sheet = 'Detail Schedule' if 'Detail Schedule' in xls.sheet_names else xls.sheet_names[0]
         
@@ -46,7 +46,7 @@ if uploaded_file is not None:
         total_sup = df.shape[0]
         total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ดึงยอดรวมจากคอลัมน์ UOM Qty (Index 18) และ Pallets Qty (Index 22) อย่างแม่นยำ
+        # ดึงยอดรวมจากคอลัมน์ UOM Qty (Index 18) และ Pallets Qty จาก Column V (Index 22) อย่างแม่นยำ
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[18]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[22]
         
