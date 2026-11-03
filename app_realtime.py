@@ -2,46 +2,25 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-# ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ปรับดีไซน์ให้ตัวหนังสืออ่านง่าย ชัดเจน และกระชับ
 st.markdown("""
     <style>
-    .main {
-        background-color: #0e1117;
-    }
+    .main { background-color: #0e1117; }
     .header-box {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        padding: 12px;
-        border-radius: 6px;
-        color: #000000;
-        text-align: center;
-        font-weight: bold;
-        font-size: 22px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        padding: 12px; border-radius: 6px; color: #000000;
+        text-align: center; font-weight: bold; font-size: 22px; margin-bottom: 15px;
     }
     .sub-title {
-        color: #38bdf8;
-        font-weight: bold;
-        font-size: 16px;
-        border-left: 4px solid #38bdf8;
-        padding-left: 8px;
-        margin-top: 15px;
-        margin-bottom: 8px;
-    }
-    /* ปรับแต่งตารางให้ตัวหนังสือคมชัดและกระชับ */
-    dataframe, table {
-        font-size: 14px !important;
+        color: #38bdf8; font-weight: bold; font-size: 16px;
+        border-left: 4px solid #38bdf8; padding-left: 8px; margin-top: 15px; margin-bottom: 8px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# ส่วนหัวรายงาน
 st.markdown('<div class="header-box">📋 รายงานประมาณการรับสินค้า</div>', unsafe_allow_html=True)
 
-# ช่องอัปโหลดไฟล์ RP01 (ทำให้กระชับขึ้น)
 uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
@@ -49,22 +28,34 @@ if uploaded_file is not None:
         df = pd.read_excel(uploaded_file)
         current_date = datetime.date.today().strftime("%d %b %y")
         
-        # คำนวณข้อมูลจากไฟล์จริง
         total_sup = df.shape[0] if not df.empty else 0
-        total_item = df['Item'].nunique() if 'Item' in df.columns else total_sup
-        total_uom = df['UOM Qty'].sum() if 'UOM Qty' in df.columns else 0
-        total_palletes = df['Pallets'].sum() if 'Pallets' in df.columns else 0
         
-        # แสดงผลการ์ดสรุปตัวเลขด้านบนแบบกระชับ
+        # ฟังก์ชันช่วยค้นหาคอลัมน์แบบยืดหยุ่น (ป้องกันชื่อไม่ตรง)
+        def find_col(possible_names):
+            for col in df.columns:
+                for name in possible_names:
+                    if name.lower() in str(col).lower():
+                        return col
+            return None
+
+        item_col = find_col(['item', 'sku', 'product'])
+        uom_col = find_col(['uom', 'qty', 'quantity', 'จำนวน'])
+        pallets_col = find_col(['pallet', 'pallets', 'PL'])
+
+        total_item = df[item_col].nunique() if item_col and item_col in df.columns else total_sup
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').sum() if uom_col and uom_col in df.columns else 0
+        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').sum() if pallets_col and pallets_col in df.columns else 0
+        
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
         with c2:
             st.metric("Item", f"{total_item:,}")
         with c3:
-            st.metric("UOM Qty", f"{total_uom:,}")
+            st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-            st.metric("Total Palletes", f"{total_palletes:,}")
+            st.metric("Total Palletes", f"{total_palletes:,.0f}")
 
         st.markdown("---")
 
@@ -74,8 +65,8 @@ if uploaded_file is not None:
             "Date": [current_date, ""],
             "Total Sup.": [total_sup, ""],
             "Item": [total_item, ""],
-            "UOM Qty": [total_uom, ""],
-            "Total Palletes": [total_palletes, ""],
+            "UOM Qty": [f"{total_uom:,.0f}", ""],
+            "Total Palletes": [f"{total_palletes:,.0f}", ""],
             "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
             "PO": [int(total_sup * 0.3), int(total_sup * 0.7)],
             "Total": [int(total_uom * 0.2), int(total_uom * 0.8)],
@@ -114,12 +105,12 @@ if uploaded_file is not None:
         st.markdown(f"""
             <div style='background-color: #047857; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; font-size: 15px;'>
                 <span>Grand Total</span>
-                <span>Pallets: {total_palletes}</span>
-                <span>UOM Qty: {total_uom:,}</span>
+                <span>Pallets: {total_palletes:,.0f}</span>
+                <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อแสดงผลรายงานประมาณการรับสินค้า")
+    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อแสดงผลรายงานประมาณการรับสินค้า"
