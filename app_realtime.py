@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ในตาราง ช่องกรอก และข้อความแจ้งเตือนให้ใหญ่เท่ากับภาพรวมสรุปการทำงาน
+# Custom CSS: ปรับแต่งให้เนื้อหากระชับ อ่านง่าย และเห็นภาพรวมครบในหน้าจอเดียว
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -22,26 +22,26 @@ st.markdown("""
     /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        padding: 28px; 
+        padding: 22px; 
         border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 900; 
-        font-size: 36px; 
-        margin-bottom: 25px;
-        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35);
+        font-size: 32px; 
+        margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
         border: 1px solid #3b82f6;
     }
     
-    /* หัวข้อรอง (Sub-title) ใหญ่พิเศษ */
+    /* หัวข้อรอง (Sub-title) */
     .sub-title {
         color: #1e40af; 
         font-weight: 900; 
-        font-size: 30px;
+        font-size: 26px;
         border-left: 8px solid #1e40af; 
-        padding-left: 14px; 
-        margin-top: 35px; 
-        margin-bottom: 18px;
+        padding-left: 12px; 
+        margin-top: 25px; 
+        margin-bottom: 15px;
     }
     
     /* แถบ TOTAL */
@@ -50,10 +50,10 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 18px; 
+        padding: 14px; 
         border-radius: 8px; 
-        font-size: 28px; 
-        box-shadow: 0 6px 15px rgba(23, 37, 84, 0.25); 
+        font-size: 26px; 
+        box-shadow: 0 4px 12px rgba(23, 37, 84, 0.2); 
         border: 1px solid #3b82f6;
     }
 
@@ -63,72 +63,72 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 16px; 
+        padding: 12px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 28px;
+        font-size: 24px;
     }
     .dcsb-box {
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 16px; 
+        padding: 12px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 28px;
+        font-size: 24px;
     }
     
-    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) และช่องกรอกข้อมูลให้ใหญ่เท่ากัน === */
+    /* === ขนาดฟอนต์ในตาราง (DataFrame) และช่องกรอกข้อมูลให้ใหญ่และชัดเจน === */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 32px !important;
+        font-size: 28px !important;
     }
     div[data-testid="stDataFrame"] th {
-        font-size: 28px !important;
+        font-size: 24px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #e2e8f0 !important;
-        padding-top: 18px !important;
-        padding-bottom: 18px !important;
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
     }
     div[data-testid="stDataFrame"] td {
-        font-size: 32px !important;
+        font-size: 28px !important;
         font-weight: 800 !important;
         color: #000000 !important;
-        padding-top: 16px !important;
-        padding-bottom: 16px !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
     }
     
-    /* ขยายขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) และ Label ด้านบน */
+    /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
     label[data-baseweb="label"], div[data-baseweb="input"] input {
-        font-size: 24px !important;
-        font-weight: 800 !important;
-    }
-    div[data-baseweb="input"] input {
-        font-size: 28px !important;
-        font-weight: 900 !important;
-        height: 55px !important;
-    }
-    
-    /* ขยายขนาดตัวอักษรในกล่องข้อความแจ้งเตือน (Warning / Info) */
-    div.stAlert p {
         font-size: 22px !important;
         font-weight: 800 !important;
     }
+    div[data-baseweb="input"] input {
+        font-size: 26px !important;
+        font-weight: 900 !important;
+        height: 50px !important;
+    }
+    
+    /* ขนาดตัวอักษรในกล่องข้อความแจ้งเตือน */
+    div.stAlert p {
+        font-size: 20px !important;
+        font-weight: 800 !important;
+    }
 
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่และเข้มสะใจ */
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
         border: 2px solid #94a3b8;
-        padding: 24px 30px;
-        border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        padding: 18px 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
     div[data-testid="stMetric"] label {
-        font-size: 24px !important;
+        font-size: 20px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 48px !important;
+        font-size: 40px !important;
         font-weight: 900 !important;
         color: #000000 !important;
     }
@@ -139,7 +139,7 @@ st.markdown("""
         border-right: 1px solid #e2e8f0;
     }
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
     }
     </style>
@@ -210,7 +210,7 @@ if uploaded_file is not None:
         if enable_time_filter:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
-        # --- เพิ่มช่องกรอกยอดพาเลทที่เลื่อนส่ง ให้อยู่เหนือภาพรวมสรุปการทำงาน ---
+        # --- ช่องกรอกยอดพาเลทที่เลื่อนส่ง ให้อยู่เหนือภาพรวมสรุปการทำงาน ---
         st.markdown("---")
         col_postpone1, col_postpone2 = st.columns([1, 2])
         with col_postpone1:
@@ -269,35 +269,40 @@ if uploaded_file is not None:
 
         st.markdown("---")
 
-        # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
-        st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
-        summary_df = pd.DataFrame({
-            "Date": [current_date, ""],
-            "Total Sup.": [total_sup, ""],
-            "Item": [total_item, ""],
-            "UOM Qty": [f"{total_uom:,.0f}", ""],
-            "Net Pallets": [f"{total_palletes:,.0f}", ""],
-            "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
-            "PO": [morning_po, night_po],
-            "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
-            "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
-        })
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
-        
-        st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
-        st.write("")
+        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกัน (ใช้ Columns แบ่งซ้าย-ขวาอย่างลงตัว) ---
+        col_main_left, col_main_right = st.columns([1.3, 1])
 
-        # --- ตารางที่ 2: DCSBx และ DCSB ---
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
-            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
-            
-        with col2:
-            st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "คิดเป็น %": ["62.27%"]}
-            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+        with col_main_left:
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+            st.markdown('<div class="sub-title" style="margin-top:0px;">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+            summary_df = pd.DataFrame({
+                "Date": [current_date, ""],
+                "Total Sup.": [total_sup, ""],
+                "Item": [total_item, ""],
+                "UOM Qty": [f"{total_uom:,.0f}", ""],
+                "Net Pallets": [f"{total_palletes:,.0f}", ""],
+                "Shift": ["Shift Morning [06:00-00:00]", "Shift Night [00:00-06:00]"],
+                "PO": [morning_po, night_po],
+                "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
+                "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
+            })
+            st.dataframe(summary_df, use_container_width=True, hide_index=True)
+            st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
+
+        with col_main_right:
+            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
+            st.markdown('<div class="sub-title" style="margin-top:0px;">สัดส่วนคลัง (DCSBx / DCSB)</div>', unsafe_allow_html=True)
+            sub_c1, sub_c2 = st.columns(2)
+            with sub_c1:
+                st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
+                dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "%": ["37.73%"]}
+                st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+            with sub_c2:
+                st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
+                dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]}
+                st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+
+        st.markdown("---")
 
         # --- ตารางที่ 3: Vendors CARD & COINS ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
@@ -335,7 +340,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 20px 30px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 20px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
                 <span>Pallets: {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -366,19 +371,19 @@ if uploaded_file is not None:
                 <title>Report {current_date}</title>
                 <style>
                     body {{ background-color: #ffffff; color: #000000; font-family: sans-serif; padding: 20px; }}
-                    h2 {{ color: #1e40af; text-align: center; font-size: 30px; }}
-                    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                    th, td {{ border: 2px solid #94a3b8; padding: 16px; text-align: center; font-size: 24px; font-weight: 900; }}
+                    h2 {{ color: #1e40af; text-align: center; font-size: 28px; }}
+                    table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+                    th, td {{ border: 2px solid #94a3b8; padding: 12px; text-align: center; font-size: 20px; font-weight: 900; }}
                     th {{ background-color: #1e3a8a; color: white; }}
                     td {{ background-color: #f1f5f9; color: #000000; }}
                 </style>
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 22px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+                <p style="font-size: 20px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
-                <p style="text-align: center; color: #475569; font-size: 18px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+                <p style="text-align: center; color: #475569; font-size: 16px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
             </body>
             </html>
             """
