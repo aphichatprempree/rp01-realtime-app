@@ -52,13 +52,10 @@ if os.path.exists(SERVER_SAVE_FILE):
 # นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที
 st.markdown(f"""
     <style>
-    /* ลดระยะห่างขอบบน-ล่างของหน้าเว็บหลักเพื่อให้เนื้อหาแน่นขึ้น */
     .block-container {{
         padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }}
-    
-    /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
     .stApp {{ 
         background-color: #ffffff !important;
         color: #000000 !important;
@@ -67,8 +64,6 @@ st.markdown(f"""
     .main {{ 
         background-color: #ffffff !important;
     }}
-    
-    /* กล่องหัวข้อหลัก (Header Box) ให้กระชับขึ้น */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
         padding: 18px; 
@@ -81,8 +76,6 @@ st.markdown(f"""
         box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3);
         border: 2px solid #3b82f6;
     }}
-    
-    /* หัวข้อรอง (Sub-title) */
     .sub-title {{
         color: #1e40af; 
         font-weight: 900; 
@@ -95,8 +88,6 @@ st.markdown(f"""
         display: flex;
         align-items: center;
     }}
-    
-    /* แถบ TOTAL PALLETS */
     .total-box {{
         background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
         color: white; 
@@ -109,8 +100,6 @@ st.markdown(f"""
         border: 2px solid #3b82f6;
         margin-top: 10px;
     }}
-
-    /* กล่อง DCSBx และ DCSB */
     .dcsbx-box {{
         background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
         color: white; 
@@ -129,8 +118,6 @@ st.markdown(f"""
         border-radius: 8px 8px 0 0; 
         font-size: 22px;
     }}
-    
-    /* === ปรับขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ตามที่ผู้ใช้ตั้งค่าไว้ === */
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
         font-size: {int(st.session_state['font_size'] * 0.8)}px !important;
         font-weight: {weight_val} !important;
@@ -144,8 +131,6 @@ st.markdown(f"""
         color: #000000 !important;
         padding: 12px !important;
     }}
-
-    /* ตารางอื่นๆ ให้ขนาดได้สัดส่วนและกระชับขึ้น */
     div[data-testid="stDataFrame"] th {{
         font-size: 18px !important;
         font-weight: 900 !important;
@@ -159,8 +144,6 @@ st.markdown(f"""
         color: #000000 !important;
         padding: 10px !important;
     }}
-    
-    /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
     label[data-baseweb="label"], div[data-baseweb="input"] input {{
         font-size: 20px !important;
         font-weight: 900 !important;
@@ -170,14 +153,10 @@ st.markdown(f"""
         font-weight: 900 !important;
         height: 48px !important;
     }}
-    
-    /* ขนาดตัวอักษรในกล่องข้อความแจ้งเตือน */
     div.stAlert p {{
         font-size: 18px !important;
         font-weight: 900 !important;
     }}
-
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้กระชับ */
     div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
         border: 2px solid #94a3b8;
@@ -195,8 +174,6 @@ st.markdown(f"""
         font-weight: 900 !important;
         color: #000000 !important;
     }}
-    
-    /* แถบ Sidebar ด้านข้าง */
     section[data-testid="stSidebar"] {{
         background-color: #f8fafc;
         border-right: 2px solid #e2e8f0;
@@ -218,7 +195,6 @@ if active_source is not None:
         if 'Item Name' in df_raw.columns:
             df_raw = df_raw[df_raw['Item Name'].notna()]
 
-        # ตรวจสอบและแปลงวันที่ทั้งหมดที่มีในไฟล์ เพื่อจัดเก็บลงใน Session State (ประวัติย้อนหลัง)
         if 'Delivery Date' in df_raw.columns:
             df_raw['Parsed_Date'] = pd.to_datetime(df_raw['Delivery Date'], errors='coerce', dayfirst=True)
             
@@ -246,9 +222,9 @@ if active_source is not None:
             start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
             end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
             
-            time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
-            if time_col:
-                df['Parsed_Time'] = pd.to_datetime(df[time_col], errors='coerce').dt.time
+            time_col_filter = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
+            if time_col_filter:
+                df['Parsed_Time'] = pd.to_datetime(df[time_col_filter], errors='coerce').dt.time
                 df = df[(df['Parsed_Time'] >= start_t) & (df['Parsed_Time'] <= end_t)]
             else:
                 df = df.sample(frac=0.125, random_state=42) if len(df) > 0 else df
@@ -258,7 +234,6 @@ if active_source is not None:
         st.session_state['filter_status'] = st.sidebar.selectbox("🏷️ กรองตามประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']))
         filter_status = st.session_state['filter_status']
 
-        # กำหนดรูปแบบวันที่แสดงผลหัวข้อ
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
             months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
@@ -266,16 +241,14 @@ if active_source is not None:
         except:
             current_date = selected_date_str
         
-        # แสดงหัวรีพอร์ต
         st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
         if st.session_state['enable_time_filter']:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
-        # --- ช่องกรอกยอดพาเลทที่เลื่อนส่ง (กระชับขึ้น) ---
         st.markdown("---")
         col_postpone1, col_postpone2 = st.columns([1, 2])
         with col_postpone1:
-            st.session_state['postpone_pallets'] = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม (หากไม่มีปล่อยเป็น 0)")
+            st.session_state['postpone_pallets'] = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม")
             postpone_pallets = st.session_state['postpone_pallets']
         with col_postpone2:
             if postpone_pallets > 0:
@@ -283,7 +256,6 @@ if active_source is not None:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # คำนวณค่าหลัก
         total_sup = 222
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
         if item_col in df.columns:
@@ -298,14 +270,39 @@ if active_source is not None:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        # แก้ไขการสะกดชื่อตัวแปรเป็น total_pallets ให้ถูกต้องตรงกัน
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- คำนวณกะการทำงาน ---
-        morning_pallets = round(total_pallets * 0.7, 2)
-        night_pallets = round(total_pallets - morning_pallets, 2)
+        # --- คำนวณแยกตามกะเวลาจริง (กะเช้า 05:00-17:00 / กะดึก 17:00-05:00) ---
+        time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower() or 'delivery' in str(col).lower()), None)
         
-        morning_po = int(total_sup * 0.7)
+        morning_pallets = 0.0
+        night_pallets = 0.0
+        
+        if time_col and not df.empty:
+            df['Temp_Time'] = pd.to_datetime(df[time_col], errors='coerce').dt.time
+            # กะเช้า: 05:00 ถึง 17:00
+            mask_morning = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
+            morning_raw = pd.to_numeric(df.loc[mask_morning, pallets_col], errors='coerce').fillna(0).sum()
+            
+            # กะดึก: 17:00 ถึง 05:00 (ข้ามวัน)
+            mask_night = ~mask_morning
+            night_raw = pd.to_numeric(df.loc[mask_night, pallets_col], errors='coerce').fillna(0).sum()
+            
+            sum_raw_check = morning_raw + night_raw
+            if sum_raw_check > 0:
+                # สัดส่วนตามจริงจากเวลาในไฟล์ + หักลบสัดส่วนงานเลื่อนส่งตามจริง
+                ratio_m = morning_raw / sum_raw_check
+                morning_pallets = round(total_pallets * ratio_m, 2)
+                night_pallets = round(total_pallets - morning_pallets, 2)
+            else:
+                morning_pallets = round(total_pallets * 0.5, 2)
+                night_pallets = round(total_pallets - morning_pallets, 2)
+        else:
+            # กรณีไม่มีคอลัมน์เวลา ให้ใช้สัดส่วนมาตรฐาน
+            morning_pallets = round(total_pallets * 0.5, 2)
+            night_pallets = round(total_pallets - morning_pallets, 2)
+
+        morning_po = int(total_sup * 0.5)
         night_po = total_sup - morning_po
         
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
@@ -317,7 +314,7 @@ if active_source is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards)
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -332,11 +329,9 @@ if active_source is not None:
         with c6:
             st.metric("🌙 ยอดกะดึก (17:00-05:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
 
-        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกันอย่างสมดุล ---
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
@@ -353,7 +348,6 @@ if active_source is not None:
             st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
-            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
             st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
             sub_c1, sub_c2 = st.columns(2)
             with sub_c1:
@@ -365,7 +359,7 @@ if active_source is not None:
                 dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "%": ["62.27%"]}
                 st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
-        # --- ตารางที่ 3: Vendors CARD & COINS ---
+        st.markdown("---")
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
         card_vendors = [
@@ -399,7 +393,6 @@ if active_source is not None:
         else:
             st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
-        # Grand Total Bar
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
@@ -408,7 +401,6 @@ if active_source is not None:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- ส่วนดาวน์โหลดรายงานเพื่อเก็บบันทึกยอดงานเก่า ---
         st.markdown("---")
         st.markdown("### 📥 ดาวน์โหลดบันทึกยอดงานประจำวัน")
         
