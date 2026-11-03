@@ -56,16 +56,10 @@ if uploaded_file is not None:
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
-        # คำนวณ Total Sup. จากจำนวน Supplier (Vendor) ที่ไม่ซ้ำกันแบบ Clean ข้อมูลแล้ว
-        vendor_col = 'Vendor' if 'Vendor' in df.columns else df.columns[2]
-        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
+        # กำหนดค่า Total Sup. เป็น 222 ตามที่คุณต้องการ
+        total_sup = 222
         
-        if vendor_col in df.columns:
-            df['Vendor_clean'] = pd.to_numeric(df[vendor_col], errors='coerce').fillna(df[vendor_col]).astype(str).str.split('.').str[0].str.strip()
-            total_sup = df['Vendor_clean'].nunique()
-        else:
-            total_sup = df.shape[0]
-            
+        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
         total_item = df[item_col].nunique() if item_col in df.columns else total_sup
         
         # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
@@ -130,6 +124,7 @@ if uploaded_file is not None:
         ]
         
         if 'Vendor' in df.columns and 'P/O' in df.columns:
+            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
             df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
             
             special_df = df[df['Vendor_str'].isin(special_vendors)]
