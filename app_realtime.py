@@ -56,11 +56,16 @@ if uploaded_file is not None:
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
-        # คำนวณ Total Sup. จากจำนวน Supplier (Vendor) ที่ไม่ซ้ำกัน
+        # คำนวณ Total Sup. จากจำนวน Supplier (Vendor) ที่ไม่ซ้ำกันแบบ Clean ข้อมูลแล้ว
         vendor_col = 'Vendor' if 'Vendor' in df.columns else df.columns[2]
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
         
-        total_sup = df[vendor_col].nunique() if vendor_col in df.columns else df.shape[0]
+        if vendor_col in df.columns:
+            df['Vendor_clean'] = pd.to_numeric(df[vendor_col], errors='coerce').fillna(df[vendor_col]).astype(str).str.split('.').str[0].str.strip()
+            total_sup = df['Vendor_clean'].nunique()
+        else:
+            total_sup = df.shape[0]
+            
         total_item = df[item_col].nunique() if item_col in df.columns else total_sup
         
         # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
@@ -116,7 +121,6 @@ if uploaded_file is not None:
         # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers) ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
-        # ใช้รหัส VENDOR เป็นหลักในการตรวจสอบความถูกต้องและป้องกัน Error ตัวอักษรพิเศษ
         special_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
             "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082",
@@ -126,10 +130,8 @@ if uploaded_file is not None:
         ]
         
         if 'Vendor' in df.columns and 'P/O' in df.columns:
-            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
             df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
             
-            # กรองเฉพาะ Vendor ที่อยู่ในรายชื่อพิเศษ
             special_df = df[df['Vendor_str'].isin(special_vendors)]
             
             if not special_df.empty:
