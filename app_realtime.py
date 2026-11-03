@@ -335,8 +335,8 @@ if active_file is not None:
             st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
-            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
-            st.markdown('<div class="sub-title">สัดส่วนคลัง (DCSBx / DCSB)</div>', unsafe_allow_html=True)
+            # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน (เอาคำว่า สัดส่วนคลัง ออก เหลือแค่ DCSBx / DCSB) ---
+            st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
             sub_c1, sub_c2 = st.columns(2)
             with sub_c1:
                 st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
