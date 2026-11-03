@@ -24,37 +24,53 @@ st.markdown("""
 
 st.markdown('<div class="header-box">📋 รายงานประมาณการรับสินค้า (Real-time Processing)</div>', unsafe_allow_html=True)
 
-# ช่องอัปโหลดไฟล์ Excel ต้นฉบับ
+# ช่องอัปโหลดไฟล์ Excel
 uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
-        # อ่านชีท 'Trend Shift Monthly' และ 'Detail Schedule'
+        # เปิดไฟล์ Excel และเลือกชีทแรกโดยอัตโนมัติ (แก้ปัญหาชื่อชีทไม่ตรง)
         xls = pd.ExcelFile(uploaded_file)
+        sheet_name = xls.sheet_names[0]
         
-        if 'Trend Shift Monthly' in xls.sheet_names:
-            df_trend = pd.read_excel(uploaded_file, sheet_name='Trend Shift Monthly')
-        else:
-            df_trend = None
-            
-        df_detail = pd.read_excel(uploaded_file, sheet_name='Detail Schedule', header=1)
+        # อ่านข้อมูลโดยค้นหาแถวที่เป็นหัวตารางจริง
+        df_raw = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=None)
         
+        header_row = 1
+        for idx, row in df_raw.iterrows():
+            row_str = str(row.values)
+            if 'Vendor' in row_str or 'Item Name' in row_str or 'UOM Qty' in row_str:
+                header_row = idx
+                break
+                
+        df = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=header_row)
         current_date = datetime.date.today().strftime("%d %b %y")
         
-        # คำนวณข้อมูลจริงจาก Detail Schedule
-        df_detail = df_detail.dropna(how='all')
-        if 'Item Name' in df_detail.columns:
-            df_detail = df_detail[df_detail['Item Name'].notna()]
+        # ทำความสะอาดข้อมูล
+        df = df.dropna(how='all')
+        
+        # ค้นหาคอลัมน์ Item Name และ UOM Qty / Pallets แบบยืดหยุ่น
+        item_col = next((col for col in df.columns if 'item name' in str(col).lower() or 'item' in str(col).lower()), df.columns[2] if len(df.columns) > 2 else None)
+        
+        if item_col:
+            df = df[df[item_col].notna()]
             
-        total_sup = df_detail.shape[0]
-        total_item = df_detail['Item Name'].nunique() if 'Item Name' in df_detail.columns else total_sup
+        total_sup = df.shape[0]
+        total_item = df[item_col].nunique() if item_col else total_sup
         
-        # ดึงยอดรวมจาก Column R (UOM Qty) และ Column V (Pallets Qty)
-        uom_series = pd.to_numeric(df_detail.iloc[:, 13], errors='coerce').fillna(0) if df_detail.shape[1] > 13 else pd.Series([0])
-        pallets_series = pd.to_numeric(df_detail.iloc[:, 17], errors='coerce').fillna(0) if df_detail.shape[1] > 17 else pd.Series([0])
+        # ดึงยอดรวมจาก Column R (UOM Qty - Index 13) และ Column V (Pallets Qty - Index 17) หรือค้นหาจากชื่อ
+        uom_col = next((col for col in df.columns if 'uom qty' in str(col).lower()), None)
+        pallets_col = next((col for col in df.columns if 'pallets qty' in str(col).lower() or 'pallet' in str(col).lower()), None)
         
-        total_uom = uom_series.sum()
-        total_palletes = pallets_series.sum()
+        if uom_col and uom_col in df.columns:
+            total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
+        else:
+            total_uom = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0).sum() if df.shape[1] > 13 else 0
+            
+        if pallets_col and pallets_col in df.columns:
+            total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
+        else:
+            total_palletes = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0).sum() if df.shape[1] > 17 else 0
         
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
@@ -102,22 +118,14 @@ if uploaded_file is not None:
         # --- ตารางที่ 3: Vendors CARD & COINS ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS</div>', unsafe_allow_html=True)
         
-        # ตรวจสอบและดึงข้อมูล Vendor จากชีท Information Sup. Card & Coin หากมี
-        if 'Information Sup. Card & Coin' in xls.sheet_names:
-            card_info = pd.read_excel(uploaded_file, sheet_name='Information Sup. Card & Coin')
-            card_ids = card_info['VENDOR'].astype(str).tolist()
-            
-            df_detail['Vendor_str'] = df_detail['Vendor'].astype(str).str.split('.').str[0]
-            card_df = df_detail[df_detail['Vendor_str'].isin(card_ids)]
-            
-            if not card_df.empty:
-                vendor_table = card_df[['Vendor_str', 'Vendor Name', 'P/O', 'Pallets Qty', 'UOM Qty']].copy()
-                vendor_table.columns = ["Vendor", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty"]
-                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
-            else:
-                st.info("ไม่พบรายการ Vendor CARD & COINS ในรอบเวลานี้")
+        # ตรวจสอบและดึงข้อมูล Vendor จากไฟล์
+        possible_vendor_cols = [col for col in df.columns if 'vendor' in str(col).lower()]
+        if possible_vendor_cols:
+            vendor_table = df[[possible_vendor_cols[0], df.columns[4] if len(df.columns) > 4 else df.columns[1], pallets_col if pallets_col else df.columns[17], uom_col if uom_col else df.columns[13]]].copy()
+            vendor_table.columns = ["Vendor", "Vendor Name", "Sum of Pallets Qty", "Sum of UOM Qty"]
+            st.dataframe(vendor_table.head(15), use_container_width=True, hide_index=True)
         else:
-            st.warning("ไม่พบชีทข้อมูล Information Sup. Card & Coin ในไฟล์ Excel")
+            st.warning("ไม่พบข้อมูลตาราง Vendor ในชีทนี้")
         
         # Grand Total Bar
         st.markdown(f"""
