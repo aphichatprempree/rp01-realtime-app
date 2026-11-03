@@ -9,7 +9,7 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
-# --- กำหนดค่าเริ่มต้นใน Session State (ต้องประกาศค่าพารามิเตอร์ทั้งหมดไว้บนสุดเพื่อป้องกัน Error) ---
+# --- กำหนดค่าเริ่มต้นใน Session State ---
 if 'font_size' not in st.session_state:
     st.session_state['font_size'] = 36
 if 'font_weight' not in st.session_state:
@@ -72,20 +72,6 @@ st.markdown(f"""
         align-items: center;
         background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
         border-radius: 0 8px 8px 0;
-    }}
-    
-    /* แถบ TOTAL PALLETS แบบมีมิติ */
-    .total-box {{
-        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-        color: white; 
-        text-align: center; 
-        font-weight: 800; 
-        padding: 14px; 
-        border-radius: 10px; 
-        font-size: 24px; 
-        box-shadow: 0 6px 15px rgba(15, 23, 42, 0.25); 
-        border: 2px solid #3b82f6;
-        margin-top: 12px;
     }}
 
     /* กล่อง DCSBx และ DCSB */
@@ -436,7 +422,8 @@ if active_source is not None and not df.empty:
                 "คิดเป็น %": [f"{night_pct:.2f}%", f"{morning_pct:.2f}%"]
             })
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
-            st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
+            # ซ่อนแถบแสดงผล TOTAL PALLETS ด้านล่างนี้ แต่ยังเก็บค่าตัวแปรไว้ใช้งานตามปกติ
+            # st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
             st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
@@ -463,9 +450,18 @@ if active_source is not None and not df.empty:
             "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
         ]
         
-        if 'Vendor' in df.columns and 'P/O' in df.columns:
-            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
-            df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
+        # ค้นหาคอลัมน์ Vendor และ P/O แบบยืดหยุ่น ป้องกันชื่อคอลัมน์ไม่ตรง
+        v_col = next((c for c in df.columns if 'vendor' in str(c).lower() and 'name' not in str(c).lower()), None)
+        if not v_col:
+            v_col = 'Vendor' if 'Vendor' in df.columns else df.columns[3]
+            
+        po_col = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
+        if not po_col:
+            po_col = 'P/O' if 'P/O' in df.columns else df.columns[1]
+
+        if v_col in df.columns and po_col in df.columns:
+            df['Vendor_str'] = df[v_col].astype(str).str.split('.').str[0].str.strip()
+            df['PO_clean'] = pd.to_numeric(df[po_col], errors='coerce').fillna(df[po_col]).astype(str).str.split('.').str[0]
             
             special_df = df[df['Vendor_str'].isin(card_vendors + coins_vendors)].copy()
             
@@ -476,13 +472,13 @@ if active_source is not None and not df.empty:
                     special_df = special_df[special_df['Status_val'] == filter_status]
                 
                 unique_special = special_df.drop_duplicates(subset=['PO_clean'])
-                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
+                vendor_table = unique_special[['Vendor_str', sup_col, 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
             else:
-                st.info("ไม่พบรายการ Supplier พิเศษในเงื่อนไขตัวกรองนี้")
+                st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
         else:
-            st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
+            st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 10px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
