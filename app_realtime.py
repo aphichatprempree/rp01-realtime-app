@@ -368,11 +368,28 @@ if active_source is not None and not df.empty:
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
-        dcsbx_pallets = int(total_pallets * 0.4)
-        dcsb_pallets = int(total_pallets - dcsbx_pallets)
+        # --- คำนวณแยกตามคอลัมน์ ASRS_ITEM สำหรับ DCSBx และ DCSB ---
+        asrs_col = 'ASRS_ITEM' if 'ASRS_ITEM' in df.columns else (next((c for c in df.columns if 'asrs' in str(c).lower()), 'AE'))
+        
+        if asrs_col in df.columns:
+            df['ASRS_match'] = df[asrs_col].astype(str).str.strip().str.upper()
+            dcsbx_df_filtered = df[df['ASRS_match'] == 'ASRS_ITEM']
+            dcsb_df_filtered = df[df['ASRS_match'] != 'ASRS_ITEM']
+        else:
+            dcsbx_df_filtered = df.iloc[:int(len(df)*0.4)]
+            dcsb_df_filtered = df.iloc[int(len(df)*0.4):]
 
-        dcsbx_item = int(total_item * 0.4)
-        dcsb_item = total_item - dcsbx_item
+        # ยอดของ DCSBx (ASRS_ITEM)
+        dcsbx_item = dcsbx_df_filtered[item_col].dropna().nunique() if item_col in dcsbx_df_filtered.columns else len(dcsbx_df_filtered)
+        dcsbx_pallets = pd.to_numeric(dcsbx_df_filtered[pallets_col], errors='coerce').fillna(0).sum()
+        dcsbx_po = dcsbx_df_filtered['PO_clean'].dropna().nunique() if 'PO_clean' in dcsbx_df_filtered.columns else len(dcsbx_df_filtered)
+        dcsbx_pct = (dcsbx_pallets / total_pallets) * 100 if total_pallets > 0 else 0
+
+        # ยอดของ DCSB (งานปกติ)
+        dcsb_item = dcsb_df_filtered[item_col].dropna().nunique() if item_col in dcsb_df_filtered.columns else len(dcsb_df_filtered)
+        dcsb_pallets = pd.to_numeric(dcsb_df_filtered[pallets_col], errors='coerce').fillna(0).sum()
+        dcsb_po = dcsb_df_filtered['PO_clean'].dropna().nunique() if 'PO_clean' in dcsb_df_filtered.columns else len(dcsb_df_filtered)
+        dcsb_pct = (dcsb_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4, c5, c6 = st.columns(6)
@@ -391,17 +408,29 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ กะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_po:,} PO ({morning_pct:.1f}%)")
 
-        # --- ตาราง DCSBx / DCSB ---
+        # --- ตาราง DCSBx / DCSB (แยกตาม ASRS_ITEM จริง) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
-            st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
-            dcsbx_df = pd.DataFrame({"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [int(total_po * 0.4)], "%": ["37.73%"]})
-            st.dataframe(dcsbx_df, use_container_width=True, hide_index=True)
+            st.markdown("<div class='dcsbx-box'>DCSBx (ASRS_ITEM)</div>", unsafe_allow_html=True)
+            dcsbx_table_df = pd.DataFrame({
+                "Date": [current_date], 
+                "Item": [dcsbx_item], 
+                "Palletes": [dcsbx_pallets], 
+                "PO": [dcsbx_po], 
+                "%": [f"{dcsbx_pct:.2f}%"]
+            })
+            st.dataframe(dcsbx_table_df, use_container_width=True, hide_index=True)
         with sub_c2:
-            st.markdown("<div class='dcsb-box'>DCSB</div>", unsafe_allow_html=True)
-            dcsb_df = pd.DataFrame({"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [total_po - int(total_po * 0.4)], "%": ["62.27%"]})
-            st.dataframe(dcsb_df, use_container_width=True, hide_index=True)
+            st.markdown("<div class='dcsb-box'>DCSB (Normal)</div>", unsafe_allow_html=True)
+            dcsb_table_df = pd.DataFrame({
+                "Date": [current_date], 
+                "Item": [dcsb_item], 
+                "Palletes": [dcsb_pallets], 
+                "PO": [dcsb_po], 
+                "%": [f"{dcsb_pct:.2f}%"]
+            })
+            st.dataframe(dcsb_table_df, use_container_width=True, hide_index=True)
 
         st.markdown("---")
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
