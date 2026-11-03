@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import datetime
 
+# ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
+# Custom CSS ตกแต่งดีไซน์ให้สวยงาม อ่านง่าย ชัดเจน
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -11,6 +13,7 @@ st.markdown("""
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         padding: 12px; border-radius: 6px; color: #000000;
         text-align: center; font-weight: bold; font-size: 22px; margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
     .sub-title {
         color: #38bdf8; font-weight: bold; font-size: 16px;
@@ -19,30 +22,36 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="header-box">📋 รายงานประมาณการรับสินค้า</div>', unsafe_allow_html=True)
+st.markdown('<div class="header-box">📋 รายงานประมาณการรับสินค้า (Real-time Processing)</div>', unsafe_allow_html=True)
 
+# ช่องอัปโหลดไฟล์ Excel ต้นฉบับ
 uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01 - Schedule Appointment List Report)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
-        # อ่านไฟล์ Excel โดยกำหนดให้แถวที่ 4 เป็นหัวตาราง
-        df = pd.read_excel(uploaded_file, header=4)
+        # อ่านชีท 'Trend Shift Monthly' และ 'Detail Schedule'
+        xls = pd.ExcelFile(uploaded_file)
+        
+        if 'Trend Shift Monthly' in xls.sheet_names:
+            df_trend = pd.read_excel(uploaded_file, sheet_name='Trend Shift Monthly')
+        else:
+            df_trend = None
+            
+        df_detail = pd.read_excel(uploaded_file, sheet_name='Detail Schedule', header=1)
+        
         current_date = datetime.date.today().strftime("%d %b %y")
         
-        # ตัดแถวที่เป็นค่าว่างทั้งหมดออก
-        df = df.dropna(how='all')
-        
-        # กรองเฉพาะแถวที่มีข้อมูล Item (Column C)
-        item_col = df.columns[2] if len(df.columns) > 2 else None
-        if item_col:
-            df = df[df[item_col].notna()]
+        # คำนวณข้อมูลจริงจาก Detail Schedule
+        df_detail = df_detail.dropna(how='all')
+        if 'Item Name' in df_detail.columns:
+            df_detail = df_detail[df_detail['Item Name'].notna()]
             
-        total_sup = df.shape[0]
-        total_item = df[item_col].nunique() if item_col else total_sup
+        total_sup = df_detail.shape[0]
+        total_item = df_detail['Item Name'].nunique() if 'Item Name' in df_detail.columns else total_sup
         
-        # ดึงยอดรวมจาก Column R (UOM Qty - Index 13) และ Column V (Pallets Qty - Index 17)
-        uom_series = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0) if df.shape[1] > 13 else pd.Series([0])
-        pallets_series = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0) if df.shape[1] > 17 else pd.Series([0])
+        # ดึงยอดรวมจาก Column R (UOM Qty) และ Column V (Pallets Qty)
+        uom_series = pd.to_numeric(df_detail.iloc[:, 13], errors='coerce').fillna(0) if df_detail.shape[1] > 13 else pd.Series([0])
+        pallets_series = pd.to_numeric(df_detail.iloc[:, 17], errors='coerce').fillna(0) if df_detail.shape[1] > 17 else pd.Series([0])
         
         total_uom = uom_series.sum()
         total_palletes = pallets_series.sum()
@@ -90,27 +99,25 @@ if uploaded_file is not None:
             dcsb_data = {"Date": [current_date], "Item": [int(total_item * 0.6)], "Palletes": [int(total_palletes * 0.6)], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
-        # --- ตารางที่ 3: Vendors CARD & COINS (ดึงและจัดกลุ่มจากข้อมูลจริงในไฟล์) ---
+        # --- ตารางที่ 3: Vendors CARD & COINS ---
         st.markdown('<div class="sub-title">Vendors CARD & COINS</div>', unsafe_allow_html=True)
         
-        # ตรวจสอบว่ามีคอลัมน์ Vendor หรือไม่ ถ้ามีให้ทำการ Group จริงจากไฟล์
-        possible_vendor_cols = [col for col in df.columns if 'vendor' in str(col).lower() or 'pma' in str(col).lower()]
-        possible_po_cols = [col for col in df.columns if 'po' in str(col).lower() or 'order' in str(col).lower()]
-        
-        if len(df.columns) > 2:
-            # ดึงข้อมูลจำลองโครงสร้างตามไฟล์จริงโดยใช้ข้อมูลจากไฟล์ที่อัปโหลดมาแสดงผลตาราง
-            vendor_table_df = pd.DataFrame({
-                "Vendor": df.iloc[:, 1] if df.shape[1] > 1 else "N/A",
-                "Vendor Name": df.iloc[:, 3] if df.shape[1] > 3 else "N/A",
-                "P/O": df.iloc[:, 4] if df.shape[1] > 4 else "N/A",
-                "Sum of Pallets Qty": pallets_series,
-                "Sum of UOM Qty": uom_series,
-                "Total Sum of Pallets Qty": pallets_series,
-                "Total Sum of UOM Qty": uom_series
-            })
-            st.dataframe(vendor_table_df.head(15), use_container_width=True, hide_index=True)
+        # ตรวจสอบและดึงข้อมูล Vendor จากชีท Information Sup. Card & Coin หากมี
+        if 'Information Sup. Card & Coin' in xls.sheet_names:
+            card_info = pd.read_excel(uploaded_file, sheet_name='Information Sup. Card & Coin')
+            card_ids = card_info['VENDOR'].astype(str).tolist()
+            
+            df_detail['Vendor_str'] = df_detail['Vendor'].astype(str).str.split('.').str[0]
+            card_df = df_detail[df_detail['Vendor_str'].isin(card_ids)]
+            
+            if not card_df.empty:
+                vendor_table = card_df[['Vendor_str', 'Vendor Name', 'P/O', 'Pallets Qty', 'UOM Qty']].copy()
+                vendor_table.columns = ["Vendor", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty"]
+                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+            else:
+                st.info("ไม่พบรายการ Vendor CARD & COINS ในรอบเวลานี้")
         else:
-            st.warning("ไม่พบโครงสร้างคอลัมน์ Vendor ในไฟล์ กรุณาตรวจสอบรูปแบบไฟล์ Excel อีกครั้ง")
+            st.warning("ไม่พบชีทข้อมูล Information Sup. Card & Coin ในไฟล์ Excel")
         
         # Grand Total Bar
         st.markdown(f"""
@@ -124,4 +131,4 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
-    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อแสดงผลรายงานประมาณการรับสินค้า")
+    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อเริ่มแสดงผลรายงานประมาณการรับสินค้า")
