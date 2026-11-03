@@ -325,11 +325,22 @@ if active_source is not None and not df.empty:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # กำหนดชื่อคอลัมน์ Vendor Name และจำนวนทั้งหมดแบบตรงเป๊ะ
+        # กำหนดชื่อคอลัมน์และนับจำนวน Unique Values แบบตรงเป๊ะกับไฟล์ต้นฉบับ
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
-        total_item = len(df)  # ใช้จำนวนแถวทั้งหมดของ Item เป็นยอดจริง
-        total_po = len(df)    # ใช้จำนวนแถวทั้งหมดของ P/O เป็นยอดจริง
+
+        item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
+        total_item = df[item_col].dropna().nunique() if item_col in df.columns else len(df)
+
+        po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
+        if not po_col_raw:
+            po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
+
+        if po_col_raw in df.columns:
+            df['PO_clean'] = pd.to_numeric(df[po_col_raw], errors='coerce').fillna(df[po_col_raw]).astype(str).str.split('.').str[0].str.strip()
+            total_po = df['PO_clean'].dropna().nunique()
+        else:
+            total_po = len(df)
 
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
@@ -405,18 +416,12 @@ if active_source is not None and not df.empty:
             "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
         ]
         
-        # ค้นหาคอลัมน์ Vendor และ P/O แบบยืดหยุ่น
         v_col = next((c for c in df.columns if 'vendor' in str(c).lower() and 'name' not in str(c).lower()), None)
         if not v_col:
             v_col = 'Vendor' if 'Vendor' in df.columns else df.columns[3]
-            
-        po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
-        if not po_col_raw:
-            po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
 
         if v_col in df.columns and po_col_raw in df.columns:
             df['Vendor_str'] = df[v_col].astype(str).str.split('.').str[0].str.strip()
-            df['PO_clean'] = pd.to_numeric(df[po_col_raw], errors='coerce').fillna(df[po_col_raw]).astype(str).str.split('.').str[0]
             
             special_df = df[df['Vendor_str'].isin(card_vendors + coins_vendors)].copy()
             
