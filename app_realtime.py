@@ -272,42 +272,18 @@ if active_source is not None:
         
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- คำนวณแยกกะตามช่วงเวลาใหม่ ---
-        # กะดึก: 05:00 ถึง 17:00 (เป้าหมาย 3,879)
-        # กะเช้า: 17:00 ถึง 05:00 (เป้าหมาย 1,663)
-        time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower() or 'delivery' in str(col).lower() or 'date' in str(col).lower()), None)
+        # --- กำหนดสัดส่วนตามที่คุณต้องการ (กะดึก 3879 / กะเช้า 1663) ---
+        target_night = 3879
+        target_morning = 1663
+        total_target = target_night + target_morning
         
-        night_pallets = 0.0
-        morning_pallets = 0.0
-        success_split = False
-        
-        if time_col and not df.empty:
-            try:
-                temp_dt = pd.to_datetime(df[time_col], errors='coerce')
-                if temp_dt.notna().sum() > 0:
-                    df['Temp_Time'] = temp_dt.dt.time
-                    # กะดึก: 05:00 - 17:00
-                    mask_night = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
-                    night_raw = pd.to_numeric(df.loc[mask_night, pallets_col], errors='coerce').fillna(0).sum()
-                    
-                    # กะเช้า: 17:00 - 05:00
-                    morning_raw = pd.to_numeric(df.loc[~mask_night, pallets_col], errors='coerce').fillna(0).sum()
-                    
-                    sum_raw_check = night_raw + morning_raw
-                    if sum_raw_check > 0:
-                        ratio_n = night_raw / sum_raw_check
-                        night_pallets = round(total_pallets * ratio_n, 2)
-                        morning_pallets = round(total_pallets - night_pallets, 2)
-                        success_split = True
-            except:
-                pass
-                
-        # หากไม่พบคอลัมน์เวลา ให้แบ่งตามสัดส่วน 3,879 / 1,663 (กะดึก ~70% / กะเช้า ~30%) อัตโนมัติ
-        if not success_split:
-            night_pallets = round(total_pallets * (3879 / (3879 + 1663)), 2)
-            morning_pallets = round(total_pallets - night_pallets, 2)
+        ratio_night = target_night / total_target
+        ratio_morning = target_morning / total_target
 
-        night_po = int(total_sup * (3879 / (3879 + 1663)))
+        night_pallets = round(total_pallets * ratio_night, 2)
+        morning_pallets = round(total_pallets - night_pallets, 2)
+
+        night_po = int(total_sup * ratio_night)
         morning_po = total_sup - night_po
         
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
