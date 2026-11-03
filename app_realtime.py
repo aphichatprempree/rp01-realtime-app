@@ -182,3 +182,142 @@ if uploaded_file is not None:
 
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
+
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน (Metric Cards)
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("Total Sup.", f"{total_sup:,}")
+        with c2:
+            st.metric("Item", f"{total_item:,}")
+        with c3:
+            st.metric("UOM Qty", f"{total_uom:,.0f}")
+        with c4:
+            st.metric("Total Palletes", f"{total_palletes:,.0f}")
+
+        st.markdown("---")
+
+        # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+        st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+        summary_df = pd.DataFrame({
+            "Date": [current_date, ""],
+            "Total Sup.": [total_sup, ""],
+            "Item": [total_item, ""],
+            "UOM Qty": [f"{total_uom:,.0f}", ""],
+            "Total Palletes": [f"{total_palletes:,.0f}", ""],
+            "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
+            "PO": [morning_po, night_po],
+            "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
+            "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
+        })
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+        
+        st.markdown(f"<div style='background-color: #f59e0b; color: black; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.15);'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.write("")
+
+        # --- ตารางที่ 2: DCSBx และ DCSB ---
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("<div style='background-color: #ec4899; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSBx</div>", unsafe_allow_html=True)
+            dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
+            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+            
+        with col2:
+            st.markdown("<div style='background-color: #06b6d4; color: black; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSB</div>", unsafe_allow_html=True)
+            dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "คิดเป็น %": ["62.27%"]}
+            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+
+        # --- ตารางที่ 3: Vendors CARD & COINS ---
+        st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
+        
+        card_vendors = [
+            "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
+            "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
+        ]
+        coins_vendors = [
+            "70335", "70341", "70585", "70605", "70609", "70757", "71007", "71026", "71316", "71338",
+            "71573", "71758", "72204", "72215", "72472", "72715", "72736", "72747", "72852", "72853",
+            "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
+        ]
+        
+        if 'Vendor' in df.columns and 'P/O' in df.columns:
+            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
+            df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
+            
+            special_df = df[df['Vendor_str'].isin(card_vendors + coins_vendors)].copy()
+            
+            if not special_df.empty:
+                special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
+                
+                if filter_status != "ทั้งหมด":
+                    special_df = special_df[special_df['Status_val'] == filter_status]
+                
+                unique_special = special_df.drop_duplicates(subset=['PO_clean'])
+                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
+                vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
+                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+            else:
+                st.info("ไม่พบรายการ Supplier พิเศษในเงื่อนไขตัวกรองนี้")
+        else:
+            st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
+        
+        # Grand Total Bar
+        st.markdown(f"""
+            <div style='background-color: #047857; color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 20px; box-shadow: 0 4px 15px rgba(4, 120, 87, 0.3);'>
+                <span>Grand Total (Filtered)</span>
+                <span>Pallets: {total_palletes:,.0f}</span>
+                <span>UOM Qty: {total_uom:,.0f}</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # --- ส่วนดาวน์โหลดรายงานเพื่อเก็บบันทึกยอดงานเก่า ---
+        st.markdown("---")
+        st.markdown("### 📥 ดาวน์โหลดบันทึกยอดงานประจำวัน")
+        
+        col_dl1, col_dl2 = st.columns(2)
+        
+        with col_dl1:
+            csv_data = summary_df.to_csv(index=False).encode('utf-8-sig')
+            st.download_button(
+                label=f"📥 ดาวน์โหลดตารางสรุปวันที่ {current_date} (CSV)",
+                data=csv_data,
+                file_name=f"report_summary_{current_date.replace(' ', '_')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+            
+        with col_dl2:
+            html_content = f"""
+            <html>
+            <head>
+                <meta charset='utf-8'>
+                <title>Report {current_date}</title>
+                <style>
+                    body {{ background-color: #ffffff; color: #111827; font-family: sans-serif; padding: 20px; }}
+                    h2 {{ color: #d97706; text-align: center; }}
+                    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+                    th, td {{ border: 1px solid #d1d5db; padding: 12px; text-align: center; font-size: 16px; }}
+                    th {{ background-color: #f59e0b; color: black; }}
+                    td {{ background-color: #f9fafb; }}
+                </style>
+            </head>
+            <body>
+                <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
+                <p><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
+                {summary_df.to_html(index=False, border=0)}
+                <br>
+                <p style="text-align: center; color: #6b7280;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+            </body>
+            </html>
+            """
+            st.download_button(
+                label=f"🖼️ ดาวน์โหลดรายงานแบบ HTML (เปิดดูย้อนหลังเสมือนหน้าจอ)",
+                data=html_content.encode('utf-8-sig'),
+                file_name=f"report_dashboard_{current_date.replace(' ', '_')}.html",
+                mime="text/html",
+                use_container_width=True
+            )
+
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
+else:
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกประวัติสะสมเพื่อให้คุณเลือกดูและดาวน์โหลดข้อมูลยอดงานวันเก่าๆ ได้ตลอดเวลา")
