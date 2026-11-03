@@ -551,11 +551,46 @@ if active_source is not None and not df.empty:
             
         with col_dl2:
             html_filename = f"report_dashboard_{current_date.replace(' ', '_')}.html"
-            html_content = f"""
-            <html>
-            <head>
-                <meta charset='utf-8'>
-                <title>Report {current_date}</title>
-                <style>
-                    body {{ background-color: #ffffff; color: #000000; font-family: 'Prompt', sans-serif; padding: 20px; }}
-                    h2 {{ color: #1e40af; text-align: center; font-size: 2
+            html_content = f"""<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Report {current_date}</title>
+    <style>
+        body {{ background-color: #ffffff; color: #000000; font-family: 'Prompt', sans-serif; padding: 20px; }}
+        h2 {{ color: #1e40af; text-align: center; font-size: 28px; font-weight: 800; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+        th, td {{ border: 2px solid #94a3b8; padding: 10px; text-align: center; font-size: 18px; font-weight: 800; }}
+        th {{ background-color: #1e3a8a; color: white; }}
+        td {{ background-color: #f1f5f9; color: #000000; }}
+    </style>
+</head>
+<body>
+    <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
+    <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+    <br>
+    <div style="text-align: center;">
+        <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 12px 24px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
+    </div>
+</body>
+</html>"""
+            st.download_button(
+                label=f"📄 ดาวน์โหลดไฟล์หน้าเว็บ (HTML)",
+                data=html_content.encode('utf-8-sig'),
+                file_name=html_filename,
+                mime="text/html",
+                use_container_width=True
+            )
+
+        with col_dl3:
+            st.markdown(f"""
+                <div style="display: flex; align-items: center; height: 100%;">
+                    <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 18px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                        🖨️ พิมพ์/บันทึก PDF ทันที
+                    </button>
+                </div>
+            """, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
+else:
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกข้อมูลไว้บน Server เพื่อให้ทุกคนเปิดมาเจอหน้าจอและข้อมูลเดิมเสมอครับ")
