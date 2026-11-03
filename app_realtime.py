@@ -25,10 +25,21 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับตำแหน่ง Padding ให้ตัวหนังสืออยู่ต่ำลงมาสวยงาม
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มโค้ดซ่อนแถบเมนูด้านบนสุดของ Streamlit
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
+
+    /* === ซ่อนแถบเมนูด้านบนสุดของ Streamlit (Header & Deploy Button) === */
+    header[data-testid="stHeader"] {{
+        display: none !important;
+    }}
+    #MainMenu {{
+        visibility: hidden !important;
+    }}
+    footer {{
+        visibility: hidden !important;
+    }}
 
     .block-container {{
         padding-top: 1rem !important;
@@ -43,7 +54,7 @@ st.markdown(f"""
         background-color: #f8fafc !important;
     }}
     
-    /* กรอบหัวข้อหลัก (Header Box) ปรับ padding-top และ padding-bottom เพื่อขยับตำแหน่งตัวหนังสือให้อยู่ในตำแหน่งที่ต้องการ */
+    /* กรอบหัวข้อหลัก (Header Box) ปรับ padding บน-ล่าง และเพิ่ม line-height ให้ตัวหนังสือสวยงามพอดี */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
         padding: 22px 24px 20px 24px; 
