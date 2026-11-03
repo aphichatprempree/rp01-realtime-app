@@ -333,7 +333,14 @@ if active_source is not None:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        total_sup = 222
+        # --- นับจำนวน Supplier เฉพาะชื่อที่ไม่ซ้ำกัน (เทียบเท่าช่อง Item) ---
+        sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
+        if sup_col in df.columns:
+            df['Sup_clean'] = df[sup_col].astype(str).str.strip()
+            total_sup = df['Sup_clean'].nunique()
+        else:
+            total_sup = df.shape[0]
+
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
         if item_col in df.columns:
             df['Item_clean'] = df[item_col].astype(str).str.strip()
@@ -461,7 +468,6 @@ if active_source is not None:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- ส่วนบันทึกและดาวน์โหลดรายงาน ---
         st.markdown("---")
         st.markdown("### 📥 บันทึกและพิมพ์รายงาน")
         
@@ -513,7 +519,6 @@ if active_source is not None:
             )
 
         with col_dl3:
-            # ปุ่มสั่ง Print หน้าจอเบราว์เซอร์ปัจจุบันทันที
             st.markdown(f"""
                 <div style="display: flex; align-items: center; height: 100%;">
                     <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 18px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
