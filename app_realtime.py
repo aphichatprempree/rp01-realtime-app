@@ -79,7 +79,7 @@ st.markdown(f"""
         align-items: center;
     }}
     
-    /* แถบ TOTAL */
+    /* แถบ TOTAL PALLETS */
     .total-box {{
         background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
         color: white; 
@@ -336,7 +336,7 @@ if active_file is not None:
                 "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
             })
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
-            st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_palletes:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
             # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
