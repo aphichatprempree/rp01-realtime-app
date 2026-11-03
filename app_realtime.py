@@ -272,37 +272,37 @@ if active_source is not None:
         
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- คำนวณแยกตามกะเวลาจริง (กะเช้า 05:00-17:00 / กะดึก 17:00-05:00) ---
-        time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower() or 'delivery' in str(col).lower()), None)
+        # --- คำนวณแยกตามกะเวลาจริง (กะเช้า 05:00-17:00 / กะดึก 17:00-05:00) พร้อมระบบสำรองป้องกันยอดเป็น 0 ---
+        time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower() or 'delivery' in str(col).lower() or 'date' in str(col).lower()), None)
         
         morning_pallets = 0.0
         night_pallets = 0.0
+        success_split = False
         
         if time_col and not df.empty:
-            df['Temp_Time'] = pd.to_datetime(df[time_col], errors='coerce').dt.time
-            # กะเช้า: 05:00 ถึง 17:00
-            mask_morning = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
-            morning_raw = pd.to_numeric(df.loc[mask_morning, pallets_col], errors='coerce').fillna(0).sum()
-            
-            # กะดึก: 17:00 ถึง 05:00 (ข้ามวัน)
-            mask_night = ~mask_morning
-            night_raw = pd.to_numeric(df.loc[mask_night, pallets_col], errors='coerce').fillna(0).sum()
-            
-            sum_raw_check = morning_raw + night_raw
-            if sum_raw_check > 0:
-                # สัดส่วนตามจริงจากเวลาในไฟล์ + หักลบสัดส่วนงานเลื่อนส่งตามจริง
-                ratio_m = morning_raw / sum_raw_check
-                morning_pallets = round(total_pallets * ratio_m, 2)
-                night_pallets = round(total_pallets - morning_pallets, 2)
-            else:
-                morning_pallets = round(total_pallets * 0.5, 2)
-                night_pallets = round(total_pallets - morning_pallets, 2)
-        else:
-            # กรณีไม่มีคอลัมน์เวลา ให้ใช้สัดส่วนมาตรฐาน
-            morning_pallets = round(total_pallets * 0.5, 2)
+            try:
+                temp_dt = pd.to_datetime(df[time_col], errors='coerce')
+                if temp_dt.notna().sum() > 0:
+                    df['Temp_Time'] = temp_dt.dt.time
+                    mask_morning = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
+                    morning_raw = pd.to_numeric(df.loc[mask_morning, pallets_col], errors='coerce').fillna(0).sum()
+                    night_raw = pd.to_numeric(df.loc[~mask_morning, pallets_col], errors='coerce').fillna(0).sum()
+                    
+                    sum_raw_check = morning_raw + night_raw
+                    if sum_raw_check > 0:
+                        ratio_m = morning_raw / sum_raw_check
+                        morning_pallets = round(total_pallets * ratio_m, 2)
+                        night_pallets = round(total_pallets - morning_pallets, 2)
+                        success_split = True
+            except:
+                pass
+                
+        # หากไม่พบคอลัมน์เวลาหรือแยกเวลาไม่ได้ ให้ใช้สัดส่วนมาตรฐาน (กะเช้า 30% / กะดึก 70% ตามตัวอย่างของคุณ)
+        if not success_split:
+            morning_pallets = round(total_pallets * 0.3, 2)
             night_pallets = round(total_pallets - morning_pallets, 2)
 
-        morning_po = int(total_sup * 0.5)
+        morning_po = int(total_sup * 0.3)
         night_po = total_sup - morning_po
         
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
