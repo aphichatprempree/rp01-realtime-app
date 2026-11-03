@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ในตารางให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มตัวอักษรแบบจัดเต็ม
+# Custom CSS: ขยายขนาดฟอนต์ในตารางให้ใหญ่ขึ้นอีก 2 เท่า และเพิ่มความเข้มขั้นสุด
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -128,7 +128,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและคลังข้อมูลย้อนหลัง ---
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและช่องกรอกยอดเลื่อนส่ง ---
 st.sidebar.markdown("<h2>🎛️ คลังข้อมูล & ตัวกรอง</h2>", unsafe_allow_html=True)
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
@@ -161,6 +161,11 @@ if uploaded_file is not None:
             df = st.session_state['historical_data'][selected_date_str].copy()
         else:
             df = df_raw.copy()
+
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### ⏳ จัดการงานเลื่อนส่ง (Postpone)")
+        # ช่องกรอกยอดพาเลทที่เลื่อนออก (ถ้าไม่มีให้ใส่ 0 หรือปล่อยว่าง)
+        postpone_pallets = st.sidebar.number_input("พาเลทที่เลื่อนส่งออก (Pallets)", min_value=0.0, value=0.0, step=1.0)
 
         st.sidebar.markdown("---")
         st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
@@ -206,7 +211,10 @@ if uploaded_file is not None:
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
         
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
-        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
+        raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
+        
+        # นำยอดพาเลทรวมตั้งต้น ลบกับ ยอดพาเลทที่เลื่อนออก เพื่อให้ได้ยอดสุทธิที่แท้จริง
+        total_palletes = max(0.0, raw_pallets - postpone_pallets)
         
         # --- คำนวณกะการทำงาน ---
         morning_pallets = round(total_palletes * 0.7, 2)
@@ -233,7 +241,7 @@ if uploaded_file is not None:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-            st.metric("Total Palletes", f"{total_palletes:,.0f}")
+            st.metric("Net Pallets", f"{total_palletes:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
 
         st.markdown("---")
 
@@ -244,7 +252,7 @@ if uploaded_file is not None:
             "Total Sup.": [total_sup, ""],
             "Item": [total_item, ""],
             "UOM Qty": [f"{total_uom:,.0f}", ""],
-            "Total Palletes": [f"{total_palletes:,.0f}", ""],
+            "Net Pallets": [f"{total_palletes:,.0f}", ""],
             "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
             "PO": [morning_po, night_po],
             "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
@@ -252,7 +260,7 @@ if uploaded_file is not None:
         })
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
         
-        st.markdown(f"<div class='total-box'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='total-box'>TOTAL: {total_sup} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
         st.write("")
 
         # --- ตารางที่ 2: DCSBx และ DCSB ---
@@ -304,8 +312,8 @@ if uploaded_file is not None:
         # Grand Total Bar
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 20px 30px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
-                <span>Grand Total (Filtered)</span>
-                <span>Pallets: {total_palletes:,.0f}</span>
+                <span>Grand Total (Net Pallets)</span>
+                <span>Pallets: {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
@@ -343,7 +351,7 @@ if uploaded_file is not None:
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 22px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
+                <p style="font-size: 22px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
                 <p style="text-align: center; color: #475569; font-size: 18px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
