@@ -25,7 +25,7 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับลดช่องไฟให้กระชับขึ้น
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับลดความสูง Header ให้สวยงามเพรียวขึ้น
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -43,21 +43,21 @@ st.markdown(f"""
         background-color: #f8fafc !important;
     }}
     
-    /* กรอบหัวข้อหลัก (Header Box) แบบพรีเมียม มีมิติและเงาซ้อน */
+    /* กรอบหัวข้อหลัก (Header Box) ปรับความสูงและ Padding ให้เพรียวสวยงาม ไม่สูงจนเกินไป */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
-        padding: 16px; 
-        border-radius: 12px; 
+        padding: 12px 20px; 
+        border-radius: 10px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 800; 
-        font-size: 32px; 
+        font-size: 28px; 
         margin-bottom: 10px;
-        box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);
+        box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4);
         border: 2px solid rgba(255, 255, 255, 0.2);
     }}
     
-    /* หัวข้อรอง (Sub-title) ปรับลดระยะห่างด้านบนและล่าง */
+    /* หัวข้อรอง (Sub-title) */
     .sub-title {{
         color: #1e40af; 
         font-weight: 800; 
