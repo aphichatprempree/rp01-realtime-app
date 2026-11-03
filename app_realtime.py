@@ -5,13 +5,16 @@ import datetime
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ตกแต่งดีไซน์ให้สวยงาม คมชัด และพรีเมียม
+# Custom CSS ตกแต่งพื้นหลังและดีไซน์ใหม่ให้สวยงาม มีมิติ และพรีเมียมยิ่งขึ้น
 st.markdown("""
     <style>
-    .main { 
-        background-color: #0b0f19; 
+    /* ธีมพื้นหลังหลัก: ไล่ระดับสีน้ำเงินเข้มหรูหรา (Deep Gradient Background) */
+    .stApp { 
+        background: linear-gradient(135deg, #070b14 0%, #0b1329 50%, #04070d 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    
+    /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
         padding: 22px; 
@@ -21,10 +24,12 @@ st.markdown("""
         font-weight: 800; 
         font-size: 28px; 
         margin-bottom: 25px;
-        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.5);
         border: 1px solid #3b82f6;
         letter-spacing: 0.5px;
     }
+    
+    /* หัวข้อรอง (Sub-title) */
     .sub-title {
         color: #60a5fa; 
         font-weight: 800; 
@@ -35,6 +40,8 @@ st.markdown("""
         margin-bottom: 15px;
         letter-spacing: 0.3px;
     }
+    
+    /* ขยายขนาดและเพิ่มความเข้มตัวอักษรภายในตาราง (Dataframe) */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
         font-size: 18px !important;
     }
@@ -48,12 +55,15 @@ st.markdown("""
         font-weight: 600 !important;
         color: #f1f5f9 !important;
     }
+    
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้มีมิติ ลอยเด่นสวยงาม */
     div[data-testid="stMetric"] {
-        background: linear-gradient(145deg, #1e293b, #0f172a);
-        border: 1px solid #334155;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         padding: 20px 25px;
         border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     }
     div[data-testid="stMetric"] label {
         font-size: 18px !important;
@@ -64,6 +74,12 @@ st.markdown("""
         font-size: 34px !important;
         font-weight: 900 !important;
         color: #ffffff !important;
+    }
+    
+    /* ตกแต่งแถบ Sidebar ด้านข้างให้กลมกลืนและสวยงาม */
+    section[data-testid="stSidebar"] {
+        background-color: #05080f;
+        border-right: 1px solid #1e293b;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -87,7 +103,6 @@ if uploaded_file is not None:
         st.sidebar.markdown("---")
         st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
         
-        # ค้นหาคอลัมน์เวลาในไฟล์ (เช่น 'Time', 'Appointment Time', 'Window Time' หรือดึงจากชื่อคอลัมน์ที่มีคำว่า Time)
         time_col = None
         for col in df.columns:
             if 'time' in str(col).lower() or 'slot' in str(col).lower():
@@ -97,18 +112,14 @@ if uploaded_file is not None:
         enable_time_filter = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=False)
         
         if enable_time_filter:
-            # กำหนดช่วงเวลาเริ่มต้นและสิ้นสุด
             start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
             end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
             
-            # หากมีคอลัมน์เวลาในไฟล์ กรองตามเวลานั้นจริง
             if time_col:
-                # แปลงข้อความเวลาในไฟล์ให้เป็น datetime.time เพื่อเปรียบเทียบ
                 df['Parsed_Time'] = pd.to_datetime(df[time_col], errors='coerce').dt.time
                 df = df[(df['Parsed_Time'] >= start_t) & (df['Parsed_Time'] <= end_t)]
             else:
                 st.sidebar.warning("⚠️ ไม่พบคอลัมน์เวลาในไฟล์ ระบบจะทำการจำลองสัดส่วนตามช่วงเวลาที่คุณเลือก")
-                # สมมติฐานจำลองสัดส่วนตามช่วงเวลา 3 ชั่วโมงจาก 24 ชม. (12.5%) หากไม่มีคอลัมน์เวลาใน Excel
                 df = df.sample(frac=0.125, random_state=42) if len(df) > 0 else df
 
         st.sidebar.markdown("---")
@@ -120,7 +131,7 @@ if uploaded_file is not None:
         if raw_date_val:
             try:
                 dt_parsed = pd.to_datetime(raw_date_val, dayfirst=True)
-                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
                 current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
             except:
                 current_date = str(raw_date_val)
@@ -228,7 +239,6 @@ if uploaded_file is not None:
             if not special_df.empty:
                 special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
                 
-                # กรองตามที่เลือกใน Sidebar Filter
                 if filter_status != "ทั้งหมด":
                     special_df = special_df[special_df['Status_val'] == filter_status]
                 
