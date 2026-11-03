@@ -13,7 +13,7 @@ st.markdown("""
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         padding: 12px; border-radius: 6px; color: #000000;
         text-align: center; font-weight: bold; font-size: 22px; margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .sub-title {
         color: #38bdf8; font-weight: bold; font-size: 16px;
@@ -29,29 +29,26 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และตรวจสอบชีทที่มีข้อมูลรายละเอียด
+        # เปิดไฟล์ Excel และเลือกชีทรายละเอียด (ตัดบรรทัดหัวข้อออกโดยใช้ header=1)
         xls = pd.ExcelFile(uploaded_file)
         target_sheet = 'Detail Schedule' if 'Detail Schedule' in xls.sheet_names else xls.sheet_names[0]
         
-        # อ่านชีทโดยกำหนดให้แถวที่ 2 (index = 1) เป็นหัวตาราง (ตัดบรรทัด 1 ทิ้ง)
         df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=1)
         current_date = datetime.date.today().strftime("%d %b %y")
         
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
-        # กรองเฉพาะแถวที่มีชื่อสินค้า (Item Name) หรือ Vendor เพื่อไม่เอาแถวว่างมารวม
+        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
-        elif len(df.columns) > 13:
-            df = df[df.iloc[:, 13].notna()]
             
         total_sup = df.shape[0]
         total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ดึงยอดรวมจากคอลัมน์ 'UOM Qty' และ 'Pallets Qty' อย่างแม่นยำ (หรือใช้ Index R=13 และ V=17)
-        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[13]
-        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[17]
+        # ดึงยอดรวมจากคอลัมน์ UOM Qty (Index 18) และ Pallets Qty (Index 22) อย่างแม่นยำ
+        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[18]
+        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[22]
         
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
