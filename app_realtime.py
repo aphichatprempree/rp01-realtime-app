@@ -73,6 +73,20 @@ st.markdown(f"""
         background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
         border-radius: 0 8px 8px 0;
     }}
+    
+    /* แถบ TOTAL PALLETS แบบมีมิติ */
+    .total-box {{
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        color: white; 
+        text-align: center; 
+        font-weight: 800; 
+        padding: 14px; 
+        border-radius: 10px; 
+        font-size: 24px; 
+        box-shadow: 0 6px 15px rgba(15, 23, 42, 0.25); 
+        border: 2px solid #3b82f6;
+        margin-top: 12px;
+    }}
 
     /* กล่อง DCSBx และ DCSB */
     .dcsbx-box {{
@@ -422,6 +436,8 @@ if active_source is not None and not df.empty:
                 "คิดเป็น %": [f"{night_pct:.2f}%", f"{morning_pct:.2f}%"]
             })
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
+            # นำแถบ TOTAL PALLETS กลับคืนมาตามต้องการ
+            st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
             st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
