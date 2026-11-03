@@ -20,7 +20,7 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 📂 คลังข้อมูล & ตัวกรอง")
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
-# นำค่าที่ผู้ใช้สไลด์ใน Sidebar มาใส่ลงใน Dynamic CSS ทันที
+# นำค่าที่ผู้ใช้สไลด์ใน Sidebar มาใส่ลงใน Dynamic CSS ทันที (แก้ไขการ Escape ปีกกาด้วย {{ และ }})
 st.markdown(f"""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -45,7 +45,7 @@ st.markdown(f"""
         margin-bottom: 25px;
         box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35);
         border: 2px solid #3b82f6;
-    }
+    }}
     
     /* หัวข้อรอง (Sub-title) */
     .sub-title {{
@@ -59,7 +59,7 @@ st.markdown(f"""
         height: 50px;
         display: flex;
         align-items: center;
-    }
+    }}
     
     /* แถบ TOTAL */
     .total-box {{
@@ -73,7 +73,7 @@ st.markdown(f"""
         box-shadow: 0 6px 15px rgba(23, 37, 84, 0.25); 
         border: 2px solid #3b82f6;
         margin-top: 15px;
-    }
+    }}
 
     /* กล่อง DCSBx และ DCSB */
     .dcsbx-box {{
@@ -84,7 +84,7 @@ st.markdown(f"""
         padding: 16px; 
         border-radius: 10px 10px 0 0; 
         font-size: 30px;
-    }
+    }}
     .dcsb-box {{
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
@@ -93,7 +93,7 @@ st.markdown(f"""
         padding: 16px; 
         border-radius: 10px 10px 0 0; 
         font-size: 30px;
-    }
+    }}
     
     /* === ปรับขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ตามที่ผู้ใช้สไลด์เลือกใน Sidebar === */
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
