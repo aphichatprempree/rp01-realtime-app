@@ -56,11 +56,16 @@ if uploaded_file is not None:
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
-        # กำหนดค่า Total Sup. เป็น 222 ตามที่คุณต้องการ
+        # กำหนด Total Sup. เป็น 222 ตามที่คุณต้องการ
         total_sup = 222
         
+        # คำนวณ Item แบบ Unique (ไม่ซ้ำกัน) และ Clean ข้อมูลแล้ว
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
-        total_item = df[item_col].nunique() if item_col in df.columns else total_sup
+        if item_col in df.columns:
+            df['Item_clean'] = df[item_col].astype(str).str.strip()
+            total_item = df['Item_clean'].nunique()
+        else:
+            total_item = total_sup
         
         # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty (Column V) อย่างแม่นยำ
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
@@ -136,20 +141,4 @@ if uploaded_file is not None:
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
             else:
-                st.info("💡 ไม่พบรายการ Supplier พิเศษ (Card & Coin) ในรอบเวลานี้")
-        else:
-            st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
-        
-        # Grand Total Bar
-        st.markdown(f"""
-            <div style='background-color: #047857; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; font-size: 15px;'>
-                <span>Grand Total</span>
-                <span>Pallets: {total_palletes:,.0f}</span>
-                <span>UOM Qty: {total_uom:,.0f}</span>
-            </div>
-        """, unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
-else:
-    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อเริ่มแสดงผลรายงานประมาณการรับสินค้า")
+                st.info("💡 ไม่พบรายการ
