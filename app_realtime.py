@@ -9,13 +9,11 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
-# --- กำหนดค่าเริ่มต้นใน Session State ---
-if 'font_size' not in st.session_state:
-    st.session_state['font_size'] = 32
-if 'table_font_size' not in st.session_state:
-    st.session_state['table_font_size'] = 28  # ค่าเริ่มต้นขนาดฟอนต์ในตาราง
-if 'font_weight' not in st.session_state:
-    st.session_state['font_weight'] = "900 (หนาพิเศษ)"
+# --- กำหนดค่าเริ่มต้นใน Session State สำหรับแยกส่วนควบคุม ---
+if 'dcs_font_size' not in st.session_state:
+    st.session_state['dcs_font_size'] = 36  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
+if 'vendor_font_size' not in st.session_state:
+    st.session_state['vendor_font_size'] = 24  # ขนาดฟอนต์ตารางล่าง (Vendors CARD & COINS)
 if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
@@ -23,11 +21,10 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# กำหนดค่าตัวแปร weight_val ล่วงหน้า
-weight_val = st.session_state['font_weight'].split()[0]
-table_font_size_val = st.session_state['table_font_size']
+dcs_size = st.session_state['dcs_font_size']
+vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์มาบังคับใช้ พร้อมรับค่าจากตัวเลื่อน Sidebar ให้ตารางเปลี่ยนขนาดและเป็นสีดำเข้มได้ตามต้องการ
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -98,16 +95,35 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === บังคับขนาดและสีตัวอักษรทุกตารางในหน้าเว็บตามตัวเลื่อนใน Sidebar === */
-    div[data-testid="stDataFrame"] th {{
-        font-size: {int(table_font_size_val * 0.85)}px !important;
+    /* === ปรับขนาดเฉพาะตารางบน (DCSBx / DCSB) แบบอิสระและเป็นสีดำเข้ม === */
+    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
+    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
+        font-size: {int(dcs_size * 0.75)}px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
         padding: 10px !important;
     }}
-    div[data-testid="stDataFrame"] td {{
-        font-size: {table_font_size_val}px !important;
+    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
+    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
+        font-size: {dcs_size}px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        padding: 12px !important;
+    }}
+
+    /* === ปรับขนาดเฉพาะตารางล่าง (Vendors CARD & COINS) แบบอิสระและเป็นสีดำเข้ม === */
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th,
+    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] th {{
+        font-size: {int(vendor_size * 0.85)}px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        background-color: #cbd5e1 !important;
+        padding: 10px !important;
+    }}
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td,
+    div.element-container:has(div.sub-title) ~ div[data-testid="stDataFrame"] td {{
+        font-size: {vendor_size}px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         padding: 10px !important;
@@ -307,9 +323,10 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนปรับแต่งขนาดฟอนต์ตารางเองได้อิสระ
+# 4. ส่วนปรับขนาดตัวอักษรแยกอิสระแต่ละตาราง
 st.sidebar.markdown("### 🔠 4. ปรับขนาดตัวอักษรในตาราง")
-st.session_state['table_font_size'] = st.sidebar.slider("ขนาดฟอนต์ข้อมูลในตาราง (Pixel)", min_value=16, max_value=45, value=st.session_state['table_font_size'], step=2)
+st.session_state['dcs_font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางบน (DCSBx / DCSB)", min_value=16, max_value=50, value=st.session_state['dcs_font_size'], step=2)
+st.session_state['vendor_font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางล่าง (Vendors CARD/COINS)", min_value=16, max_value=45, value=st.session_state['vendor_font_size'], step=2)
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
