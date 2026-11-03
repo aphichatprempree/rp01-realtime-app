@@ -272,11 +272,13 @@ if active_source is not None:
         
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- คำนวณแยกตามกะเวลาจริง (กะเช้า 05:00-17:00 / กะดึก 17:00-05:00) พร้อมระบบสำรองป้องกันยอดเป็น 0 ---
+        # --- คำนวณแยกกะตามช่วงเวลาใหม่ ---
+        # กะดึก: 05:00 ถึง 17:00 (เป้าหมาย 3,879)
+        # กะเช้า: 17:00 ถึง 05:00 (เป้าหมาย 1,663)
         time_col = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower() or 'delivery' in str(col).lower() or 'date' in str(col).lower()), None)
         
-        morning_pallets = 0.0
         night_pallets = 0.0
+        morning_pallets = 0.0
         success_split = False
         
         if time_col and not df.empty:
@@ -284,29 +286,32 @@ if active_source is not None:
                 temp_dt = pd.to_datetime(df[time_col], errors='coerce')
                 if temp_dt.notna().sum() > 0:
                     df['Temp_Time'] = temp_dt.dt.time
-                    mask_morning = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
-                    morning_raw = pd.to_numeric(df.loc[mask_morning, pallets_col], errors='coerce').fillna(0).sum()
-                    night_raw = pd.to_numeric(df.loc[~mask_morning, pallets_col], errors='coerce').fillna(0).sum()
+                    # กะดึก: 05:00 - 17:00
+                    mask_night = (df['Temp_Time'] >= datetime.time(5, 0)) & (df['Temp_Time'] < datetime.time(17, 0))
+                    night_raw = pd.to_numeric(df.loc[mask_night, pallets_col], errors='coerce').fillna(0).sum()
                     
-                    sum_raw_check = morning_raw + night_raw
+                    # กะเช้า: 17:00 - 05:00
+                    morning_raw = pd.to_numeric(df.loc[~mask_night, pallets_col], errors='coerce').fillna(0).sum()
+                    
+                    sum_raw_check = night_raw + morning_raw
                     if sum_raw_check > 0:
-                        ratio_m = morning_raw / sum_raw_check
-                        morning_pallets = round(total_pallets * ratio_m, 2)
-                        night_pallets = round(total_pallets - morning_pallets, 2)
+                        ratio_n = night_raw / sum_raw_check
+                        night_pallets = round(total_pallets * ratio_n, 2)
+                        morning_pallets = round(total_pallets - night_pallets, 2)
                         success_split = True
             except:
                 pass
                 
-        # หากไม่พบคอลัมน์เวลาหรือแยกเวลาไม่ได้ ให้ใช้สัดส่วนมาตรฐาน (กะเช้า 30% / กะดึก 70% ตามตัวอย่างของคุณ)
+        # หากไม่พบคอลัมน์เวลา ให้แบ่งตามสัดส่วน 3,879 / 1,663 (กะดึก ~70% / กะเช้า ~30%) อัตโนมัติ
         if not success_split:
-            morning_pallets = round(total_pallets * 0.3, 2)
-            night_pallets = round(total_pallets - morning_pallets, 2)
+            night_pallets = round(total_pallets * (3879 / (3879 + 1663)), 2)
+            morning_pallets = round(total_pallets - night_pallets, 2)
 
-        morning_po = int(total_sup * 0.3)
-        night_po = total_sup - morning_po
+        night_po = int(total_sup * (3879 / (3879 + 1663)))
+        morning_po = total_sup - night_po
         
-        morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
+        morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
         dcsbx_pallets = int(total_pallets * 0.4)
         dcsb_pallets = int(total_pallets - dcsbx_pallets)
@@ -325,9 +330,9 @@ if active_source is not None:
         with c4:
             st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
-            st.metric("☀️ ยอดกะเช้า (05:00-17:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
+            st.metric("🌙 ยอดกะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
         with c6:
-            st.metric("🌙 ยอดกะดึก (17:00-05:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
+            st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
         col_main_left, col_main_right = st.columns([1.1, 1])
 
@@ -339,10 +344,10 @@ if active_source is not None:
                 "Item": [total_item, ""],
                 "UOM Qty": [f"{total_uom:,.0f}", ""],
                 "Net Pallets": [f"{total_pallets:,.0f}", ""],
-                "Shift": ["Shift Morning [05:00-17:00]", "Shift Night [17:00-05:00]"],
-                "PO": [morning_po, night_po],
-                "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
-                "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
+                "Shift": ["Shift Night [05:00-17:00]", "Shift Morning [17:00-05:00]"],
+                "PO": [night_po, morning_po],
+                "Total": [f"{night_pallets:,.0f}", f"{morning_pallets:,.0f}"],
+                "คิดเป็น %": [f"{night_pct:.2f}%", f"{morning_pct:.2f}%"]
             })
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
             st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
