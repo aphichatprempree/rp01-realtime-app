@@ -11,9 +11,9 @@ SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
 # --- กำหนดค่าเริ่มต้นใน Session State สำหรับแยกส่วนควบคุม ---
 if 'dcs_font_size' not in st.session_state:
-    st.session_state['dcs_font_size'] = 32  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
+    st.session_state['dcs_font_size'] = 22  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
 if 'vendor_font_size' not in st.session_state:
-    st.session_state['vendor_font_size'] = 22  # ขนาดฟอนต์ตารางล่าง (Vendors CARD & COINS)
+    st.session_state['vendor_font_size'] = 20  # ขนาดฟอนต์ตารางล่าง (Vendors CARD & COINS)
 if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS เพื่อคุมขนาดตัวอักษรตารางทั้งหมด
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -99,6 +99,21 @@ st.markdown(f"""
     div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {{
         font-size: 18px !important;
         font-weight: 900 !important;
+    }}
+
+    /* === ปรับขนาดฟอนต์ตารางด้านบน (DCSBx / DCSB) ตาม Sidebar === */
+    div.element-container:has(iframe) dataframe, div[data-testid="stDataFrame"] {{
+        font-size: {dcs_size}px !important;
+    }}
+    
+    /* บังคับขนาดฟอนต์เซลล์และหัวตารางทั้งหมดให้ใหญ่ตามตัวเลื่อน */
+    [data-testid="stDataFrame"] div[data-baseweb="tab"] {{
+        font-size: {dcs_size}px !important;
+    }}
+
+    /* ปรับแต่งฟอนต์ตารางในหน้าเว็บผ่าน CSS สากลสำหรับตาราง Streamlit */
+    .stDataFrame [data-testid="StyledMarkupTable"] td, .stDataFrame [data-testid="StyledMarkupTable"] th {{
+        font-size: {dcs_size}px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
