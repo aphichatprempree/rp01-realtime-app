@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ปรับโทนสีหัวข้อให้ดูน่าเชื่อถือ มีมิติ ไล่ระดับสีและเงาพรีเมียม บนพื้นหลังสีขาว
+# Custom CSS: ขยายขนาดฟอนต์ภายในตารางและการ์ดสรุปผลให้ใหญ่และหนาขึ้นอย่างชัดเจน
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -19,99 +19,95 @@ st.markdown("""
         background-color: #ffffff !important;
     }
     
-    /* กล่องหัวข้อหลัก (Header Box): สีน้ำเงินพรีเมียม ไล่ระดับแสงเงา มีมิติ */
+    /* กล่องหัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        padding: 22px; 
+        padding: 24px; 
         border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
-        font-weight: 800; 
-        font-size: 28px; 
+        font-weight: 900; 
+        font-size: 32px; 
         margin-bottom: 25px;
-        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.35);
         border: 1px solid #3b82f6;
-        letter-spacing: 0.5px;
     }
     
-    /* หัวข้อรอง (Sub-title) */
+    /* หัวข้อรอง (Sub-title) ใหญ่พิเศษ */
     .sub-title {
         color: #1e40af; 
-        font-weight: 800; 
-        font-size: 22px;
-        border-left: 6px solid #1e40af; 
-        padding-left: 12px; 
-        margin-top: 30px; 
-        margin-bottom: 15px;
-        letter-spacing: 0.3px;
+        font-weight: 900; 
+        font-size: 26px;
+        border-left: 8px solid #1e40af; 
+        padding-left: 14px; 
+        margin-top: 35px; 
+        margin-bottom: 18px;
     }
     
-    /* แถบ TOTAL: โทนสีน้ำเงินเข้มหรูหรา มีมิติ */
+    /* แถบ TOTAL */
     .total-box {
         background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
         color: white; 
         text-align: center; 
-        font-weight: bold; 
-        padding: 14px; 
+        font-weight: 900; 
+        padding: 16px; 
         border-radius: 8px; 
-        font-size: 20px; 
+        font-size: 24px; 
         box-shadow: 0 6px 15px rgba(23, 37, 84, 0.25); 
         border: 1px solid #3b82f6;
     }
 
-    /* กล่อง DCSBx และ DCSB: ปรับเป็นโทนน้ำเงิน-ฟ้าไล่ระดับพรีเมียม มีมิติ */
+    /* กล่อง DCSBx และ DCSB */
     .dcsbx-box {
         background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
         color: white; 
         text-align: center; 
-        font-weight: bold; 
-        padding: 12px; 
+        font-weight: 900; 
+        padding: 14px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 20px;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        font-size: 24px;
     }
-
     .dcsb-box {
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
-        font-weight: bold; 
-        padding: 12px; 
+        font-weight: 900; 
+        padding: 14px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 20px;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        font-size: 24px;
     }
     
-    /* ขยายขนาดและเพิ่มความเข้มตัวอักษรภายในตาราง (Dataframe) */
+    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) ให้ใหญ่และหนาขึ้นเป็นพิเศษ === */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 18px !important;
+        font-size: 22px !important;
     }
     div[data-testid="stDataFrame"] th {
-        font-size: 18px !important;
-        font-weight: 800 !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
         color: #111827 !important;
+        background-color: #f1f5f9 !important;
     }
     div[data-testid="stDataFrame"] td {
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        color: #1f2937 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
     }
     
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) บนพื้นหลังขาวให้สวยงามมีมิติ */
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่สะใจ */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #f8fafc, #f1f5f9);
-        border: 1px solid #cbd5e1;
-        padding: 20px 25px;
-        border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        border: 2px solid #cbd5e1;
+        padding: 22px 28px;
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     }
     div[data-testid="stMetric"] label {
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        color: #475569 !important;
+        font-size: 20px !important;
+        font-weight: 800 !important;
+        color: #334155 !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 34px !important;
+        font-size: 40px !important;
         font-weight: 900 !important;
         color: #0f172a !important;
     }
@@ -120,6 +116,10 @@ st.markdown("""
     section[data-testid="stSidebar"] {
         background-color: #f8fafc;
         border-right: 1px solid #e2e8f0;
+    }
+    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
+        font-size: 18px !important;
+        font-weight: 700 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -299,7 +299,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 20px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 25px; font-size: 22px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.25); border: 1px solid #10b981;'>
                 <span>Grand Total (Filtered)</span>
                 <span>Pallets: {total_palletes:,.0f}</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -330,19 +330,19 @@ if uploaded_file is not None:
                 <title>Report {current_date}</title>
                 <style>
                     body {{ background-color: #ffffff; color: #111827; font-family: sans-serif; padding: 20px; }}
-                    h2 {{ color: #1e40af; text-align: center; }}
+                    h2 {{ color: #1e40af; text-align: center; font-size: 26px; }}
                     table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                    th, td {{ border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-size: 16px; }}
+                    th, td {{ border: 1px solid #cbd5e1; padding: 14px; text-align: center; font-size: 20px; font-weight: bold; }}
                     th {{ background-color: #1e3a8a; color: white; }}
                     td {{ background-color: #f8fafc; }}
                 </style>
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
+                <p style="font-size: 18px;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Total Pallets:</b> {total_palletes:,.0f}</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
-                <p style="text-align: center; color: #64748b;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
+                <p style="text-align: center; color: #64748b; font-size: 16px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
             </body>
             </html>
             """
