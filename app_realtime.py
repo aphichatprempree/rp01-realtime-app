@@ -34,7 +34,19 @@ if uploaded_file is not None:
         target_sheet = xls.sheet_names[0]
         
         df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
-        current_date = datetime.date.today().strftime("%d %b %y")
+        
+        # ดึงวันที่จากคอลัมน์ 'Delivery Date' แถวแรกสุดมาอ้างอิง
+        raw_date_val = df['Delivery Date'].dropna().iloc[0] if 'Delivery Date' in df.columns and not df['Delivery Date'].dropna().empty else None
+        
+        if raw_date_val:
+            try:
+                dt_parsed = pd.to_datetime(raw_date_val)
+                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+                current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
+            except:
+                current_date = str(raw_date_val)
+        else:
+            current_date = datetime.date.today().strftime("%d %b %y")
         
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
