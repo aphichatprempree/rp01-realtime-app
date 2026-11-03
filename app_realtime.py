@@ -49,7 +49,7 @@ active_source = None
 if os.path.exists(SERVER_SAVE_FILE):
     active_source = SERVER_SAVE_FILE
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS ทันที
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มเอฟเฟกต์สีสันและการ์ดกะทำงาน
 st.markdown(f"""
     <style>
     .block-container {{
@@ -118,6 +118,45 @@ st.markdown(f"""
         border-radius: 8px 8px 0 0; 
         font-size: 22px;
     }}
+    
+    /* === เอฟเฟกต์และสีสันการ์ดกะดึก (โทนส้ม-ทอง อุ่นๆ) และกะเช้า (โทนฟ้า-คราม สว่าง) === */
+    @keyframes pulse-night {{
+        0% {{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }}
+        70% {{ box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }}
+    }}
+    @keyframes pulse-morning {{
+        0% {{ box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4); }}
+        70% {{ box-shadow: 0 0 0 10px rgba(2, 132, 199, 0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }}
+    }}
+
+    /* การ์ดกะดึก */
+    div.element-container:has(div.metric-night) div[data-testid="stMetric"] {{
+        background: linear-gradient(145deg, #fffbeb, #fef3c7) !important;
+        border: 3px solid #f59e0b !important;
+        animation: pulse-night 2.5s infinite;
+    }}
+    div.element-container:has(div.metric-night) div[data-testid="stMetric"] label {{
+        color: #b45309 !important;
+    }}
+    div.element-container:has(div.metric-night) div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
+        color: #b45309 !important;
+    }}
+
+    /* การ์ดกะเช้า */
+    div.element-container:has(div.metric-morning) div[data-testid="stMetric"] {{
+        background: linear-gradient(145deg, #f0fdf4, #dcfce7) !important;
+        border: 3px solid #22c55e !important;
+        animation: pulse-morning 2.5s infinite;
+    }}
+    div.element-container:has(div.metric-morning) div[data-testid="stMetric"] label {{
+        color: #15803d !important;
+    }}
+    div.element-container:has(div.metric-morning) div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
+        color: #15803d !important;
+    }}
+
     div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
         font-size: {int(st.session_state['font_size'] * 0.8)}px !important;
         font-weight: {weight_val} !important;
@@ -272,7 +311,7 @@ if active_source is not None:
         
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- กำหนดสัดส่วนตามที่คุณต้องการ (กะดึก 3879 / กะเช้า 1663) ---
+        # --- กำหนดสัดส่วนตามเป้าหมาย (กะดึก 3879 / กะเช้า 1663) ---
         target_night = 3879
         target_morning = 1663
         total_target = target_night + target_morning
@@ -295,7 +334,7 @@ if active_source is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน (พร้อมใส่ Tag กำหนด CSS Effect)
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -306,8 +345,10 @@ if active_source is not None:
         with c4:
             st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
+            st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
             st.metric("🌙 ยอดกะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
         with c6:
+            st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
         col_main_left, col_main_right = st.columns([1.1, 1])
