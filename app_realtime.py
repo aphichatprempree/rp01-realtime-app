@@ -24,7 +24,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS
+# นำค่าฟอนต์ที่แยกอิสระมาใส่ใน Dynamic CSS พร้อมเพิ่มขนาดตัวหนังสือ Delta (ยอด PO)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -93,6 +93,12 @@ st.markdown(f"""
         border-radius: 8px 8px 0 0; 
         font-size: 22px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }}
+
+    /* === ขยายขนาดตัวหนังสือยอด PO (Delta) ในการ์ดให้ใหญ่สะใจ === */
+    div[data-testid="stMetric"] div[data-testid="stMetricDelta"] {{
+        font-size: 18px !important;
+        font-weight: 900 !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -375,7 +381,7 @@ if active_source is not None and not df.empty:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน (เพิ่ม PO กะดึกและกะเช้าให้ตรงกัน)
+        # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
