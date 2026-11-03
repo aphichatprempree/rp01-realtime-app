@@ -25,14 +25,14 @@ if 'postpone_pallets' not in st.session_state:
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มสไตล์ขยายฟอนต์ตาราง DCSBx / DCSB เฉพาะเจาะจง
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับลดช่องไฟให้กระชับขึ้น
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
 
     .block-container {{
-        padding-top: 1.5rem !important;
-        padding-bottom: 2rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
     }}
     .stApp {{ 
         background-color: #f8fafc !important;
@@ -46,28 +46,27 @@ st.markdown(f"""
     /* กรอบหัวข้อหลัก (Header Box) แบบพรีเมียม มีมิติและเงาซ้อน */
     .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
-        padding: 22px; 
-        border-radius: 14px; 
+        padding: 16px; 
+        border-radius: 12px; 
         color: #ffffff;
         text-align: center; 
         font-weight: 800; 
-        font-size: 34px; 
-        margin-bottom: 16px;
-        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(30, 58, 138, 0.3);
+        font-size: 32px; 
+        margin-bottom: 10px;
+        box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);
         border: 2px solid rgba(255, 255, 255, 0.2);
-        letter-spacing: 0.5px;
     }}
     
-    /* หัวข้อรอง (Sub-title) */
+    /* หัวข้อรอง (Sub-title) ปรับลดระยะห่างด้านบนและล่าง */
     .sub-title {{
         color: #1e40af; 
         font-weight: 800; 
-        font-size: 26px;
+        font-size: 24px;
         border-left: 8px solid #2563eb; 
-        padding-left: 14px; 
-        margin-top: 18px; 
-        margin-bottom: 12px;
-        height: 38px;
+        padding-left: 12px; 
+        margin-top: 10px; 
+        margin-bottom: 8px;
+        height: 34px;
         display: flex;
         align-items: center;
         background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
@@ -80,9 +79,9 @@ st.markdown(f"""
         color: white; 
         text-align: center; 
         font-weight: 800; 
-        padding: 12px; 
-        border-radius: 10px 10px 0 0; 
-        font-size: 22px;
+        padding: 10px; 
+        border-radius: 8px 8px 0 0; 
+        font-size: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     .dcsb-box {{
@@ -90,38 +89,38 @@ st.markdown(f"""
         color: white; 
         text-align: center; 
         font-weight: 800; 
-        padding: 12px; 
-        border-radius: 10px 10px 0 0; 
-        font-size: 22px;
+        padding: 10px; 
+        border-radius: 8px 8px 0 0; 
+        font-size: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === ปรับแต่งเฉพาะตาราง DCSBx / DCSB ให้ฟอนต์ใหญ่และหนาขึ้นเป็นพิเศษ === */
+    /* === ปรับแต่งเฉพาะตาราง DCSBx / DCSB ให้ฟอนต์ใหญ่และกระชับขึ้น === */
     div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
     div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
-        font-size: 22px !important;
+        font-size: 20px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
-        background-color: #cbd5e1 !important;
-        padding: 14px !important;
+        background-color: #e2e8f0 !important;
+        padding: 8px !important;
     }}
     div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
     div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
-        font-size: {int(font_size_val * 0.95)}px !important;
+        font-size: {int(font_size_val * 0.9)}px !important;
         font-weight: 900 !important;
         color: #0f172a !important;
-        padding: 14px !important;
+        padding: 8px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
     @keyframes pulse-night {{
         0% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }}
-        70% {{ box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }}
+        70% {{ box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }}
         100% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }}
     }}
     @keyframes pulse-morning {{
         0% {{ box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }}
-        70% {{ box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }}
+        70% {{ box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }}
         100% {{ box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }}
     }}
 
@@ -129,9 +128,10 @@ st.markdown(f"""
     div.element-container:has(div.metric-night) div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #fffbeb, #fef3c7) !important;
         border: 2px solid #f59e0b !important;
-        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25) !important;
+        box-shadow: 0 6px 15px rgba(245, 158, 11, 0.25) !important;
         animation: pulse-night 2.5s infinite;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
+        padding: 10px 14px !important;
     }}
     div.element-container:has(div.metric-night) div[data-testid="stMetric"] label {{
         color: #92400e !important;
@@ -144,9 +144,10 @@ st.markdown(f"""
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #f0fdf4, #dcfce7) !important;
         border: 2px solid #22c55e !important;
-        box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25) !important;
+        box-shadow: 0 6px 15px rgba(34, 197, 94, 0.25) !important;
         animation: pulse-morning 2.5s infinite;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
+        padding: 10px 14px !important;
     }}
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] label {{
         color: #166534 !important;
@@ -157,58 +158,60 @@ st.markdown(f"""
 
     /* ตารางอื่นๆ ทั่วไป */
     div[data-testid="stDataFrame"] {{
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
         border: 1px solid #cbd5e1;
     }}
     div[data-testid="stDataFrame"] th {{
-        font-size: 18px !important;
+        font-size: 16px !important;
         font-weight: 800 !important;
         color: #1e293b !important;
         background-color: #cbd5e1 !important;
-        padding: 10px !important;
+        padding: 8px !important;
     }}
     div[data-testid="stDataFrame"] td {{
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 700 !important;
         color: #0f172a !important;
-        padding: 10px !important;
+        padding: 8px !important;
     }}
     
     /* ช่องกรอกตัวเลข */
     label[data-baseweb="label"], div[data-baseweb="input"] input {{
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
     }}
     div[data-baseweb="input"] input {{
-        font-size: 24px !important;
+        font-size: 20px !important;
         font-weight: 800 !important;
-        height: 48px !important;
-        border-radius: 8px !important;
+        height: 40px !important;
+        border-radius: 6px !important;
         border: 2px solid #94a3b8 !important;
     }}
     
     div.stAlert p {{
-        font-size: 18px !important;
+        font-size: 16px !important;
         font-weight: 800 !important;
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
     }}
 
     /* การ์ด Metric ทั่วไป */
     div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #ffffff, #f1f5f9);
         border: 2px solid #cbd5e1;
-        padding: 14px 18px;
-        border-radius: 12px;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+        padding: 10px 14px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }}
     div[data-testid="stMetric"] label {{
-        font-size: 18px !important;
+        font-size: 16px !important;
         font-weight: 800 !important;
         color: #334155 !important;
     }}
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
-        font-size: 34px !important;
+        font-size: 28px !important;
         font-weight: 900 !important;
         color: #0f172a !important;
     }}
@@ -217,26 +220,26 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
         border-right: 2px solid #e2e8f0;
-        padding: 1.5rem 1rem;
+        padding: 1rem 0.8rem;
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {{
-        font-size: 18px !important;
+        font-size: 16px !important;
         font-weight: 800 !important;
         color: #1e293b !important;
     }}
     section[data-testid="stSidebar"] .stSelectbox, section[data-testid="stSidebar"] .stSlider, section[data-testid="stSidebar"] .stFileUploader {{
         background: #ffffff;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         border: 1px solid #e2e8f0;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
     }}
     </style>
 """, unsafe_allow_html=True)
 
 # --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
-st.sidebar.markdown("<h2 style='color: #1e40af; border-bottom: 3px solid #2563eb; padding-bottom: 8px;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='color: #1e40af; border-bottom: 3px solid #2563eb; padding-bottom: 6px;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
 
 # 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์
 st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์ (RP01)")
@@ -408,7 +411,7 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ ยอดกะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
 
-        # --- ตาราง DCSBx / DCSB ขยายเต็มความกว้าง (ฟอนต์ใหญ่หนาพิเศษตามที่ขอ) ---
+        # --- ตาราง DCSBx / DCSB ขยายเต็มความกว้าง ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
@@ -464,7 +467,7 @@ if active_source is not None and not df.empty:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 10px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 6px 15px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
+            <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 14px 22px; border-radius: 8px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 10px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
                 <span>Pallets: {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
@@ -501,20 +504,20 @@ if active_source is not None and not df.empty:
                 <meta charset='utf-8'>
                 <title>Report {current_date}</title>
                 <style>
-                    body {{ background-color: #ffffff; color: #000000; font-family: 'Prompt', sans-serif; padding: 30px; }}
-                    h2 {{ color: #1e40af; text-align: center; font-size: 32px; font-weight: 800; }}
-                    table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
-                    th, td {{ border: 2px solid #94a3b8; padding: 14px; text-align: center; font-size: 22px; font-weight: 800; }}
+                    body {{ background-color: #ffffff; color: #000000; font-family: 'Prompt', sans-serif; padding: 20px; }}
+                    h2 {{ color: #1e40af; text-align: center; font-size: 28px; font-weight: 800; }}
+                    table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
+                    th, td {{ border: 2px solid #94a3b8; padding: 10px; text-align: center; font-size: 18px; font-weight: 800; }}
                     th {{ background-color: #1e3a8a; color: white; }}
                     td {{ background-color: #f1f5f9; color: #000000; }}
                 </style>
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 22px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+                <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
                 <br>
                 <div style="text-align: center;">
-                    <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 14px 28px; font-size: 20px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
+                    <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 12px 24px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
                 </div>
             </body>
             </html>
