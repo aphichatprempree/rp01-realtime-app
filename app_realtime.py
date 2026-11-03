@@ -272,6 +272,7 @@ if active_source is not None:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
         # --- ช่องกรอกยอดพาเลทที่เลื่อนส่ง (กระชับขึ้น) ---
+        st.markdown("---")
         col_postpone1, col_postpone2 = st.columns([1, 2])
         with col_postpone1:
             st.session_state['postpone_pallets'] = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม (หากไม่มีปล่อยเป็น 0)")
@@ -301,8 +302,8 @@ if active_source is not None:
         total_palletes = max(0.0, raw_pallets - postpone_pallets)
         
         # --- คำนวณกะการทำงาน ---
-        morning_pallets = round(total_palletes * 0.7, 2)
-        night_pallets = round(total_palletes - morning_pallets, 2)
+        morning_pallets = round(total_pallets * 0.7, 2)
+        night_pallets = round(total_pallets - morning_pallets, 2)
         
         morning_po = int(total_sup * 0.7)
         night_po = total_sup - morning_po
@@ -316,7 +317,7 @@ if active_source is not None:
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards) - สลับให้กะเช้าอยู่ซ้าย กะดึกอยู่ขวาถูกต้อง
+        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards) - อัปเดตช่วงเวลาใหม่
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -327,15 +328,15 @@ if active_source is not None:
         with c4:
             st.metric("Net Pallets", f"{total_palletes:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
-            st.metric("☀️ ยอดกะเช้า", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
+            st.metric("☀️ ยอดกะเช้า (05:00-17:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
         with c6:
-            st.metric("🌙 ยอดกะดึก", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
+            st.metric("🌙 ยอดกะดึก (17:00-05:00)", f"{night_pallets:,.0f}", f"{night_pct:.1f}%")
 
         # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกันอย่างสมดุล ---
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (อัปเดตช่วงเวลาในตาราง) ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
@@ -343,7 +344,7 @@ if active_source is not None:
                 "Item": [total_item, ""],
                 "UOM Qty": [f"{total_uom:,.0f}", ""],
                 "Net Pallets": [f"{total_palletes:,.0f}", ""],
-                "Shift": ["Shift Morning [06:00-00:00]", "Shift Night [00:00-06:00]"],
+                "Shift": ["Shift Morning [05:00-17:00]", "Shift Night [17:00-05:00]"],
                 "PO": [morning_po, night_po],
                 "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
                 "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
