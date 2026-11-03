@@ -98,7 +98,7 @@ if uploaded_file is not None:
         if raw_date_val:
             try:
                 dt_parsed = pd.to_datetime(raw_date_val, dayfirst=True)
-                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+                months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
                 current_date = f"{dt_parsed.day:02d} {months_th[dt_parsed.month]} {str(dt_parsed.year + 543)[-2:]}"
             except:
                 current_date = str(raw_date_val)
@@ -196,37 +196,31 @@ if uploaded_file is not None:
         # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers) ---
         st.markdown('<div class="sub-title">⭐ Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
-        special_vendors = [
+        # แบ่งรายการ Supplier ออกเป็นกลุ่ม CARD และ COINS ตามที่คุณต้องการแยก (สามารถปรับแก้รายชื่อ ID แยกได้ตามจริง)
+        card_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
-            "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082",
+            "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
+        ]
+        
+        coins_vendors = [
             "70335", "70341", "70585", "70605", "70609", "70757", "71007", "71026", "71316", "71338",
             "71573", "71758", "72204", "72215", "72472", "72715", "72736", "72747", "72852", "72853",
             "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
         ]
         
+        special_vendors = card_vendors + coins_vendors
+        
         if 'Vendor' in df.columns and 'P/O' in df.columns:
             df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
             df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
             
-            special_df = df[df['Vendor_str'].isin(special_vendors)]
+            special_df = df[df['Vendor_str'].isin(special_vendors)].copy()
             
             if not special_df.empty:
-                unique_special = special_df.drop_duplicates(subset=['PO_clean']).copy()
+                # กำหนดสถานะเป็น CARD หรือ COINS ตามกลุ่มรายชื่อ
+                special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
                 
-                # ตรวจสอบคอลัมน์ประเภทสินค้าในไฟล์ (เช่น Item Type, Category หรือ Product Type) หากมีให้นำมาแสดง แทนคำว่า SPECIAL
-                type_col = None
-                for col in ['Item Type', 'Category', 'Product Type', 'Type', 'Item Group']:
-                    if col in unique_special.columns:
-                        type_col = col
-                        break
-                
-                if type_col:
-                    unique_special['Status_val'] = unique_special[type_col].astype(str)
-                else:
-                    # หากไม่พบคอลัมน์ประเภทสินค้าเฉพาะ ให้ดึงจากคอลัมน์ Item Name หรือคอลัมน์สินค้าใกล้เคียงมาแสดงแทน
-                    item_name_col = item_col if item_col in unique_special.columns else unique_special.columns[12]
-                    unique_special['Status_val'] = unique_special[item_name_col].astype(str)
-                
+                unique_special = special_df.drop_duplicates(subset=['PO_clean'])
                 vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
