@@ -46,13 +46,11 @@ st.markdown("""
         font-size: 16px !important;
     }
     
-    /* ขยายขนาดฟอนต์หัวตาราง */
     div[data-testid="stDataFrame"] th {
         font-size: 16px !important;
         font-weight: 700 !important;
     }
     
-    /* ขยายขนาดฟอนต์ข้อมูลในตาราง */
     div[data-testid="stDataFrame"] td {
         font-size: 16px !important;
     }
@@ -110,34 +108,3 @@ if uploaded_file is not None:
         
         # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
         if 'Item Name' in df.columns:
-            df = df[df['Item Name'].notna()]
-            
-        # กำหนด Total Sup. เป็น 222 ตามที่คุณต้องการ
-        total_sup = 222
-        
-        # คำนวณ Item แบบ Unique (ไม่ซ้ำกัน) และ Clean ข้อมูลแล้ว
-        item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
-        if item_col in df.columns:
-            df['Item_clean'] = df[item_col].astype(str).str.strip()
-            total_item = df['Item_clean'].nunique()
-        else:
-            total_item = total_sup
-        
-        # ดึงยอดรวมจากคอลัมน์ UOM Qty และ Pallets Qty อย่างแม่นยำ
-        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
-        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
-        
-        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
-        total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
-        
-        # --- คำนวณกะการทำงาน (Shift) แยกตามช่วงเวลาจริง ---
-        morning_pallets = round(total_palletes * 0.7, 2)
-        night_pallets = round(total_palletes - morning_pallets, 2)
-        
-        morning_po = int(total_sup * 0.7)
-        night_po = total_sup - morning_po
-        
-        morning_pct = (morning_pallets / total_palletes) * 100 if total_palletes > 0 else 0
-        night_pct = (night_pallets / total_palletes) * 100 if total_palletes > 0 else 0
-
-        # --- คำนวณ DCS
