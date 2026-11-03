@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์ภายในตารางและการ์ดสรุปผลให้ใหญ่และหนาขึ้นอย่างชัดเจน
+# Custom CSS: ขยายขนาดฟอนต์และการแสดงผลภายในตารางทุกตารางให้ใหญ่สะใจ หนา คมชัด
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -77,20 +77,24 @@ st.markdown("""
         font-size: 24px;
     }
     
-    /* === ขยายขนาดฟอนต์ในตาราง (DataFrame) ให้ใหญ่และหนาขึ้นเป็นพิเศษ === */
+    /* === บังคับขยายฟอนต์และเพิ่มความสูงแถวในตารางทั้งหมด (Dataframe) ให้ใหญ่หนาเป็นพิเศษ === */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 22px !important;
+        font-size: 24px !important;
     }
     div[data-testid="stDataFrame"] th {
         font-size: 22px !important;
         font-weight: 900 !important;
         color: #111827 !important;
         background-color: #f1f5f9 !important;
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
     }
     div[data-testid="stDataFrame"] td {
-        font-size: 22px !important;
+        font-size: 24px !important;
         font-weight: 700 !important;
         color: #0f172a !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
     }
     
     /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่สะใจ */
