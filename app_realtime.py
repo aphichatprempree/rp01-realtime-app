@@ -11,7 +11,7 @@ SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
 # --- กำหนดค่าเริ่มต้นใน Session State ---
 if 'font_size' not in st.session_state:
-    st.session_state['font_size'] = 36
+    st.session_state['font_size'] = 32
 if 'font_weight' not in st.session_state:
     st.session_state['font_weight'] = "900 (หนาพิเศษ)"
 if 'enable_time_filter' not in st.session_state:
@@ -21,11 +21,11 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# กำหนดค่าตัวแปร weight_val ล่วงหน้าเพื่อไม่ให้เกิด NameError
+# กำหนดค่าตัวแปร weight_val ล่วงหน้า
 weight_val = st.session_state['font_weight'].split()[0]
 font_size_val = st.session_state['font_size']
 
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มคำสั่งจัดรูปแบบสำหรับการพิมพ์ PDF โดยเฉพาะ
+# นำค่าฟอนต์มาบังคับใช้กับทุกตารางและข้อความทั้งหมด เพื่อให้ขนาดเท่ากันและมองเห็นชัดเจนเวลาแคปจอ
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -82,7 +82,7 @@ st.markdown(f"""
         font-weight: 800; 
         padding: 10px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 20px;
+        font-size: 22px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     .dcsb-box {{
@@ -92,25 +92,23 @@ st.markdown(f"""
         font-weight: 800; 
         padding: 10px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 20px;
+        font-size: 22px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }}
     
-    /* === ปรับแต่งเฉพาะตาราง DCSBx / DCSB ให้ฟอนต์ใหญ่และกระชับขึ้น === */
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] th,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] th {{
-        font-size: 20px !important;
+    /* === บังคับขนาดฟอนต์ทุกตารางในหน้าเว็บให้เท่ากันตามค่าที่ปรับแต่ง (ป้องกันตัวเล็กมองไม่เห็น) === */
+    div[data-testid="stDataFrame"] th {{
+        font-size: {int(font_size_val * 0.75)}px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
-        background-color: #e2e8f0 !important;
-        padding: 8px !important;
+        background-color: #cbd5e1 !important;
+        padding: 10px !important;
     }}
-    div.element-container:has(div.dcsbx-box) + div[data-testid="stDataFrame"] td,
-    div.element-container:has(div.dcsb-box) + div[data-testid="stDataFrame"] td {{
-        font-size: {int(font_size_val * 0.9)}px !important;
-        font-weight: 900 !important;
+    div[data-testid="stDataFrame"] td {{
+        font-size: {font_size_val}px !important;
+        font-weight: {weight_val} !important;
         color: #0f172a !important;
-        padding: 8px !important;
+        padding: 10px !important;
     }}
 
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
@@ -155,27 +153,6 @@ st.markdown(f"""
     }}
     div.element-container:has(div.metric-morning) div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         color: #15803d !important;
-    }}
-
-    /* ตารางอื่นๆ ทั่วไป */
-    div[data-testid="stDataFrame"] {{
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
-        border: 1px solid #cbd5e1;
-    }}
-    div[data-testid="stDataFrame"] th {{
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        color: #1e293b !important;
-        background-color: #cbd5e1 !important;
-        padding: 8px !important;
-    }}
-    div[data-testid="stDataFrame"] td {{
-        font-size: 18px !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        padding: 8px !important;
     }}
     
     /* ช่องกรอกตัวเลข */
@@ -237,7 +214,6 @@ st.markdown(f"""
         margin-bottom: 8px;
     }}
 
-    /* === คำสั่งบังคับสำหรับ Print / Save PDF ให้แสดงผลสวยงามเต็มหน้ากระดาษ === * /
     @media print {{
         section[data-testid="stSidebar"], button, .stDownloadButton {{
             display: none !important;
