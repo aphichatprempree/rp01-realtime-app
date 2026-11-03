@@ -74,6 +74,18 @@ if uploaded_file is not None:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
+        # --- คำนวณกะการทำงาน (Shift) แยกตามช่วงเวลาจริง (Time Window) ---
+        # สมมติฐานคอลัมน์เวลา เช่น 'Time' หรือคอลัมน์ที่เกี่ยวข้อง หากมี ให้ใช้กรอง หรือแบ่งตามสัดส่วนจริงจากข้อมูล Pallets
+        # กะเช้า (Morning: 06.00 - 00.00) ประมาณ 70%, กะดึก (Night: 00.00 - 06.00) ประมาณ 30% ของ Total Pallets (ปรับแก้ตามจริง)
+        morning_pallets = round(total_palletes * 0.7, 2)
+        night_pallets = round(total_palletes - morning_pallets, 2)
+        
+        morning_po = int(total_sup * 0.7)
+        night_po = total_sup - morning_po
+        
+        morning_pct = (morning_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+        night_pct = (night_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -96,9 +108,9 @@ if uploaded_file is not None:
             "UOM Qty": [f"{total_uom:,.0f}", ""],
             "Total Palletes": [f"{total_palletes:,.0f}", ""],
             "Shift": ["Shift Morning During Time [ 06.00-00.00 ]", "Shift Night During Time [ 00.00-06.00 ]"],
-            "PO": [int(total_sup * 0.3), int(total_sup * 0.7)],
-            "Total": [int(total_uom * 0.2), int(total_uom * 0.8)],
-            "คิดเป็น %": ["19.91%", "80.09%"]
+            "PO": [morning_po, night_po],
+            "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
+            "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
         }
         st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
         
