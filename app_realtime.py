@@ -211,9 +211,23 @@ if uploaded_file is not None:
             special_df = df[df['Vendor_str'].isin(special_vendors)]
             
             if not special_df.empty:
-                unique_special = special_df.drop_duplicates(subset=['PO_clean'])
-                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col]].copy()
-                vendor_table['Status'] = "SPECIAL"
+                unique_special = special_df.drop_duplicates(subset=['PO_clean']).copy()
+                
+                # ตรวจสอบคอลัมน์ประเภทสินค้าในไฟล์ (เช่น Item Type, Category หรือ Product Type) หากมีให้นำมาแสดง แทนคำว่า SPECIAL
+                type_col = None
+                for col in ['Item Type', 'Category', 'Product Type', 'Type', 'Item Group']:
+                    if col in unique_special.columns:
+                        type_col = col
+                        break
+                
+                if type_col:
+                    unique_special['Status_val'] = unique_special[type_col].astype(str)
+                else:
+                    # หากไม่พบคอลัมน์ประเภทสินค้าเฉพาะ ให้ดึงจากคอลัมน์ Item Name หรือคอลัมน์สินค้าใกล้เคียงมาแสดงแทน
+                    item_name_col = item_col if item_col in unique_special.columns else unique_special.columns[12]
+                    unique_special['Status_val'] = unique_special[item_name_col].astype(str)
+                
+                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'Status_val']].copy()
                 vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
             else:
