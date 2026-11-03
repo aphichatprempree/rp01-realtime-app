@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ปรับแต่งให้เนื้อหากระชับ อ่านง่าย และจัดสัดส่วนซ้าย-ขวาให้เท่ากัน
+# Custom CSS: ปรับขนาดฟอนต์ตารางด้านบนให้พอดี อ่านง่าย ไม่ซ้อนทับ และตารางล่างคมชัด
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -27,7 +27,7 @@ st.markdown("""
         color: #ffffff;
         text-align: center; 
         font-weight: 900; 
-        font-size: 32px; 
+        font-size: 30px; 
         margin-bottom: 20px;
         box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
         border: 1px solid #3b82f6;
@@ -37,12 +37,12 @@ st.markdown("""
     .sub-title {
         color: #1e40af; 
         font-weight: 900; 
-        font-size: 26px;
+        font-size: 24px;
         border-left: 8px solid #1e40af; 
         padding-left: 12px; 
-        margin-top: 10px; 
-        margin-bottom: 15px;
-        height: 38px;
+        margin-top: 15px; 
+        margin-bottom: 12px;
+        height: 35px;
         display: flex;
         align-items: center;
     }
@@ -53,12 +53,12 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 14px; 
+        padding: 12px; 
         border-radius: 8px; 
-        font-size: 26px; 
+        font-size: 22px; 
         box-shadow: 0 4px 12px rgba(23, 37, 84, 0.2); 
         border: 1px solid #3b82f6;
-        margin-top: 15px;
+        margin-top: 12px;
     }
 
     /* กล่อง DCSBx และ DCSB */
@@ -67,54 +67,64 @@ st.markdown("""
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 12px; 
+        padding: 10px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 24px;
+        font-size: 20px;
     }
     .dcsb-box {
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
         font-weight: 900; 
-        padding: 12px; 
+        padding: 10px; 
         border-radius: 8px 8px 0 0; 
-        font-size: 24px;
+        font-size: 20px;
     }
     
-    /* === ขนาดฟอนต์ในตาราง (DataFrame) และช่องกรอกข้อมูลให้ใหญ่และชัดเจน === */
-    dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 28px !important;
-    }
-    div[data-testid="stDataFrame"] th {
-        font-size: 24px !important;
+    /* === ปรับขนาดฟอนต์ตารางด้านบนให้พอดี ไม่ซ้อนทับ === */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stDataFrame"] th {
+        font-size: 16px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #e2e8f0 !important;
-        padding-top: 14px !important;
-        padding-bottom: 14px !important;
+        padding: 8px !important;
     }
-    div[data-testid="stDataFrame"] td {
-        font-size: 28px !important;
+    div[data-testid="stHorizontalBlock"] div[data-testid="stDataFrame"] td {
+        font-size: 16px !important;
         font-weight: 800 !important;
         color: #000000 !important;
-        padding-top: 12px !important;
-        padding-bottom: 12px !important;
+        padding: 8px !important;
+    }
+
+    /* === ตาราง Vendors ด้านล่าง (Special Suppliers) ให้ฟอนต์ใหญ่หนาชัดเจน === */
+    div:not([data-testid="stHorizontalBlock"]) div[data-testid="stDataFrame"] th {
+        font-size: 20px !important;
+        font-weight: 900 !important;
+        color: #000000 !important;
+        background-color: #cbd5e1 !important;
+        padding: 12px !important;
+    }
+    div:not([data-testid="stHorizontalBlock"]) div[data-testid="stDataFrame"] td {
+        font-size: 20px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        padding: 10px !important;
     }
     
     /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
     label[data-baseweb="label"], div[data-baseweb="input"] input {
-        font-size: 22px !important;
+        font-size: 20px !important;
         font-weight: 800 !important;
     }
     div[data-baseweb="input"] input {
-        font-size: 26px !important;
+        font-size: 24px !important;
         font-weight: 900 !important;
-        height: 50px !important;
+        height: 48px !important;
     }
     
     /* ขนาดตัวอักษรในกล่องข้อความแจ้งเตือน */
     div.stAlert p {
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 800 !important;
     }
 
@@ -122,17 +132,17 @@ st.markdown("""
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
         border: 2px solid #94a3b8;
-        padding: 18px 24px;
+        padding: 16px 20px;
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
     div[data-testid="stMetric"] label {
-        font-size: 20px !important;
+        font-size: 18px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 40px !important;
+        font-size: 36px !important;
         font-weight: 900 !important;
         color: #000000 !important;
     }
@@ -273,7 +283,7 @@ if uploaded_file is not None:
 
         st.markdown("---")
 
-        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกันอย่างสมดุล (ปรับสัดส่วน 1.1 : 1 ให้เท่ากันสวยงาม) ---
+        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกันอย่างสมดุล ---
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
