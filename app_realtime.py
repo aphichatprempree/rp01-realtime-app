@@ -5,7 +5,7 @@ import datetime
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide และใช้ Dark Theme
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS ขยายขนาดตัวอักษรและจัดแต่งดีไซน์ให้คมชัด อ่านง่าย สบายตา
+# Custom CSS ขยายขนาดและเพิ่มความเข้มตัวอักษรให้คมชัด อ่านง่าย
 st.markdown("""
     <style>
     /* ธีมสีหลักและฟอนต์ */
@@ -22,18 +22,18 @@ st.markdown("""
         color: #ffffff;
         text-align: center; 
         font-weight: 800; 
-        font-size: 26px; 
+        font-size: 28px; 
         margin-bottom: 25px;
         box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
         border: 1px solid #3b82f6;
         letter-spacing: 0.5px;
     }
     
-    /* หัวข้อรอง (Sub-title) เพิ่มขนาดฟอนต์ */
+    /* หัวข้อรอง (Sub-title) ใหญ่และเข้มขึ้น */
     .sub-title {
         color: #60a5fa; 
-        font-weight: 700; 
-        font-size: 20px;
+        font-weight: 800; 
+        font-size: 22px;
         border-left: 6px solid #3b82f6; 
         padding-left: 12px; 
         margin-top: 30px; 
@@ -41,21 +41,26 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
     
-    /* ขยายขนาดฟอนต์ภายในตาราง (Dataframe) ทั้งหมดให้ใหญ่อ่านง่าย */
+    /* ขยายขนาดและเพิ่มความเข้มตัวอักษรภายในตาราง (Dataframe) ทั้งหมด */
     dataframe, table, th, td, div[data-testid="stDataFrame"] {
-        font-size: 16px !important;
+        font-size: 18px !important;
     }
     
+    /* หัวตารางตัวหนังสือเข้มและใหญ่ขึ้น */
     div[data-testid="stDataFrame"] th {
-        font-size: 16px !important;
-        font-weight: 700 !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
     }
     
+    /* ข้อมูลในตารางตัวหนังสือใหญ่และหนาขึ้นเพื่อความคมชัด */
     div[data-testid="stDataFrame"] td {
-        font-size: 16px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        color: #f1f5f9 !important;
     }
     
-    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวเลขใหญ่สะใจ */
+    /* ตกแต่งการ์ดตัวเลข (Metric Cards) ให้ตัวหนังสือใหญ่และเข้มสะใจ */
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #1e293b, #0f172a);
         border: 1px solid #334155;
@@ -64,14 +69,14 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
     div[data-testid="stMetric"] label {
-        font-size: 17px !important;
-        font-weight: 600 !important;
-        color: #94a3b8 !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: #cbd5e1 !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        font-size: 32px !important;
-        font-weight: 800 !important;
-        color: #f8fafc !important;
+        font-size: 34px !important;
+        font-weight: 900 !important;
+        color: #ffffff !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -173,18 +178,18 @@ if uploaded_file is not None:
         }
         st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
         
-        st.markdown(f"<div style='background-color: #1e3a8a; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 18px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 1px solid #3b82f6;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background-color: #1e3a8a; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 20px; box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 1px solid #3b82f6;'>TOTAL: {total_sup}</div>", unsafe_allow_html=True)
         st.write("")
 
         # --- ตารางที่ 2: DCSBx และ DCSB ---
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div style='background-color: #1d4ed8; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 18px;'>DCSBx</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #1d4ed8; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSBx</div>", unsafe_allow_html=True)
             dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
             st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
             
         with col2:
-            st.markdown("<div style='background-color: #0369a1; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 18px;'>DCSB</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #0369a1; color: white; text-align: center; font-weight: bold; padding: 12px; border-radius: 8px 8px 0 0; font-size: 20px;'>DCSB</div>", unsafe_allow_html=True)
             dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "คิดเป็น %": ["62.27%"]}
             st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
 
@@ -218,7 +223,7 @@ if uploaded_file is not None:
         
         # Grand Total Bar
         st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4); border: 1px solid #3b82f6;'>
+            <div style='background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); color: white; padding: 16px 24px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 20px; font-size: 20px; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4); border: 1px solid #3b82f6;'>
                 <span>Grand Total</span>
                 <span>Pallets: {total_palletes:,.0f}</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
