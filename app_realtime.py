@@ -165,4 +165,51 @@ if uploaded_file is not None:
         with col1:
             st.markdown("<div style='background-color: #ec4899; color: white; text-align: center; font-weight: bold; padding: 8px; border-radius: 6px 6px 0 0; font-size: 16px;'>DCSBx</div>", unsafe_allow_html=True)
             dcsbx_data = {"Date": [current_date], "Item": [dcsbx_item], "Palletes": [dcsbx_pallets], "PO": [100], "คิดเป็น %": ["37.73%"]}
-            st.dataframe(pd.DataFrame(dcsbx_data), use_container
+            st.dataframe(pd.DataFrame(dcsbx_data), use_container_width=True, hide_index=True)
+            
+        with col2:
+            st.markdown("<div style='background-color: #06b6d4; color: black; text-align: center; font-weight: bold; padding: 8px; border-radius: 6px 6px 0 0; font-size: 16px;'>DCSB</div>", unsafe_allow_html=True)
+            dcsb_data = {"Date": [current_date], "Item": [dcsb_item], "Palletes": [dcsb_pallets], "PO": [150], "คิดเป็น %": ["62.27%"]}
+            st.dataframe(pd.DataFrame(dcsb_data), use_container_width=True, hide_index=True)
+
+        # --- ตารางที่ 3: Vendors CARD & COINS (Special Suppliers) ---
+        st.markdown('<div class="sub-title">⭐ Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
+        
+        special_vendors = [
+            "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
+            "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082",
+            "70335", "70341", "70585", "70605", "70609", "70757", "71007", "71026", "71316", "71338",
+            "71573", "71758", "72204", "72215", "72472", "72715", "72736", "72747", "72852", "72853",
+            "70979", "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
+        ]
+        
+        if 'Vendor' in df.columns and 'P/O' in df.columns:
+            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
+            df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
+            
+            special_df = df[df['Vendor_str'].isin(special_vendors)]
+            
+            if not special_df.empty:
+                unique_special = special_df.drop_duplicates(subset=['PO_clean'])
+                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col]].copy()
+                vendor_table['Status'] = "SPECIAL"
+                vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
+                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+            else:
+                st.info("ไม่พบรายการ Supplier พิเศษ (Card & Coin) ในรอบเวลานี้")
+        else:
+            st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
+        
+        # Grand Total Bar
+        st.markdown(f"""
+            <div style='background-color: #047857; color: white; padding: 12px 20px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 15px; font-size: 16px; box-shadow: 0 4px 10px rgba(4, 120, 87, 0.3);'>
+                <span>Grand Total</span>
+                <span>Pallets: {total_palletes:,.0f}</span>
+                <span>UOM Qty: {total_uom:,.0f}</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
+else:
+    st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อเริ่มแสดงผลรายงานประมาณการรับสินค้า")
