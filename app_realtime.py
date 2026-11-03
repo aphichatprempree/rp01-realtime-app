@@ -6,7 +6,7 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ปรับแต่งให้เนื้อหากระชับ อ่านง่าย และเห็นภาพรวมครบในหน้าจอเดียว
+# Custom CSS: ปรับแต่งให้เนื้อหากระชับ อ่านง่าย และจัดสัดส่วนซ้าย-ขวาให้เท่ากัน
 st.markdown("""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
@@ -40,8 +40,11 @@ st.markdown("""
         font-size: 26px;
         border-left: 8px solid #1e40af; 
         padding-left: 12px; 
-        margin-top: 25px; 
+        margin-top: 10px; 
         margin-bottom: 15px;
+        height: 38px;
+        display: flex;
+        align-items: center;
     }
     
     /* แถบ TOTAL */
@@ -55,6 +58,7 @@ st.markdown("""
         font-size: 26px; 
         box-shadow: 0 4px 12px rgba(23, 37, 84, 0.2); 
         border: 1px solid #3b82f6;
+        margin-top: 15px;
     }
 
     /* กล่อง DCSBx และ DCSB */
@@ -269,12 +273,12 @@ if uploaded_file is not None:
 
         st.markdown("---")
 
-        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกัน (ใช้ Columns แบ่งซ้าย-ขวาอย่างลงตัว) ---
-        col_main_left, col_main_right = st.columns([1.3, 1])
+        # --- จัดวางภาพรวมทั้งหมดให้อยู่ในหน้าจอเดียวกันอย่างสมดุล (ปรับสัดส่วน 1.1 : 1 ให้เท่ากันสวยงาม) ---
+        col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
             # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
-            st.markdown('<div class="sub-title" style="margin-top:0px;">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
+            st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
                 "Total Sup.": [total_sup, ""],
@@ -291,7 +295,7 @@ if uploaded_file is not None:
 
         with col_main_right:
             # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
-            st.markdown('<div class="sub-title" style="margin-top:0px;">สัดส่วนคลัง (DCSBx / DCSB)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="sub-title">สัดส่วนคลัง (DCSBx / DCSB)</div>', unsafe_allow_html=True)
             sub_c1, sub_c2 = st.columns(2)
             with sub_c1:
                 st.markdown("<div class='dcsbx-box'>DCSBx</div>", unsafe_allow_html=True)
