@@ -21,35 +21,7 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
-st.sidebar.markdown("<h2>🎛️ ควบคุมการแสดงผล</h2>", unsafe_allow_html=True)
-
-# 1. ส่วนควบคุมขนาดและฟอนต์ (Font Controls)
-st.sidebar.markdown("### 🔠 ปรับแต่งตัวอักษรหน้าจอ")
-st.session_state['font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=14, max_value=45, value=st.session_state['font_size'], step=2)
-st.session_state['font_weight'] = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"].index(st.session_state['font_weight']))
-weight_val = st.session_state['font_weight'].split()[0]
-
-# 2. ส่วนอัปโหลดไฟล์ Excel
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 📂 คลังข้อมูล & ตัวกรอง")
-uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
-
-# หากมีการอัปโหลดไฟล์ใหม่ ให้บันทึกทับลงบน Server ทันที
-if uploaded_file is not None:
-    try:
-        with open(SERVER_SAVE_FILE, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์ลง Server เรียบร้อย!")
-    except Exception as e:
-        st.sidebar.error(f"ไม่สามารถบันทึกไฟล์บน Server ได้: {e}")
-
-# ตรวจสอบว่ามีไฟล์เซฟไว้บน Server หรือไม่ (เพื่อให้คนอื่นเข้ามาแล้วเจอข้อมูลเดิม)
-active_source = None
-if os.path.exists(SERVER_SAVE_FILE):
-    active_source = SERVER_SAVE_FILE
-
-# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมเพิ่มฟอนต์พรีเมียมและกรอบมีมิติ
+# นำค่าที่ผู้ใช้ปรับแต่งมาใส่ลงใน Dynamic CSS พร้อมปรับแต่ง Sidebar ใหม่ให้โมเดิร์น
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
@@ -249,18 +221,52 @@ st.markdown(f"""
         color: #0f172a !important;
     }}
     
-    /* แถบ Sidebar ด้านข้าง */
+    /* === ปรับแต่งแถบ Sidebar ด้านข้างใหม่ให้ทันสมัยและมีมิติ === */
     section[data-testid="stSidebar"] {{
-        background-color: #f1f5f9;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
         border-right: 2px solid #e2e8f0;
+        padding: 1.5rem 1rem;
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {{
         font-size: 18px !important;
         font-weight: 800 !important;
         color: #1e293b !important;
     }}
+    /* ตกแต่งกรองกล่องควบคุมใน Sidebar ให้เป็น Card UI */
+    section[data-testid="stSidebar"] .stSelectbox, section[data-testid="stSidebar"] .stSlider, section[data-testid="stSidebar"] .stFileUploader {{
+        background: #ffffff;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 12px;
+    }}
     </style>
 """, unsafe_allow_html=True)
+
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล (จัดลำดับใหม่ให้สวยงามใช้งานง่าย) ---
+st.sidebar.markdown("<h2 style='color: #1e40af; border-bottom: 3px solid #2563eb; padding-bottom: 8px;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
+
+# 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์ (วางไว้บนสุดเพื่อให้สะดวกต่อการใช้งานอันดับแรก)
+st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์ (RP01)")
+uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน", type=["xlsx", "xls"])
+
+if uploaded_file is not None:
+    try:
+        with open(SERVER_SAVE_FILE, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์สำเร็จ!")
+    except Exception as e:
+        st.sidebar.error(f"ไม่สามารถบันทึกไฟล์: {e}")
+
+active_source = None
+if os.path.exists(SERVER_SAVE_FILE):
+    active_source = SERVER_SAVE_FILE
+
+st.sidebar.markdown("---")
+
+# 2. ส่วนเลือกวันที่ดูข้อมูลย้อนหลัง
+st.sidebar.markdown("### 📅 2. เลือกวันที่ดูยอดงานย้อนหลัง")
 
 if active_source is not None:
     try:
@@ -282,35 +288,51 @@ if active_source is not None:
                 if pd.notna(dt_val):
                     st.session_state['historical_data'][str(dt_val)] = group_df
 
-        st.sidebar.markdown("---")
-        
         if 'historical_data' in st.session_state and st.session_state['historical_data']:
             available_dates = sorted(list(st.session_state['historical_data'].keys()))
-            selected_date_str = st.sidebar.selectbox("📅 เลือกวันที่ต้องการดูยอดงานย้อนหลัง", available_dates, index=len(available_dates)-1)
+            selected_date_str = st.sidebar.selectbox("เลือกวันที่ต้องการตรวจสอบ", available_dates, index=len(available_dates)-1)
             df = st.session_state['historical_data'][selected_date_str].copy()
         else:
             df = df_raw.copy()
+            selected_date_str = str(datetime.date.today())
 
-        st.sidebar.markdown("---")
-        st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
-        st.session_state['enable_time_filter'] = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=st.session_state['enable_time_filter'])
-        
-        if st.session_state['enable_time_filter']:
-            start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
-            end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
-            
-            time_col_filter = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
-            if time_col_filter:
-                df['Parsed_Time'] = pd.to_datetime(df[time_col_filter], errors='coerce').dt.time
-                df = df[(df['Parsed_Time'] >= start_t) & (df['Parsed_Time'] <= end_t)]
-            else:
-                df = df.sample(frac=0.125, random_state=42) if len(df) > 0 else df
+    except Exception as e:
+        st.sidebar.error(f"อ่านไฟล์ไม่สำเร็จ: {e}")
+        df = pd.DataFrame()
+        selected_date_str = str(datetime.date.today())
+else:
+    df = pd.DataFrame()
+    selected_date_str = str(datetime.date.today())
 
-        st.sidebar.markdown("---")
-        status_options = ["ทั้งหมด", "CARD", "COINS"]
-        st.session_state['filter_status'] = st.sidebar.selectbox("🏷️ กรองตามประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']))
-        filter_status = st.session_state['filter_status']
+st.sidebar.markdown("---")
 
+# 3. ส่วนกรองประเภท Supplier & ช่วงเวลา
+st.sidebar.markdown("### 🏷️ 3. ตัวกรองข้อมูลเพิ่มเติม")
+status_options = ["ทั้งหมด", "CARD", "COINS"]
+st.session_state['filter_status'] = st.sidebar.selectbox("กรองตามประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']))
+filter_status = st.session_state['filter_status']
+
+st.session_state['enable_time_filter'] = st.sidebar.checkbox("⏰ เปิดใช้งานกรองตามช่วงเวลา", value=st.session_state['enable_time_filter'])
+if st.session_state['enable_time_filter']:
+    start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
+    end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
+    
+    time_col_filter = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
+    if time_col_filter and not df.empty:
+        df['Parsed_Time'] = pd.to_datetime(df[time_col_filter], errors='coerce').dt.time
+        df = df[(df['Parsed_Time'] >= start_t) & (df['Parsed_Time'] <= end_t)]
+
+st.sidebar.markdown("---")
+
+# 4. ส่วนปรับแต่งขนาดฟอนต์หน้าจอ
+st.sidebar.markdown("### 🔠 4. ปรับแต่งขนาดตัวอักษร")
+st.session_state['font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=14, max_value=45, value=st.session_state['font_size'], step=2)
+st.session_state['font_weight'] = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"].index(st.session_state['font_weight']))
+weight_val = st.session_state['font_weight'].split()[0]
+
+# --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
+if active_source is not None and not df.empty:
+    try:
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
             months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
@@ -333,7 +355,7 @@ if active_source is not None:
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
-        # --- นับจำนวน Supplier เฉพาะชื่อที่ไม่ซ้ำกัน (เทียบเท่าช่อง Item) ---
+        # นับจำนวน Supplier เฉพาะชื่อไม่ซ้ำกัน
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         if sup_col in df.columns:
             df['Sup_clean'] = df[sup_col].astype(str).str.strip()
