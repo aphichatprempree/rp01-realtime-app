@@ -128,7 +128,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและช่องกรอกยอดเลื่อนส่ง ---
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและคลังข้อมูลย้อนหลัง ---
 st.sidebar.markdown("<h2>🎛️ คลังข้อมูล & ตัวกรอง</h2>", unsafe_allow_html=True)
 uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
@@ -163,11 +163,6 @@ if uploaded_file is not None:
             df = df_raw.copy()
 
         st.sidebar.markdown("---")
-        st.sidebar.markdown("### ⏳ จัดการงานเลื่อนส่ง (Postpone)")
-        # ช่องกรอกยอดพาเลทที่เลื่อนออก (ถ้าไม่มีให้ใส่ 0 หรือปล่อยว่าง)
-        postpone_pallets = st.sidebar.number_input("พาเลทที่เลื่อนส่งออก (Pallets)", min_value=0.0, value=0.0, step=1.0)
-
-        st.sidebar.markdown("---")
         st.sidebar.markdown("### ⏰ กรองตามช่วงเวลา (Time Filter)")
         enable_time_filter = st.sidebar.checkbox("เปิดใช้งานกรองตามช่วงเวลา", value=False)
         
@@ -198,6 +193,18 @@ if uploaded_file is not None:
         if enable_time_filter:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
+        # --- เพิ่มช่องกรอกยอดพาเลทที่เลื่อนส่ง ให้อยู่เหนือภาพรวมสรุปการทำงาน ---
+        st.markdown("---")
+        col_postpone1, col_postpone2 = st.columns([1, 2])
+        with col_postpone1:
+            postpone_pallets = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=0.0, step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม (หากไม่มีปล่อยเป็น 0)")
+        with col_postpone2:
+            if postpone_pallets > 0:
+                st.warning(f"⚠️ มีการเลื่อนส่งงานออกจำนวน **{postpone_pallets:,.0f} พาเลท** ระบบได้ทำการหักลบออกจากยอดรวมสุทธิให้เรียบร้อยแล้ว")
+            else:
+                st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
+        st.markdown("---")
+
         # คำนวณค่าหลัก
         total_sup = 222
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[12]
@@ -213,7 +220,7 @@ if uploaded_file is not None:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        # นำยอดพาเลทรวมตั้งต้น ลบกับ ยอดพาเลทที่เลื่อนออก เพื่อให้ได้ยอดสุทธิที่แท้จริง
+        # นำยอดพาเลทรวมตั้งต้น ลบกับ ยอดพาเลทที่เลื่อนออก
         total_palletes = max(0.0, raw_pallets - postpone_pallets)
         
         # --- คำนวณกะการทำงาน ---
