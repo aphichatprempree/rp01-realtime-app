@@ -25,33 +25,28 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # กำหนดให้แถวที่ 4 เป็นหัวตาราง (header=4 ตามรูปแบบไฟล์ RP01 ในภาพ)
+        # อ่านไฟล์โดยกำหนดให้แถวที่ 4 เป็นหัวตาราง
         df = pd.read_excel(uploaded_file, header=4)
         current_date = datetime.date.today().strftime("%d %b %y")
         
-        # ตัดแถวที่เป็นค่าว่างออก
+        # ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
+        # นับจำนวนแถวข้อมูลจริง (ไม่เอาแถวสรุปถ้ามี)
+        df = df[df.iloc[:, 2].notna()] # กรองเฉพาะแถวที่มี Item
         total_sup = df.shape[0]
         
-        # ดึงจำนวน Item จากคอลัมน์ Item Name หรือ Item Code (Column C)
+        # นับจำนวน Item ไม่ซ้ำกัน (Column C หรือ Item Name)
         item_col = 'Item Name' if 'Item Name' in df.columns else df.columns[2]
         total_item = df[item_col].nunique() if item_col in df.columns else total_sup
         
-        # ดึงยอดรวมจาก Column 'UOM Qty' และ 'Pallets Qty' (หรือ Column R และ V) ตรงๆ
-        uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else 'UOM'
-        pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else ('Pallets' if 'Pallets' in df.columns else None)
+        # ดึงข้อมูลจาก Column R (UOM Qty) และ Column V (Pallets Qty) โดยตรงอย่างแม่นยำ
+        # ใช้ errors='coerce' เพื่อแปลงค่าที่ไม่ใช่ตัวเลขให้เป็น NaN และกรองเฉพาะตัวเลข
+        uom_series = pd.to_numeric(df.iloc[:, 13], errors='coerce').fillna(0)
+        pallets_series = pd.to_numeric(df.iloc[:, 17], errors='coerce').fillna(0)
         
-        # หากหาชื่อคอลัมน์เป๊ะๆ ไม่เจอ ให้ใช้ตำแหน่ง index ตามโครงสร้างจริง (Column R = index 13, Column V = index 17 โดยประมาณ)
-        if uom_col in df.columns:
-            total_uom = pd.to_numeric(df[uom_col], errors='coerce').sum()
-        else:
-            total_uom = pd.to_numeric(df.iloc[:, 13], errors='coerce').sum() if df.shape[1] > 13 else 0
-            
-        if pallets_col and pallets_col in df.columns:
-            total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').sum()
-        else:
-            total_palletes = pd.to_numeric(df.iloc[:, 17], errors='coerce').sum() if df.shape[1] > 17 else 0
+        total_uom = uom_series.sum()
+        total_palletes = pallets_series.sum()
         
         # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4 = st.columns(4)
