@@ -298,8 +298,8 @@ if active_source is not None:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        # นำยอดพาเลทรวมตั้งต้น ลบกับ ยอดพาเลทที่เลื่อนออก
-        total_palletes = max(0.0, raw_pallets - postpone_pallets)
+        # แก้ไขการสะกดชื่อตัวแปรเป็น total_pallets ให้ถูกต้องตรงกัน
+        total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
         # --- คำนวณกะการทำงาน ---
         morning_pallets = round(total_pallets * 0.7, 2)
@@ -308,16 +308,16 @@ if active_source is not None:
         morning_po = int(total_sup * 0.7)
         night_po = total_sup - morning_po
         
-        morning_pct = (morning_pallets / total_palletes) * 100 if total_palletes > 0 else 0
-        night_pct = (night_pallets / total_palletes) * 100 if total_palletes > 0 else 0
+        morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
+        night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
-        dcsbx_pallets = int(total_palletes * 0.4)
-        dcsb_pallets = int(total_palletes - dcsbx_pallets)
+        dcsbx_pallets = int(total_pallets * 0.4)
+        dcsb_pallets = int(total_pallets - dcsbx_pallets)
 
         dcsbx_item = int(total_item * 0.4)
         dcsb_item = total_item - dcsbx_item
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards) - อัปเดตช่วงเวลาใหม่
+        # แสดงผลการ์ดสรุปตัวเลขด้านบนรวมยอดกะเช้า/กะดึก (Metric Cards)
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -326,7 +326,7 @@ if active_source is not None:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-            st.metric("Net Pallets", f"{total_palletes:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
+            st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
             st.metric("☀️ ยอดกะเช้า (05:00-17:00)", f"{morning_pallets:,.0f}", f"{morning_pct:.1f}%")
         with c6:
@@ -336,21 +336,21 @@ if active_source is not None:
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (อัปเดตช่วงเวลาในตาราง) ---
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
                 "Total Sup.": [total_sup, ""],
                 "Item": [total_item, ""],
                 "UOM Qty": [f"{total_uom:,.0f}", ""],
-                "Net Pallets": [f"{total_palletes:,.0f}", ""],
+                "Net Pallets": [f"{total_pallets:,.0f}", ""],
                 "Shift": ["Shift Morning [05:00-17:00]", "Shift Night [17:00-05:00]"],
                 "PO": [morning_po, night_po],
                 "Total": [f"{morning_pallets:,.0f}", f"{night_pallets:,.0f}"],
                 "คิดเป็น %": [f"{morning_pct:.2f}%", f"{night_pct:.2f}%"]
             })
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
-            st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_palletes:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='total-box'>TOTAL PALLETS: {total_pallets:,.0f} (หักเลื่อนส่ง: {postpone_pallets:,.0f} พาเลท)</div>", unsafe_allow_html=True)
 
         with col_main_right:
             # --- ตารางที่ 2: DCSBx และ DCSB จัดวางเคียงข้างกัน ---
@@ -403,7 +403,7 @@ if active_source is not None:
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 18px 26px; border-radius: 8px; font-weight: 900; display: flex; justify-content: space-between; margin-top: 15px; font-size: 26px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
-                <span>Pallets: {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
+                <span>Pallets: {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
@@ -441,7 +441,7 @@ if active_source is not None:
             </head>
             <body>
                 <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-                <p style="font-size: 24px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_palletes:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+                <p style="font-size: 24px; font-weight: bold;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
                 {summary_df.to_html(index=False, border=0)}
                 <br>
                 <p style="text-align: center; color: #475569; font-size: 18px;">(บันทึกหน้าเว็บนี้เป็นภาพหน้าจอหรือ PDF เพื่อเก็บบันทึกยอดงานย้อนหลัง)</p>
