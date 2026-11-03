@@ -33,7 +33,7 @@ if uploaded_file is not None:
         
         df = pd.read_excel(uploaded_file, sheet_name=target_sheet, header=3)
         
-        # ดึงวันที่จากคอลัมน์ 'Delivery Date' แถวแรกสุดมาอ้างอิง (ระบุ format dayfirst=True เพื่อไม่ให้วันกับเดือนสลับกัน)
+        # ดึงวันที่จากคอลัมน์ 'Delivery Date' แถวแรกสุดมาอ้างอิง
         raw_date_val = df['Delivery Date'].dropna().iloc[0] if 'Delivery Date' in df.columns and not df['Delivery Date'].dropna().empty else None
         
         if raw_date_val:
@@ -46,7 +46,7 @@ if uploaded_file is not None:
         else:
             current_date = datetime.date.today().strftime("%d %b %y")
         
-        # แสดงหัวรีพอร์ตพร้อมวันที่อ้างอิงจาก Delivery Date ที่ถูกต้อง
+        # แสดงหัวรีพอร์ตพร้อมวันที่อ้างอิงจาก Delivery Date
         st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
         
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
@@ -113,6 +113,88 @@ if uploaded_file is not None:
         st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
         special_data = [
-            (592, "ไปรษณีย์ไทย บจก", "CARD"), (3751, "เลนโซ่ คอมมิวเค", "CARD"), (3924, "ฮาตาริเทคโนโลยี", "CARD"),
-            (12457, "ซันร้อยแปด บจก.", "CARD"), (12790, "เค เอส ซี คอมเม", "CARD"), (12810, "เอเชียซอฟท์ คอร", "CARD"),
-            (12922, "ยูไนเต็ดดิสทริบ", "CARD"), (12990, "ทรู ดิสทริบิวชั", "CARD"), (13
+            (592, "ไปรษณีย์ไทย บจก", "CARD"), 
+            (3751, "เลนโซ่ คอมมิวเค", "CARD"), 
+            (3924, "ฮาตาริเทคโนโลยี", "CARD"),
+            (12457, "ซันร้อยแปด บจก.", "CARD"), 
+            (12790, "เค เอส ซี คอมเม", "CARD"), 
+            (12810, "เอเชียซอฟท์ คอร", "CARD"),
+            (12922, "ยูไนเต็ดดิสทริบ", "CARD"), 
+            (12990, "ทรู ดิสทริบิวชั", "CARD"), 
+            (13725, "ซีเอส ล็อกซอินโ", "CARD"),
+            (17157, "ไทยสมาร์ทการ์ด", "CARD"), 
+            (21189, "ที.เค.เอส.สยามเพรส แมเนจเม้นท์", "STAMP"), 
+            (21265, "พิกุล แย้มขยาย", "COIN"),
+            (21541, "เกตุ แย้มขยาย", "COIN"), 
+            (21653, "แจ๊คริช", "COIN"), 
+            (21738, "รมิตา เพ็งเพ็ชร", "COIN"),
+            (40334, "กิตติภัทร เหล็กกล้า", "COIN"), 
+            (40352, "ประกิจ แย้มขยาย", "COIN"), 
+            (40678, "ภัสมน ชาว", "COIN"),
+            (41068, "ภัสสมน บจก.", "COIN"), 
+            (70082, "จัสมินอินเตอร์", "CARD"), 
+            (70335, "ฮัทชิสัน ซีเอที", "CARD"),
+            (70341, "ยูไนเต็ด ดิสทริ", "CARD"), 
+            (70585, "กศท โทรคมนาคม", "CARD"), 
+            (70605, "ทรู ดิสทริบิวชั", "CARD"),
+            (70609, "ซินเซียร์ เอ็ดด", "CARD"), 
+            (70757, "จาย่า ซ๊อฟต์ จิ", "CARD"), 
+            (71007, "ทีโอที", "CARD"),
+            (71026, "โทเทิ่ล แอ็คเซ็", "โทรศัพท์"), 
+            (71316, "คิวบิเน็ต อินเต", "CARD"), 
+            (71338, "สินทรัพย์ประก", "CARD"),
+            (71573, "สามารถไอโมบาย", "CARD"), 
+            (71758, "เดอะฟันธงดอทคอม บจก.", "CARD"), 
+            (72204, "จีเอ็มเอ็ม แซท บจก.", "CARD"),
+            (72215, "มูลนิธิไทยพึ่งไทย", "CARD"), 
+            (72472, "เซอร์คอน พาวเวอร์", "แบตสำรอง"), 
+            (72715, "ครีเอเทค มาร์เก็ตติ้ง", "เสาดิจิตอล TV"),
+            (72736, "แฟมิลี่ คอร์ปอเรชั่น บจก.", "กล่องรับสัญญาณ"), 
+            (72747, "คราวน์ เทค แอดวานซ์ บมจ.", "กล่องรับสัญญาณ"),
+            (72852, "ฟอร์ท คอร์ปอเรชั่น บมจ.", "กล่องรับสัญญาณ"), 
+            (72853, "ไฮไฟ โอเรียนท์ ไทย จำกัด บมจ.", "กล่องรับสัญญาณ"),
+            (70979, "ที.เค.เอส.เทคโนโลยี บมจ.", "STAMP"), 
+            (73204, "เดอะ ไวท์สเปช", "CARD"), 
+            (73208, "อินคอมม์(ประเทศไทย) บจก.", "CARD"),
+            ("1101530", "ไวร์เลส ดีไวซ์", "CARD"), 
+            ("41068", "บจ.ทัณฑิมา คอยน์เซอร์วิส", "COIN"), 
+            ("FS", "ทรู อินเตอร์", "CARD"),
+            (73005, "บจ. ทรู มูฟ เอช ยูนิเวอร์แซล คอมมิวนิเคช", "CARD"), 
+            ("1102038", "บจ. ทรู มูฟ เอช ยูนิเวอร์แซล คอมมิวนิเคช", "CARD"),
+            ("2052496", "บจ. ไทย สมายล์ บัส", "CARD"), 
+            ("2053616", "บจ. ไทย สมายล์ บัส", "CARD"), 
+            ("2055418", "บจ. เทค ทอยส์", "CARD")
+        ]
+        
+        df_special_master = pd.DataFrame(special_data, columns=["VENDOR", "Master_Name", "STATUS"])
+        df_special_master["VENDOR"] = df_special_master["VENDOR"].astype(str).str.strip()
+        
+        if 'Vendor' in df.columns and 'P/O' in df.columns:
+            df['Vendor_str'] = df['Vendor'].astype(str).str.split('.').str[0].str.strip()
+            df['PO_clean'] = pd.to_numeric(df['P/O'], errors='coerce').fillna(df['P/O']).astype(str).str.split('.').str[0]
+            
+            merged_special = pd.merge(df, df_special_master, left_on='Vendor_str', right_on='VENDOR', how='inner')
+            
+            if not merged_special.empty:
+                unique_special = merged_special.drop_duplicates(subset=['PO_clean'])
+                vendor_table = unique_special[['Vendor_str', 'Vendor Name', 'PO_clean', pallets_col, uom_col, 'STATUS']].copy()
+                vendor_table.columns = ["Vendor ID", "Vendor Name", "P/O", "Sum of Pallets Qty", "Sum of UOM Qty", "Status"]
+                st.dataframe(vendor_table, use_container_width=True, hide_index=True)
+            else:
+                st.info("💡 ไม่พบรายการ Supplier พิเศษ (Card & Coin) ในรอบเวลานี้")
+        else:
+            st.warning("ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
+        
+        # Grand Total Bar
+        st.markdown(f"""
+            <div style='background-color: #047857; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; display: flex; justify-content: space-between; margin-top: 10px; font-size: 15px;'>
+                <span>Grand Total</span>
+                <span>Pallets: {total_palletes:,.0f}</span>
+                <span>UOM Qty: {total_uom:,.0f}</span>
+            </div>
+        """, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
+else:
+    st.info("💡 กรุณาอัปโหลดไฟล์ Excel (RP01) เพื่อเริ่มแสดงผลรายงานประมาณการรับสินค้า")
