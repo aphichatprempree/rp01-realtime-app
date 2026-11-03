@@ -29,7 +29,7 @@ uploaded_file = st.file_uploader("📂 อัปโหลดไฟล์ Excel (
 
 if uploaded_file is not None:
     try:
-        # เปิดไฟล์ Excel และเลือกชีตรายละเอียด (ตัดบรรทัดหัวข้อออกโดยใช้ header=1)
+        # เปิดไฟล์ Excel และเลือกชีทรายละเอียด 'Detail Schedule' (ตัดแถวหัวข้อ 1 บรรทัดออกโดยใช้ header=1)
         xls = pd.ExcelFile(uploaded_file)
         target_sheet = 'Detail Schedule' if 'Detail Schedule' in xls.sheet_names else xls.sheet_names[0]
         
@@ -39,17 +39,18 @@ if uploaded_file is not None:
         # ทำความสะอาดข้อมูล: ตัดแถวที่เป็นค่าว่างทั้งหมดออก
         df = df.dropna(how='all')
         
-        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name)
+        # กรองเฉพาะแถวที่มีข้อมูลสินค้าจริง (Item Name หรือ Vendor) เพื่อไม่เอาแถวสรุปมารวม
         if 'Item Name' in df.columns:
             df = df[df['Item Name'].notna()]
             
         total_sup = df.shape[0]
         total_item = df['Item Name'].nunique() if 'Item Name' in df.columns else total_sup
         
-        # ดึงยอดรวมจากคอลัมน์ UOM Qty (Index 18) และ Pallets Qty จาก Column V (Index 22) อย่างแม่นยำ
+        # ล็อกตำแหน่งคอลัมน์ UOM Qty และ Pallets Qty ให้แม่นยำ (ป้องกันการดึงคอลัมน์อื่นมาบวกรวม)
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[18]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[22]
         
+        # แปลงเป็นตัวเลขและรวมยอดอย่างถูกต้อง
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         total_palletes = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
