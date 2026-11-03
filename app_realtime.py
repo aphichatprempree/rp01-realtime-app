@@ -6,21 +6,35 @@ import io
 # ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
 st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
 
-# Custom CSS: ขยายขนาดฟอนต์เฉพาะตารางภาพรวมสรุปกะการทำงานเป็น 40px
-st.markdown("""
+# --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
+st.sidebar.markdown("<h2>🎛️ ควบคุมการแสดงผล</h2>", unsafe_allow_html=True)
+
+# 1. ส่วนควบคุมขนาดและฟอนต์ (Font Controls)
+st.sidebar.markdown("### 🔠 ปรับแต่งตัวอักษรหน้าจอ")
+custom_font_size = st.sidebar.slider("ขนาดฟอนต์ตารางหลัก (Pixel)", min_value=16, max_value=50, value=40, step=2)
+custom_font_weight = st.sidebar.selectbox("ความหนาของตัวอักษร", ["900 (หนาพิเศษ)", "800 (หนามาก)", "700 (หนาปานกลาง)"], index=0)
+weight_val = custom_font_weight.split()[0]
+
+# 2. ส่วนอัปโหลดไฟล์ Excel
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📂 คลังข้อมูล & ตัวกรอง")
+uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
+
+# นำค่าที่ผู้ใช้สไลด์ใน Sidebar มาใส่ลงใน Dynamic CSS ทันที
+st.markdown(f"""
     <style>
     /* พื้นหลังหลักของหน้าเว็บเป็นสีขาว */
-    .stApp { 
+    .stApp {{ 
         background-color: #ffffff !important;
         color: #000000 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .main { 
+    }}
+    .main {{ 
         background-color: #ffffff !important;
-    }
+    }}
     
     /* กล่องหัวข้อหลัก (Header Box) */
-    .header-box {
+    .header-box {{
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
         padding: 30px; 
         border-radius: 12px; 
@@ -34,7 +48,7 @@ st.markdown("""
     }
     
     /* หัวข้อรอง (Sub-title) */
-    .sub-title {
+    .sub-title {{
         color: #1e40af; 
         font-weight: 900; 
         font-size: 36px;
@@ -48,7 +62,7 @@ st.markdown("""
     }
     
     /* แถบ TOTAL */
-    .total-box {
+    .total-box {{
         background: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
         color: white; 
         text-align: center; 
@@ -62,7 +76,7 @@ st.markdown("""
     }
 
     /* กล่อง DCSBx และ DCSB */
-    .dcsbx-box {
+    .dcsbx-box {{
         background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
         color: white; 
         text-align: center; 
@@ -71,7 +85,7 @@ st.markdown("""
         border-radius: 10px 10px 0 0; 
         font-size: 30px;
     }
-    .dcsb-box {
+    .dcsb-box {{
         background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
         color: white; 
         text-align: center; 
@@ -81,87 +95,83 @@ st.markdown("""
         font-size: 30px;
     }
     
-    /* === ขยายขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ให้เป็นขนาด 40px === */
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {
-        font-size: 34px !important;
-        font-weight: 900 !important;
+    /* === ปรับขนาดฟอนต์เฉพาะตาราง "ภาพรวมสรุปกะการทำงาน" ตามที่ผู้ใช้สไลด์เลือกใน Sidebar === */
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] th {{
+        font-size: {int(custom_font_size * 0.85)}px !important;
+        font-weight: {weight_val} !important;
         color: #000000 !important;
         background-color: #cbd5e1 !important;
         padding: 22px !important;
-    }
-    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {
-        font-size: 40px !important;
-        font-weight: 900 !important;
+    }}
+    div.element-container:has(div.sub-title) + div[data-testid="stDataFrame"] td {{
+        font-size: {custom_font_size}px !important;
+        font-weight: {weight_val} !important;
         color: #000000 !important;
         padding: 22px !important;
-    }
+    }}
 
-    /* ตารางอื่นๆ (DCSBx/DCSB และ Special Suppliers) ให้ขนาดมาตรฐานชัดเจน */
-    div[data-testid="stDataFrame"] th {
+    /* ตารางอื่นๆ ให้ขนาดได้สัดส่วนตามกัน */
+    div[data-testid="stDataFrame"] th {{
         font-size: 24px !important;
         font-weight: 900 !important;
         color: #000000 !important;
         background-color: #e2e8f0 !important;
         padding: 14px !important;
-    }
-    div[data-testid="stDataFrame"] td {
+    }}
+    div[data-testid="stDataFrame"] td {{
         font-size: 26px !important;
         font-weight: 800 !important;
         color: #000000 !important;
         padding: 14px !important;
-    }
+    }}
     
     /* ขนาดตัวอักษรในช่องกรอกตัวเลข (Number Input) */
-    label[data-baseweb="label"], div[data-baseweb="input"] input {
+    label[data-baseweb="label"], div[data-baseweb="input"] input {{
         font-size: 30px !important;
         font-weight: 900 !important;
-    }
-    div[data-baseweb="input"] input {
+    }}
+    div[data-baseweb="input"] input {{
         font-size: 36px !important;
         font-weight: 900 !important;
         height: 65px !important;
-    }
+    }}
     
     /* ขนาดตัวอักษรในกล่องข้อความแจ้งเตือน */
-    div.stAlert p {
+    div.stAlert p {{
         font-size: 28px !important;
         font-weight: 900 !important;
-    }
+    }}
 
     /* ตกแต่งการ์ดตัวเลข (Metric Cards) */
-    div[data-testid="stMetric"] {
+    div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #f1f5f9, #e2e8f0);
         border: 3px solid #94a3b8;
         padding: 24px 30px;
         border-radius: 14px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    }
-    div[data-testid="stMetric"] label {
+    }}
+    div[data-testid="stMetric"] label {{
         font-size: 26px !important;
         font-weight: 900 !important;
         color: #1e293b !important;
-    }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    }}
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
         font-size: 52px !important;
         font-weight: 900 !important;
         color: #000000 !important;
-    }
+    }}
     
     /* แถบ Sidebar ด้านข้าง */
-    section[data-testid="stSidebar"] {
+    section[data-testid="stSidebar"] {{
         background-color: #f8fafc;
         border-right: 2px solid #e2e8f0;
-    }
-    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-        font-size: 24px !important;
+    }}
+    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {{
+        font-size: 20px !important;
         font-weight: 900 !important;
-    }
+    }}
     </style>
 """, unsafe_allow_html=True)
-
-# --- Sidebar: แผงควบคุมตัวกรองข้อมูลและคลังข้อมูลย้อนหลัง ---
-st.sidebar.markdown("<h2>🎛️ คลังข้อมูล & ตัวกรอง</h2>", unsafe_allow_html=True)
-uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน (RP01)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
@@ -287,7 +297,7 @@ if uploaded_file is not None:
         col_main_left, col_main_right = st.columns([1.1, 1])
 
         with col_main_left:
-            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (ฟอนต์ขนาดใหญ่ 40px) ---
+            # --- ตารางที่ 1: ภาพรวมสรุปกะการทำงาน (ปรับขนาดและน้ำหนักฟอนต์ได้แบบ Real-time) ---
             st.markdown('<div class="sub-title">ภาพรวมสรุปกะการทำงาน</div>', unsafe_allow_html=True)
             summary_df = pd.DataFrame({
                 "Date": [current_date, ""],
