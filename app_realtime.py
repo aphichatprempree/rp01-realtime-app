@@ -36,7 +36,9 @@ if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
-if 'postpone_from_date' not in st.session_state:
+
+# ป้องกัน Error ประเภทข้อมูลวันที่ โดยเช็กให้เป็น datetime.date เสมอ
+if 'postpone_from_date' not in st.session_state or not isinstance(st.session_state['postpone_from_date'], datetime.date):
     st.session_state['postpone_from_date'] = datetime.date.today()
 
 dcs_size = st.session_state['dcs_font_size']
@@ -332,7 +334,7 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (เปลี่ยนเป็น Date Picker ปฏิทิน)
+# 4. ส่วนจัดการงานเลื่อนส่ง (Date Picker ปฏิทินที่ปลอดภัย)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
 st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลือกวันที่ต้นทางที่เลื่อนมา:", value=st.session_state['postpone_from_date'])
@@ -340,7 +342,6 @@ st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลื�
 postpone_pallets = st.session_state['postpone_pallets']
 postpone_from_date_obj = st.session_state['postpone_from_date']
 
-# แปลงวันที่เลือกเป็นรูปแบบ วัน เดือน ไทย (เช่น 3 พ.ย. 69)
 try:
     months_th_short = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
     postpone_from_str = f"{postpone_from_date_obj.day} {months_th_short[postpone_from_date_obj.month]} {str(postpone_from_date_obj.year + 543)[-2:]}"
@@ -370,13 +371,11 @@ if active_source is not None and not df.empty:
 
         st.markdown("---")
         
-        # แสดงสถานะการเลื่อนส่ง
         if postpone_pallets > 0:
             st.warning(f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่: **{postpone_from_str}**)")
         else:
             st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
 
-        # กำหนดชื่อคอลัมน์และนับจำนวน Unique Values แบบตรงเป๊ะกับไฟล์ต้นฉบับ
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
 
@@ -401,7 +400,6 @@ if active_source is not None and not df.empty:
         
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
-        # --- กำหนดสัดส่วนตามเป้าหมาย (กะดึก 3879 / กะเช้า 1663) ---
         target_night = 3879
         target_morning = 1663
         total_target = target_night + target_morning
@@ -418,7 +416,6 @@ if active_source is not None and not df.empty:
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
-        # --- คำนวณแยกตามคอลัมน์ ASRS_ITEM สำหรับ DCSBx และ DCSB ---
         asrs_col = 'ASRS_ITEM' if 'ASRS_ITEM' in df.columns else (next((c for c in df.columns if 'asrs' in str(c).lower()), 'AE'))
         
         if asrs_col in df.columns:
@@ -439,7 +436,6 @@ if active_source is not None and not df.empty:
         dcsb_po = dcsb_df_filtered['PO_clean'].dropna().nunique() if 'PO_clean' in dcsb_df_filtered.columns else len(dcsb_df_filtered)
         dcsb_pct = (dcsb_pallets / total_pallets) * 100 if total_pallets > 0 else 0
 
-        # แสดงผลการ์ดสรุปตัวเลขด้านบน
         c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.metric("Total Sup.", f"{total_sup:,}")
@@ -457,7 +453,6 @@ if active_source is not None and not df.empty:
             st.markdown('<div class="metric-morning"></div>', unsafe_allow_html=True)
             st.metric("☀️ กะเช้า (17:00-05:00)", f"{morning_pallets:,.0f}", f"{morning_po:,} PO ({morning_pct:.1f}%)")
 
-        # --- ตาราง DCSBx / DCSB (แยกตาม ASRS_ITEM จริง) ---
         st.markdown('<div class="sub-title">(DCSBx / DCSB)</div>', unsafe_allow_html=True)
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
