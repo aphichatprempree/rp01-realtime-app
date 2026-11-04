@@ -754,3 +754,187 @@ else:
   st.info(
       "ℹ️ ยังไม่มีข้อมูลในฐานข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน"
   )
+from io import BytesIO
+import pandas as pd
+import streamlit as st
+
+# --- ตั้งค่าหน้าเว็บ ---
+st.set_page_config(
+    page_title="รายงานประมาณการรับสินค้า", page_icon="📋", layout="wide"
+)
+
+# --- ขยายขนาดตัวอักษรในตาราง ---
+st.markdown(
+    """
+    <style>
+    .stDataFrame td {
+        font-size: 16px !important;
+    }
+    .stDataFrame th {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.subheader("📋 รายงานข้อมูล Vendor, PO, Item, Ti, Hi")
+
+# ดึงข้อมูลจาก st.session_state หรือใช้ข้อมูลจำลองเริ่มต้น
+if "main_data" in st.session_state:
+  df = st.session_state["main_data"]
+else:
+  df = pd.DataFrame({
+      "Vendor": ["บริษัท เอ บี ซี จำกัด", "บริษัท เอ็กซ์ วาย ซี จำกัด", "บริษัท เทส จำกัด"],
+      "PO": ["5011101837", "5011101838", "5011101893"],
+      "Item": ["Item A", "Item B", "Item C"],
+      "Ti": [1, 2, 1],
+      "Hi": [1, 3, 1],
+  })
+
+# 1. แสดงผลตารางข้อมูลหลัก
+required_cols = ["Vendor", "PO", "Item", "Ti", "Hi"]
+if all(col in df.columns for col in required_cols):
+  st.dataframe(df[required_cols], use_container_width=True)
+
+  # 2. ตรวจสอบเงื่อนไขแจ้งเตือน เมื่อ Ti = 1 และ Hi = 1 พร้อมกัน
+  alert_items = df[(df["Ti"] == 1) & (df["Hi"] == 1)]
+
+  if not alert_items.empty:
+    st.warning(
+        "🚨 **แจ้งเตือนระบบ:** ตรวจพบรายการที่มีค่า **Ti = 1** และ **Hi ="
+        " 1** พร้อมกัน จำนวน "
+        f"{len(alert_items)} รายการ!"
+    )
+
+    with st.expander(
+        "🔍 คลิกเพื่อดูรายละเอียดรายการที่ต้องตรวจสอบ (Ti=1 และ Hi=1)"
+    ):
+      st.dataframe(alert_items[required_cols], use_container_width=True)
+  else:
+    st.success("✅ ไม่พบรายการที่ค่า Ti = 1 และ Hi = 1 พร้อมกันในขณะนี้")
+else:
+  st.dataframe(df, use_container_width=True)
+
+# --- ส่วนนำเข้าไฟล์ RP03 เพื่อเปรียบเทียบข้อมูลและรวมยอดพาเลท ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 นำเข้าไฟล์ RP03 เพื่อเปรียบเทียบและรวมยอดพาเลทงานนอกรอบ</div>',
+    unsafe_allow_html=True,
+)
+
+rp03_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ RP03 (Goods Receive Note Summary Report)",
+    type=["xlsx", "xls", "csv"],
+    key="rp03_file_uploader",
+)
+
+if rp03_file is not None:
+  try:
+    if rp03_file.name.endswith(".csv"):
+      df_rp03 = pd.read_csv(rp03_file)
+    else:
+      df_rp03 = pd.read_excel(rp03_file)
+
+    st.success("อัปโหลดไฟล์ RP03 สำเร็จ!")
+
+    if "df" in globals() and df is not None and not df.empty:
+      # ค้นหาคอลัมน์ PO ในไฟล์ RP03 และไฟล์หลัก RP01
+      po_col_rp03 = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_rp03.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      # ค้นหาคอลัมน์ Total Case Qty (iLPNs) สำหรับรวมยอดพาเลท
+      target_col = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "total case" in c.lower()
+              or "ilpn" in c.lower()
+              or "pallet" in c.lower()
+              or "qty" in c.lower()
+          ),
+          None,
+      )
+
+      if main_po_col and target_col:
+        # แปลงข้อมูล PO เป็น String เพื่อเทียบเคียงแบบ Exact Match (เทียบเท่า VLOOKUP)
+        df_rp03[po_col_rp03] = df_rp03[po_col_rp03].astype(str).str.strip()
+        existing_pos = set(df[main_po_col].astype(str).str.strip())
+
+        # กรองเฉพาะรายการที่ PO ใน RP03 ไม่มีอยู่ใน RP01 (PO ไม่ตรง / งานนอกรอบ)
+        df_mismatch = df_rp03[~df_rp03[po_col_rp03].isin(existing_pos)].copy()
+
+        if not df_mismatch.empty:
+          # แปลงช่อง Total Case Qty (iLPNs) ให้เป็นตัวเลขเพื่อรวมผลลัพธ์
+          df_mismatch[target_col] = pd.to_numeric(
+              df_mismatch[target_col], errors="coerce"
+          ).fillna(0)
+          total_sum_pallets = df_mismatch[target_col].sum()
+
+          # แสดงผลลัพธ์ยอดรวมพาเลท
+          st.metric(
+              label=(
+                  "📦 ยอดรวม Total Case Qty (iLPNs) เฉพาะ PO ที่ไม่ตรง (จากไฟล์"
+                  " RP03)"
+              ),
+              value=(
+                  f"{total_sum_pallets:,.2f} พาเลท (จากทั้งหมด"
+                  f" {len(df_mismatch)} รายการ)"
+              ),
+          )
+
+          st.subheader("📋 ตารางแสดงรายการ RP03 ที่ PO ไม่ตรงกับ RP01")
+          st.dataframe(df_mismatch, use_container_width=True)
+
+          # ปุ่มดาวน์โหลดรายงานผลลัพธ์เป็น Excel
+          output = BytesIO()
+          with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_mismatch.to_excel(writer, index=False, sheet_name="RP03_Mismatch")
+          processed_data = output.getvalue()
+
+          st.download_button(
+              label="📥 ดาวน์โหลดรายงานผลการเปรียบเทียบ (Excel)",
+              data=processed_data,
+              file_name="RP03_Mismatch_Summary.xlsx",
+              mime=(
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              ),
+          )
+        else:
+          st.success(
+              "✅ ไม่พบรายการที่ PO แตกต่าง ทุก PO ในไฟล์ RP03 ตรงกับ RP01"
+              " ทั้งหมด"
+          )
+      else:
+        st.warning(
+            "⚠️ ไม่พบคอลัมน์ PO หรือคอลัมน์ Total Case Qty (iLPNs) ในไฟล์ RP03"
+        )
+    else:
+      st.warning(
+          "⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล"
+      )
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ RP03: {e}")
+
+# --- ส่วนปุ่มพิมพ์/บันทึก PDF ---
+st.markdown("---")
+if st.button("🖨️ พิมพ์/บันทึก PDF ทันที"):
+  import streamlit.components.v1 as components
+
+  js_code = """
+        <script>
+            window.print();
+        </script>
+    """
+  components.html(js_code, height=0)
