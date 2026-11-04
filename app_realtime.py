@@ -40,10 +40,10 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมคำสั่งซ่อนแถบ Toolbar ด้านบน
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่ง Sidebar ให้กระชับ สวยงาม ทันสมัย
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
 
     /* === คำสั่งซ่อนแถบเมนูด้านบนของ Streamlit Cloud (Toolbar & Header) === */
     header[data-testid="stHeader"] {{
@@ -185,26 +185,6 @@ st.markdown(f"""
         color: #15803d !important;
     }}
     
-    /* ช่องกรอกตัวเลข */
-    label[data-baseweb="label"], div[data-baseweb="input"] input {{
-        font-size: 18px !important;
-        font-weight: 800 !important;
-    }}
-    div[data-baseweb="input"] input {{
-        font-size: 20px !important;
-        font-weight: 800 !important;
-        height: 40px !important;
-        border-radius: 6px !important;
-        border: 2px solid #94a3b8 !important;
-    }}
-    
-    div.stAlert p {{
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        padding-top: 2px !important;
-        padding-bottom: 2px !important;
-    }}
-
     /* การ์ด Metric ทั่วไป */
     div[data-testid="stMetric"] {{
         background: linear-gradient(145deg, #ffffff, #f1f5f9);
@@ -224,24 +204,33 @@ st.markdown(f"""
         color: #0f172a !important;
     }}
     
-    /* === ปรับแต่งแถบ Sidebar ด้านข้างใหม่ให้ทันสมัยและมีมิติ === */
+    /* === ปรับแต่งแถบ Sidebar ด้านข้างให้กระชับและมืออาชีพ === */
     section[data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border-right: 2px solid #e2e8f0;
-        padding: 1rem 0.8rem;
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        border-right: 2px solid #334155;
+        padding: 0.8rem 0.6rem;
     }}
-    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {{
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        color: #1e293b !important;
+    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {{
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #f8fafc !important;
     }}
-    section[data-testid="stSidebar"] .stSelectbox, section[data-testid="stSidebar"] .stSlider, section[data-testid="stSidebar"] .stFileUploader {{
-        background: #ffffff;
-        padding: 10px;
+    section[data-testid="stSidebar"] h3 {{
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #38bdf8 !important;
+        margin-top: 8px !important;
+        margin-bottom: 4px !important;
+        letter-spacing: 0.5px;
+    }}
+    
+    /* การ์ดกลุ่มควบคุมใน Sidebar */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 10px;
         border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-        border: 1px solid #e2e8f0;
-        margin-bottom: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 6px;
     }}
 
     @media print {{
@@ -256,20 +245,20 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
-st.sidebar.markdown("<h2 style='color: #1e40af; border-bottom: 3px solid #2563eb; padding-bottom: 6px;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='color: #ffffff; font-size: 20px; font-weight: 800; border-bottom: 2px solid #38bdf8; padding-bottom: 6px; margin-bottom: 10px; text-align: center;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
 
 # 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์
-st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์ (RP01)")
-uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel รายงาน", type=["xlsx", "xls"])
+st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์")
+uploaded_file = st.sidebar.file_uploader("📂 อัปโหลดไฟล์ Excel (RP01)", type=["xlsx", "xls"])
 
 if uploaded_file is not None:
     try:
         with open(SERVER_SAVE_FILE, "wb") as f:
             f.write(uploaded_file.getbuffer())
         st.cache_data.clear()
-        st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์สำเร็จ!")
+        st.sidebar.success("✅ อัปโหลดสำเร็จ!")
     except Exception as e:
-        st.sidebar.error(f"ไม่สามารถบันทึกไฟล์: {e}")
+        st.sidebar.error(f"ไม่สามารถบันทึก: {e}")
 
 active_source = None
 if os.path.exists(SERVER_SAVE_FILE):
@@ -278,7 +267,7 @@ if os.path.exists(SERVER_SAVE_FILE):
 st.sidebar.markdown("---")
 
 # 2. ส่วนเลือกวันที่ดูข้อมูลย้อนหลัง
-st.sidebar.markdown("### 📅 2. เลือกวันที่ดูยอดงานย้อนหลัง")
+st.sidebar.markdown("### 📅 2. เลือกวันที่ดูย้อนหลัง")
 
 if active_source is not None:
     try:
@@ -296,7 +285,7 @@ if active_source is not None:
 
         if 'historical_data' in st.session_state and st.session_state['historical_data']:
             available_dates = sorted(list(st.session_state['historical_data'].keys()))
-            selected_date_str = st.sidebar.selectbox("เลือกวันที่ต้องการตรวจสอบ", available_dates, index=len(available_dates)-1)
+            selected_date_str = st.sidebar.selectbox("เลือกวันที่", available_dates, index=len(available_dates)-1, label_visibility="collapsed")
             df = st.session_state['historical_data'][selected_date_str].copy()
         else:
             df = df_raw.copy()
@@ -313,15 +302,18 @@ else:
 st.sidebar.markdown("---")
 
 # 3. ส่วนกรองประเภท Supplier & ช่วงเวลา
-st.sidebar.markdown("### 🏷️ 3. ตัวกรองข้อมูลเพิ่มเติม")
+st.sidebar.markdown("### 🏷️ 3. ตัวกรองเพิ่มเติม")
 status_options = ["ทั้งหมด", "CARD", "COINS"]
-st.session_state['filter_status'] = st.sidebar.selectbox("กรองตามประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']))
+st.session_state['filter_status'] = st.sidebar.selectbox("ประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']), label_visibility="collapsed")
 filter_status = st.session_state['filter_status']
 
-st.session_state['enable_time_filter'] = st.sidebar.checkbox("⏰ เปิดใช้งานกรองตามช่วงเวลา", value=st.session_state['enable_time_filter'])
+st.session_state['enable_time_filter'] = st.sidebar.checkbox("⏰ กรองตามช่วงเวลา", value=st.session_state['enable_time_filter'])
 if st.session_state['enable_time_filter']:
-    start_t = st.sidebar.time_input("ตั้งแต่เวลา", datetime.time(2, 0))
-    end_t = st.sidebar.time_input("ถึงเวลา", datetime.time(5, 0))
+    col_t1, col_t2 = st.sidebar.columns(2)
+    with col_t1:
+        start_t = st.time_input("ตั้งแต่", datetime.time(2, 0), label_visibility="collapsed")
+    with col_t2:
+        end_t = st.time_input("ถึง", datetime.time(5, 0), label_visibility="collapsed")
     
     time_col_filter = next((col for col in df.columns if 'time' in str(col).lower() or 'slot' in str(col).lower()), None)
     if time_col_filter and not df.empty:
@@ -330,19 +322,19 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (เปลี่ยนเป็นระบบเลือก วัน, เดือน, ปี แบบปลอดภัย 100%)
-st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
-st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
+# 4. ส่วนจัดการงานเลื่อนส่ง (วันต่อวันแบบกระชับ)
+st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง")
+st.session_state['postpone_pallets'] = st.sidebar.number_input("จำนวนพาเลทที่เลื่อน:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 
 col_d, col_m, col_y = st.sidebar.columns(3)
 with col_d:
-    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1)
+    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1, label_visibility="collapsed")
 with col_m:
     months_th_list = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1)
+    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1, label_visibility="collapsed")
 with col_y:
     current_th_year = datetime.date.today().year + 543
-    p_year = st.selectbox("ปี (พ.ศ.)", list(range(current_th_year - 1, current_th_year + 3)), index=1)
+    p_year = st.selectbox("ปี", list(range(current_th_year - 1, current_th_year + 3)), index=1, label_visibility="collapsed")
 
 postpone_pallets = st.session_state['postpone_pallets']
 postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
@@ -350,9 +342,12 @@ postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
 st.sidebar.markdown("---")
 
 # 5. ส่วนปรับขนาดตัวอักษร
-st.sidebar.markdown("### 🔠 5. ปรับขนาดตัวอักษรในตาราง")
-st.session_state['dcs_font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางบน (DCSBx / DCSB)", min_value=16, max_value=50, value=st.session_state['dcs_font_size'], step=2)
-st.session_state['vendor_font_size'] = st.sidebar.slider("ขนาดฟอนต์ตารางล่าง (Vendors CARD/COINS)", min_value=16, max_value=45, value=st.session_state['vendor_font_size'], step=2)
+st.sidebar.markdown("### 🔠 5. ปรับขนาดฟอนต์ตาราง")
+col_fs1, col_fs2 = st.sidebar.columns(2)
+with col_fs1:
+    st.session_state['dcs_font_size'] = st.slider("ตารางบน", min_value=16, max_value=40, value=st.session_state['dcs_font_size'], step=2)
+with col_fs2:
+    st.session_state['vendor_font_size'] = st.slider("ตารางล่าง", min_value=16, max_value=35, value=st.session_state['vendor_font_size'], step=2)
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
@@ -580,7 +575,7 @@ if active_source is not None and not df.empty:
         with col_dl3:
             st.markdown(f"""
                 <div style="display: flex; align-items: center; height: 100%;">
-                    <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                    <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 18px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
                         🖨️ พิมพ์/บันทึก PDF ทันที
                     </button>
                 </div>
