@@ -40,7 +40,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่ง Sidebar ให้จัดกึ่งกลางและมองเห็นตัวหนังสือชัดเจน
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
@@ -228,6 +228,13 @@ st.markdown(f"""
         text-align: center !important;
     }}
     
+    /* บังคับให้ข้อความหัวข้อย่อยและป้ายกำกับใน Sidebar เป็นสีขาวสว่างทั้งหมด */
+    section[data-testid="stSidebar"] .stFileUploader label, 
+    section[data-testid="stSidebar"] p {{
+        color: #f8fafc !important;
+        text-align: center !important;
+    }}
+    
     /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
         background: rgba(255, 255, 255, 0.06);
@@ -244,9 +251,8 @@ st.markdown(f"""
         text-align: center !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] small, 
-    section[data-testid="stSidebar"] [data-testid="stFileUploader"] span,
-    section[data-testid="stSidebar"] [data-testid="stFileUploader"] div {{
-        color: #0f172a !important;
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] span {{
+        color: #334155 !important;
         font-weight: 700 !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {{
@@ -428,7 +434,7 @@ if active_source is not None and not df.empty:
         morning_pallets = round(total_pallets - night_pallets, 2)
 
         night_po = round(total_po * ratio_night)
-        morning_po = total_po - night_po
+        morning_po = total_po - net_po if 'net_po' in locals() else total_po - night_po
         
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
