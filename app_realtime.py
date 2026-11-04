@@ -677,3 +677,131 @@ import streamlit.components.v1 as components
 
 # --- ส่วนเพิ่มปุ่มพิมพ์/บันทึก PDF ---
 st.markdown("---")
+import io
+import pandas as pd
+import streamlit as st
+
+# --- ส่วนเพิ่มพิเศษ: ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO แบบ VLOOKUP และรวมยอดพาเลท) ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO แบบ VLOOKUP'
+    " และรวมยอดพาเลท)</div>",
+    unsafe_allow_html=True,
+)
+
+rp03_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ RP03 (Goods Receive Note Summary Report)",
+    type=["xlsx", "xls", "csv"],
+    key="unique_rp03_vlookup_uploader_final",
+)
+
+if rp03_file is not None:
+  try:
+    # 1. อ่านไฟล์ RP03 ตามนามสกุล
+    if rp03_file.name.endswith(".csv"):
+      df_rp03 = pd.read_csv(rp03_file)
+    else:
+      df_rp03 = pd.read_excel(rp03_file)
+
+    st.success("อัปโหลดไฟล์ RP03 สำเร็จ!")
+
+    # 2. ดึงข้อมูลตารางหลัก (RP01) จากระบบ หรือ session_state
+    if "df" in st.session_state and st.session_state["df"] is not None:
+      df_main = st.session_state["df"]
+    elif "df" in locals() and df is not None and not df.empty:
+      df_main = df
+    else:
+      df_main = None
+
+    if df_main is not None and not df_main.empty:
+      # ค้นหาชื่อคอลัมน์ Purchase Order และ Total Case Qty ในไฟล์ RP03
+      po_col_rp03 = next(
+          (
+              c
+              for c in df_rp03.columns
+              if any(
+                  k in c.lower() for k in ["purchase order", "po", "order"]
+              )
+          ),
+          None,
+      )
+
+      pallet_col = next(
+          (
+              c
+              for c in df_rp03.columns
+              if any(
+                  k in c.lower()
+                  for k in ["total case", "ilpn", "pallet", "qty"]
+              )
+          ),
+          None,
+      )
+
+      # ค้นหาคอลัมน์ PO ในตารางหลัก (RP01)
+      main_po_col = next(
+          (
+              c
+              for c in df_main.columns
+              if any(k in c.lower() for k in ["po", "order"])
+          ),
+          None,
+      )
+
+      # ตรวจสอบความถูกต้องว่าพบคอลัมน์ครบถ้วนหรือไม่
+      if po_col_rp03 and pallet_col and main_po_col:
+        df_rp03[po_col_rp03] = df_rp03[po_col_rp03].astype(str).str.strip()
+        existing_pos = set(df_main[main_po_col].astype(str).str.strip())
+
+        # VLOOKUP เปรียบเทียบหาตัวที่ไม่มีใน RP01 (เทียบเท่า #N/A หรือ งานนอกรอบ)
+        df_mismatch = df_rp03[~df_rp03[po_col_rp03].isin(existing_pos)].copy()
+
+        if not df_mismatch.empty:
+          df_mismatch[pallet_col] = pd.to_numeric(
+              df_mismatch[pallet_col], errors="coerce"
+          ).fillna(0)
+          total_sum_pallets = df_mismatch[pallet_col].sum()
+
+          # แสดงผลสรุปยอดพาเลทงานนอกรอบ
+          st.metric(
+              label=(
+                  "📦 ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ (PO ไม่ตรงกับ"
+                  " RP01)"
+              ),
+              value=(
+                  f"{total_sum_pallets:,.2f} พาเลท (จากทั้งหมด"
+                  f" {len(df_mismatch)} รายการ)"
+              ),
+          )
+
+          st.subheader("📋 รายละเอียดรายการงานนอกรอบทั้งหมด (เทียบเท่า #N/A)")
+          st.dataframe(df_mismatch, use_container_width=True)
+
+          # สร้างไฟล์ Excel สำหรับกดดาวน์โหลด
+          output = io.BytesIO()
+          with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_mismatch.to_excel(
+                writer, index=False, sheet_name="RP03_NA_Summary"
+            )
+          processed_data = output.getvalue()
+
+          st.download_button(
+              label="📥 ดาวน์โหลดรายงานงานนอกรอบ (Excel)",
+              data=processed_data,
+              file_name="RP03_Mismatch_N_A_Report.xlsx",
+              mime=(
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              ),
+              key="unique_download_mismatch_btn_final_v2",
+          )
+        else:
+          st.success("✅ ไม่พบงานนอกรอบ ทุก PO ใน RP03 ตรงกับ RP01 ทั้งหมด")
+      else:
+        st.warning(
+            "⚠️ ไม่พบคอลัมน์ Purchase Order หรือคอลัมน์ Total Case Qty (iLPNs)"
+            f" ในไฟล์ RP03 (พบ PO: {po_col_rp03}, Qty: {pallet_col})"
+        )
+    else:
+      st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
+  except Exception as e:
+     st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
