@@ -1,4 +1,8 @@
-# --- ส่วนตรวจสอบและสรุปยอดพาเลทของงานนอกรอบ (N/A) แบบป้องกัน NameError ---
+import pandas as pd
+import streamlit as st
+from io import BytesIO
+
+# --- ส่วนตรวจสอบและสรุปยอดพาเลทของงานนอกรอบ (N/A) ---
 st.markdown("---")
 st.markdown(
     '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
@@ -12,7 +16,7 @@ po_uploaded_file = st.file_uploader(
     key="po_file_uploader_safe",
 )
 
-# ประกาศตัวแปรเริ่มต้น
+# ประกาศตัวแปรเริ่มต้นป้องกัน Error
 df_na_jobs = pd.DataFrame()
 
 if po_uploaded_file is not None:
@@ -66,7 +70,7 @@ if not df_na_jobs.empty:
       f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
   )
 
-  # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์พาเลท
+  # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์พาเลทเพื่อรวมยอด
   pallet_col_po = next(
       (
           c
@@ -95,8 +99,6 @@ if not df_na_jobs.empty:
     )
 
   st.dataframe(df_na_jobs, use_container_width=True)
-
-  from io import BytesIO
 
   output = BytesIO()
   with pd.ExcelWriter(output, engine="openpyxl") as writer:
