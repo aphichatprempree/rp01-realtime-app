@@ -967,3 +967,33 @@ if rp03_file is not None:
       st.warning("⚠️ กรุณาอัปโหลดไฟล์ข้อมูลหลัก (RP01) ที่ระบบก่อนทำการเปรียบเทียบ")
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ RP03: {e}")
+# โค้ดเดิมที่แสดงผลจำนวนแถว
+st.subheader(f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ")
+# คำนวณผลรวมยอดพาเลทจากคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์ Z
+pallet_col_po = next(
+    (
+        c
+        for c in df_na_jobs.columns
+        if "total case" in c.lower()
+        or "ilpn" in c.lower()
+        or "pallet" in c.lower()
+        or "qty" in c.lower()
+    ),
+    None,
+)
+
+if pallet_col_po:
+  df_na_jobs[pallet_col_po] = pd.to_numeric(
+      df_na_jobs[pallet_col_po], errors="coerce"
+  ).fillna(0)
+  total_na_pallets = df_na_jobs[pallet_col_po].sum()
+
+  # แสดงผลเป็นยอดรวมพาเลท (แทนการแสดงจำนวน 1380 รายการ)
+  st.markdown(
+      f"### 📦 ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ (PO ไม่ตรง):"
+      f" **{total_na_pallets:,.2f}** พาเลท (จากทั้งหมด {len(df_na_jobs)} รายการ)"
+  )
+else:
+  st.subheader(
+      f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
+  )
