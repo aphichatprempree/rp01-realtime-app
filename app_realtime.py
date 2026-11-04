@@ -9,7 +9,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
@@ -24,7 +23,6 @@ def load_excel_data(file_path):
     if 'Item Name' in df_raw.columns:
         df_raw = df_raw[df_raw['Item Name'].notna()]
     return df_raw
-
 # --- กำหนดค่าเริ่มต้นใน Session State สำหรับแยกส่วนควบคุม ---
 if 'dcs_font_size' not in st.session_state:
     st.session_state['dcs_font_size'] = 22  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
@@ -36,10 +34,8 @@ if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
-
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
-
 # นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่งสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
 st.markdown(f"""
     <style>
@@ -99,7 +95,6 @@ st.markdown(f"""
         background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
         border-radius: 0 8px 8px 0;
     }}
-
     /* กล่อง DCSBx และ DCSB */
     .dcsbx-box {{
         background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
@@ -136,11 +131,9 @@ st.markdown(f"""
     [data-testid="stDataFrame"] div[data-baseweb="tab"] {{
         font-size: {dcs_size}px !important;
     }}
-
     .stDataFrame [data-testid="StyledMarkupTable"] td, .stDataFrame [data-testid="StyledMarkupTable"] th {{
         font-size: {dcs_size}px !important;
     }}
-
     /* === เอฟเฟกต์การ์ดกะดึกและกะเช้าแบบมีมิติสูง (3D Shadow) === */
     @keyframes pulse-night {{
         0% {{ box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }}
