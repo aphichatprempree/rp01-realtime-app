@@ -37,7 +37,7 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 if 'postpone_from_date' not in st.session_state:
-    st.session_state['postpone_from_date'] = ""
+    st.session_state['postpone_from_date'] = datetime.date.today()
 
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
@@ -332,13 +332,20 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่งแบบระบุวันต่อวัน (ไม่ทบยอดรวม)
+# 4. ส่วนจัดการงานเลื่อนส่ง (เปลี่ยนเป็น Date Picker ปฏิทิน)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
 st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
-st.session_state['postpone_from_date'] = st.sidebar.text_input("📝 ระบุวันที่เลื่อน (เช่น เลื่อนจากวันที่ 3 ไป 4):", value=st.session_state['postpone_from_date'], placeholder="เช่น วันที่ 3 ไป 4 พ.ย.")
+st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลือกวันที่ต้นทางที่เลื่อนมา:", value=st.session_state['postpone_from_date'])
 
 postpone_pallets = st.session_state['postpone_pallets']
-postpone_from_date = st.session_state['postpone_from_date']
+postpone_from_date_obj = st.session_state['postpone_from_date']
+
+# แปลงวันที่เลือกเป็นรูปแบบ วัน เดือน ไทย (เช่น 3 พ.ย. 69)
+try:
+    months_th_short = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+    postpone_from_str = f"{postpone_from_date_obj.day} {months_th_short[postpone_from_date_obj.month]} {str(postpone_from_date_obj.year + 543)[-2:]}"
+except:
+    postpone_from_str = str(postpone_from_date_obj)
 
 st.sidebar.markdown("---")
 
@@ -352,7 +359,7 @@ if active_source is not None and not df.empty:
     try:
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
-            months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'มี.ค.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
+            months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
             current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
         except:
             current_date = selected_date_str
@@ -363,12 +370,9 @@ if active_source is not None and not df.empty:
 
         st.markdown("---")
         
-        # แสดงสถานะการเลื่อนส่งแบบวันต่อวัน
+        # แสดงสถานะการเลื่อนส่ง
         if postpone_pallets > 0:
-            msg = f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท**"
-            if postpone_from_date:
-                msg += f" (เงื่อนไข: **{postpone_from_date}**)"
-            st.warning(msg)
+            st.warning(f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่: **{postpone_from_str}**)")
         else:
             st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
 
@@ -395,7 +399,6 @@ if active_source is not None and not df.empty:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        # หักลบ/ปรับยอดพาเลทตามวันที่เลื่อน
         total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
         # --- กำหนดสัดส่วนตามเป้าหมาย (กะดึก 3879 / กะเช้า 1663) ---
@@ -516,9 +519,7 @@ if active_source is not None and not df.empty:
         else:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
-        postpone_display_str = f"ปรับออก: {postpone_pallets:,.0f}"
-        if postpone_from_date:
-            postpone_display_str += f" ({postpone_from_date})"
+        postpone_display_str = f"ปรับออก: {postpone_pallets:,.0f} (จาก {postpone_from_str})"
 
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 14px 22px; border-radius: 8px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 10px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
