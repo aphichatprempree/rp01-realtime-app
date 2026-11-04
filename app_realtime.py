@@ -754,3 +754,96 @@ else:
   st.info(
       "ℹ️ ยังไม่มีข้อมูลในฐานข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน"
   )
+# --- ส่วนเพิ่มพิเศษ: อัปโหลดไฟล์ PO เพื่อเทียบหาข้อมูลงานนอกรอบ (N/A / ไม่อยู่ใน RP01) ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
+    unsafe_allow_html=True,
+)
+
+# 1. ช่องอัปโหลดไฟล์ PO เพิ่มเติม
+po_uploaded_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ PO (สำหรับเทียบกับ RP01)",
+    type=["xlsx", "xls", "csv"],
+    key="po_file_uploader",
+)
+
+if po_uploaded_file is not None:
+  try:
+    # อ่านไฟล์ PO
+    if po_uploaded_file.name.endswith(".csv"):
+      df_po = pd.read_csv(po_uploaded_file)
+    else:
+      df_po = pd.read_excel(po_uploaded_file)
+
+    st.success("อัปโหลดไฟล์ PO สำเร็จ!")
+
+    # ตรวจสอบว่าใน DataFrame หลัก (df) มีข้อมูลอยู่หรือไม่
+    if "df" in locals() and not df.empty:
+      # สมมติว่าใช้คอลัมน์ 'PO' เป็นคีย์ในการเทียบ (สามารถเปลี่ยนชื่อคอลัมน์ให้ตรงกับไฟล์ของคุณได้ เช่น 'PO Number' หรือ 'Purchase Order')
+      po_col_name = next(
+          (
+              c
+              for c in df_po.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_po.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      if main_po_col:
+        # ทำการเปรียบเทียบหา PO ที่อยู่ในไฟล์ PO แต่ไม่มีอยู่ใน RP01 (งานนอกรอบ / N/A)
+        merged_df = pd.merge(
+            df_po,
+            df[[main_po_col]],
+            left_on=po_col_name,
+            right_on=main_po_col,
+            how="left",
+            indicator=True,
+        )
+
+        # กรองเอาเฉพาะรายการที่เป็น N/A (มีเฉพาะในไฟล์ PO แต่ไม่มีใน RP01)
+        df_na_jobs = merged_df[merged_df["_merge"] == "left_only"].drop(
+            columns=["_merge"]
+        )
+
+        st.subheader(
+            f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
+        )
+
+        if not df_na_jobs.empty:
+          st.dataframe(df_na_jobs, use_container_width=True)
+
+          # ปุ่มดาวน์โหลดรายงานงานนอกรอบเป็น Excel
+          from io import BytesIO
+
+          output = BytesIO()
+          with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_na_jobs.to_excel(writer, index=False, sheet_name="NA_Jobs")
+          processed_data = output.getvalue()
+
+          st.download_button(
+              label="📥 ดาวน์โหลดรายงานงานนอกรอบ (Excel)",
+              data=processed_data,
+              file_name="NA_Off_Cycle_Jobs.xlsx",
+              mime=(
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              ),
+          )
+        else:
+          st.success(
+              "ยอดเยี่ยม! ไม่พบรายการงานนอกรอบ ทุก PO ตรงกับรายงาน RP01"
+              " ทั้งหมด"
+          )
+      else:
+        st.warning("ไม่พบคอลัมน์ PO ในตารางหลัก RP01 กรุณาตรวจสอบชื่อคอลัมน์")
+    else:
+      st.warning(
+          "กรุณาอัปโหลดไฟล์ RP01 (ไฟล์หลัก) ที่แถบเมนูด้านซ้ายก่อนทำการเปรียบเทียบ"
+      )
+
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ PO: {e}")
