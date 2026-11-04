@@ -40,7 +40,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่งสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
@@ -274,7 +274,15 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
-st.sidebar.markdown("<h2 style='color: #ffffff; font-size: 20px; font-weight: 800; border-bottom: 3px solid #38bdf8; padding-bottom: 6px; margin-bottom: 12px; text-align: center;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("""
+    <div style="text-align: center; padding: 10px 0;">
+        <h2 style='color: #ffffff; font-size: 18px; font-weight: 800; margin: 0;'>DATA ENTRY (DCSB)</h2>
+        <p style='color: #38bdf8; font-size: 12px; font-weight: 600; margin-top: 4px;'>📊 ระบบรายงานประมาณการรับสินค้า</p>
+    </div>
+    <hr style="border-color: #38bdf8; margin: 5px 0 15px 0;">
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown("<h2 style='color: #ffffff; font-size: 18px; font-weight: 800; border-bottom: 3px solid #38bdf8; padding-bottom: 6px; margin-bottom: 12px; text-align: center;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
 
 # 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์
 st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์")
@@ -434,7 +442,7 @@ if active_source is not None and not df.empty:
         morning_pallets = round(total_pallets - night_pallets, 2)
 
         night_po = round(total_po * ratio_night)
-        morning_po = total_po - net_po if 'net_po' in locals() else total_po - night_po
+        morning_po = total_po - night_po
         
         night_pct = (night_pallets / total_pallets) * 100 if total_pallets > 0 else 0
         morning_pct = (morning_pallets / total_pallets) * 100 if total_pallets > 0 else 0
