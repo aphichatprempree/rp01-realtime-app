@@ -37,7 +37,7 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# ป้องกัน Error ประเภทข้อมูลวันที่ โดยเช็กให้เป็น datetime.date เสมอ
+# กำหนดค่าเริ่มต้นปฏิทินให้เป็น datetime.date เสมอเพื่อป้องกัน Error
 if 'postpone_from_date' not in st.session_state or not isinstance(st.session_state['postpone_from_date'], datetime.date):
     st.session_state['postpone_from_date'] = datetime.date.today()
 
@@ -334,7 +334,7 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (เพิ่ม Date Picker ปฏิทินแบบชัดเจน)
+# 4. ส่วนจัดการงานเลื่อนส่ง (Date Picker ปฏิทินแบบชัดเจน)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
 st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลือกวันที่ต้นทางที่เลื่อนมา:", value=st.session_state['postpone_from_date'])
