@@ -677,13 +677,3 @@ import streamlit.components.v1 as components
 
 # --- ส่วนเพิ่มปุ่มพิมพ์/บันทึก PDF ---
 st.markdown("---")
-
-# สร้างปุ่มสำหรับสั่งพิมพ์/บันทึก PDF ทันที
-if st.button("🖨️ พิมพ์/บันทึก PDF ทันที"):
-  # ใช้ JavaScript สั่งเปิดหน้าต่าง Print ของเบราว์เซอร์
-  js_code = """
-        <script>
-            window.print();
-        </script>
-    """
-  components.html(js_code, height=0)
