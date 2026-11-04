@@ -994,3 +994,98 @@ if pallet_col_po:
       f" **{total_na_pallets:,.2f}** พาเลท (จากทั้งหมด {len(df_na_jobs)} รายการ)"
   )
 else:
+# --- ส่วนตรวจสอบและสรุปยอดพาเลทงานนอกรอบ (ไม่ให้แสดงผลซ้ำซ้อน) ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
+    unsafe_allow_html=True,
+)
+
+po_uploaded_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ PO / RP03 (สำหรับเทียบกับ RP01)",
+    type=["xlsx", "xls", "csv"],
+    key="po_file_clean",
+)
+
+if po_uploaded_file is not None:
+  try:
+    if po_uploaded_file.name.endswith(".csv"):
+      df_po = pd.read_csv(po_uploaded_file)
+    else:
+      df_po = pd.read_excel(po_uploaded_file)
+
+    st.success("อัปโหลดไฟล์สำเร็จ!")
+
+    if "df" in globals() and df is not None and not df.empty:
+      # ค้นหาคอลัมน์ PO ทั้งในสองไฟล์ให้อัตโนมัติ
+      po_col_po = next(
+          (
+              c
+              for c in df_po.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_po.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      if main_po_col:
+        merged_df = pd.merge(
+            df_po,
+            df[[main_po_col]],
+            left_on=po_col_po,
+            right_on=main_po_col,
+            how="left",
+            indicator=True,
+        )
+        df_na_jobs = merged_df[merged_df["_merge"] == "left_only"].drop(
+            columns=["_merge"]
+        )
+
+        if not df_na_jobs.empty:
+          # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์ Z เพื่อรวมยอด
+          pallet_col_po = next(
+              (
+                  c
+                  for c in df_na_jobs.columns
+                  if "total case" in c.lower()
+                  or "ilpn" in c.lower()
+                  or "pallet" in c.lower()
+                  or "qty" in c.lower()
+              ),
+              None,
+          )
+
+          if pallet_col_po:
+            df_na_jobs[pallet_col_po] = pd.to_numeric(
+                df_na_jobs[pallet_col_po], errors="coerce"
+            ).fillna(0)
+            total_na_pallets = df_na_jobs[pallet_col_po].sum()
+
+            # แสดงผลยอดรวมพาเลทเพียงชุดเดียวอย่างชัดเจน
+            st.metric(
+                label=(
+                    "📦 ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ (PO ไม่ตรง)"
+                ),
+                value=(
+                    f"{total_na_pallets:,.2f} พาเลท (จากทั้งหมด"
+                    f" {len(df_na_jobs)} รายการ)"
+                ),
+            )
+          else:
+            st.warning(
+                f"📋 รายการงานนอกรอบทั้งหมด: {len(df_na_jobs)} รายการ"
+                " (ไม่พบคอลัมน์ Total Case Qty เพื่อรวมยอดพาเลท)"
+            )
+
+          st.dataframe(df_na_jobs, use_container_width=True)
+        else:
+          st.success("✅ ไม่พบรายการงานนอกรอบ ทุก PO ตรงกันทั้งหมด")
+      else:
+        st.warning("⚠️ ไม่พบคอลัมน์ PO ในตารางหลัก RP01")
+    else:
+      st.warning("⚠️ กรุณาอัปโหลดไฟล์หลัก (RP01) ก่อนทำการเปรียบเทียบ")
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาด: {e}")
