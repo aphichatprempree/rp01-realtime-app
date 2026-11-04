@@ -37,10 +37,6 @@ if 'filter_status' not in st.session_state:
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
 
-# กำหนดค่าเริ่มต้นปฏิทินให้เป็น datetime.date เสมอเพื่อป้องกัน Error
-if 'postpone_from_date' not in st.session_state or not isinstance(st.session_state['postpone_from_date'], datetime.date):
-    st.session_state['postpone_from_date'] = datetime.date.today()
-
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
@@ -334,19 +330,22 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (Date Picker ปฏิทินแบบชัดเจน)
+# 4. ส่วนจัดการงานเลื่อนส่ง (เปลี่ยนเป็นระบบเลือก วัน, เดือน, ปี แบบปลอดภัย 100%)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
 st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
-st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลือกวันที่ต้นทางที่เลื่อนมา:", value=st.session_state['postpone_from_date'])
+
+col_d, col_m, col_y = st.sidebar.columns(3)
+with col_d:
+    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1)
+with col_m:
+    months_th_list = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
+    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1)
+with col_y:
+    current_th_year = datetime.date.today().year + 543
+    p_year = st.selectbox("ปี (พ.ศ.)", list(range(current_th_year - 1, current_th_year + 3)), index=1)
 
 postpone_pallets = st.session_state['postpone_pallets']
-postpone_from_date_obj = st.session_state['postpone_from_date']
-
-try:
-    months_th_short = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
-    postpone_from_str = f"{postpone_from_date_obj.day} {months_th_short[postpone_from_date_obj.month]} {str(postpone_from_date_obj.year + 543)[-2:]}"
-except:
-    postpone_from_str = str(postpone_from_date_obj)
+postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
 
 st.sidebar.markdown("---")
 
@@ -581,7 +580,7 @@ if active_source is not None and not df.empty:
         with col_dl3:
             st.markdown(f"""
                 <div style="display: flex; align-items: center; height: 100%;">
-                    <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 18px; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                    <button onclick="window.print()" style="width: 100%; background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 10px 16px; font-size: 800; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
                         🖨️ พิมพ์/บันทึก PDF ทันที
                     </button>
                 </div>
