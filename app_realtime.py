@@ -40,7 +40,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมเพิ่มความคมชัดของเส้นขอบใน Sidebar
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่ง Sidebar ให้จัดกึ่งกลางและมองเห็นตัวหนังสือชัดเจน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
@@ -204,7 +204,7 @@ st.markdown(f"""
         color: #0f172a !important;
     }}
     
-    /* === ปรับแต่งแถบ Sidebar ด้านข้างให้กระชับและมีความคมชัดสูง === */
+    /* === ปรับแต่งแถบ Sidebar ด้านข้างให้สมดุลและคมชัด === */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
         border-right: 3px solid #38bdf8;
@@ -214,6 +214,7 @@ st.markdown(f"""
         font-size: 14px !important;
         font-weight: 600 !important;
         color: #f8fafc !important;
+        text-align: center !important;
     }}
     section[data-testid="stSidebar"] h3 {{
         font-size: 15px !important;
@@ -224,27 +225,35 @@ st.markdown(f"""
         letter-spacing: 0.5px;
         border-bottom: 1px solid rgba(56, 189, 248, 0.3);
         padding-bottom: 4px;
+        text-align: center !important;
     }}
     
-    /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด (Crisp Border) */
+    /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
         background: rgba(255, 255, 255, 0.06);
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-radius: 8px;
         border: 2px solid #475569;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        text-align: center;
     }}
 
-    /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัดขอบคมชัด */
+    /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัวหนังสือชัดเจนและจัดกึ่งกลาง */
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] {{
+        text-align: center !important;
+    }}
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] small, 
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] span,
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] div {{
         color: #0f172a !important;
+        font-weight: 700 !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {{
         background-color: #ffffff !important;
         border: 2px dashed #0284c7 !important;
         border-radius: 8px;
+        padding: 10px !important;
     }}
 
     @media print {{
