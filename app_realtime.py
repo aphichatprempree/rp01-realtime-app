@@ -334,7 +334,7 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (Date Picker ปฏิทินที่ปลอดภัย)
+# 4. ส่วนจัดการงานเลื่อนส่ง (เพิ่ม Date Picker ปฏิทินแบบชัดเจน)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
 st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 st.session_state['postpone_from_date'] = st.sidebar.date_input("📅 เลือกวันที่ต้นทางที่เลื่อนมา:", value=st.session_state['postpone_from_date'])
