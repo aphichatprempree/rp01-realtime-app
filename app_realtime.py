@@ -40,7 +40,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่ง Sidebar ให้กระชับ สวยงาม ทันสมัย
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมแก้สีตัวหนังสือในกล่องอัปโหลดให้ชัดเจน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
@@ -224,13 +224,14 @@ st.markdown(f"""
         letter-spacing: 0.5px;
     }}
     
-    /* การ์ดกลุ่มควบคุมใน Sidebar */
-    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
-        background: rgba(255, 255, 255, 0.05);
-        padding: 8px 10px;
+    /* แก้ไขสีข้อความในกล่องอัปโหลดไฟล์ให้เป็นสีเข้มเห็นชัดเจน */
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] small, 
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] div {{
+        color: #334155 !important;
+    }}
+    section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {{
+        background-color: #ffffff !important;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 6px;
     }}
 
     @media print {{
