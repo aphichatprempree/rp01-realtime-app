@@ -1089,3 +1089,170 @@ if po_uploaded_file is not None:
       st.warning("⚠️ กรุณาอัปโหลดไฟล์หลัก (RP01) ก่อนทำการเปรียบเทียบ")
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาด: {e}")
+import pandas as pd
+import streamlit as st
+from io import BytesIO
+
+# --- ตั้งค่าหน้าเว็บ ---
+st.set_page_config(
+    page_title="รายงานประมาณการรับสินค้า", page_icon="📋", layout="wide"
+)
+
+# --- ขยายขนาดตัวอักษรในตาราง ---
+st.markdown(
+    """
+    <style>
+    .stDataFrame td {
+        font-size: 16px !important;
+    }
+    .stDataFrame th {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.subheader("📋 รายงานข้อมูล Vendor, PO, Item, Ti, Hi")
+
+# ดึงข้อมูลจาก st.session_state หรือใช้ข้อมูลจำลองเริ่มต้น
+if "main_data" in st.session_state:
+  df = st.session_state["main_data"]
+else:
+  df = pd.DataFrame({
+      "Vendor": ["บริษัท เอ บี ซี จำกัด", "บริษัท เอ็กซ์ วาย ซี จำกัด", "บริษัท เทส จำกัด"],
+      "PO": ["5011101837", "5011101838", "5011101893"],
+      "Item": ["Item A", "Item B", "Item C"],
+      "Ti": [1, 2, 1],
+      "Hi": [1, 3, 1],
+  })
+
+# 1. แสดงผลตารางข้อมูลหลัก
+required_cols = ["Vendor", "PO", "Item", "Ti", "Hi"]
+if all(col in df.columns for col in required_cols):
+  st.dataframe(df[required_cols], use_container_width=True)
+
+  # 2. ตรวจสอบเงื่อนไขแจ้งเตือน เมื่อ Ti = 1 และ Hi = 1 พร้อมกัน
+  alert_items = df[(df["Ti"] == 1) & (df["Hi"] == 1)]
+
+  if not alert_items.empty:
+    st.warning(
+        "🚨 **แจ้งเตือนระบบ:** ตรวจพบรายการที่มีค่า **Ti = 1** และ **Hi ="
+        " 1** พร้อมกัน จำนวน "
+        f"{len(alert_items)} รายการ!"
+    )
+
+    with st.expander(
+        "🔍 คลิกเพื่อดูรายละเอียดรายการที่ต้องตรวจสอบ (Ti=1 และ Hi=1)"
+    ):
+      st.dataframe(alert_items[required_cols], use_container_width=True)
+  else:
+    st.success("✅ ไม่พบรายการที่ค่า Ti = 1 และ Hi = 1 พร้อมกันในขณะนี้")
+else:
+  st.dataframe(df, use_container_width=True)
+
+# --- ส่วนตรวจสอบงานนอกรอบ (เทียบ PO เพื่อหา N/A และรวมยอดพาเลท) ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
+    unsafe_allow_html=True,
+)
+
+po_uploaded_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ PO / RP03 (สำหรับเทียบกับ RP01)",
+    type=["xlsx", "xls", "csv"],
+    key="po_file_clean",
+)
+
+if po_uploaded_file is not None:
+  try:
+    if po_uploaded_file.name.endswith(".csv"):
+      df_po = pd.read_csv(po_uploaded_file)
+    else:
+      df_po = pd.read_excel(po_uploaded_file)
+
+    st.success("อัปโหลดไฟล์สำเร็จ!")
+
+    if "df" in globals() and df is not None and not df.empty:
+      po_col_po = next(
+          (
+              c
+              for c in df_po.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_po.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      if main_po_col:
+        merged_df = pd.merge(
+            df_po,
+            df[[main_po_col]],
+            left_on=po_col_po,
+            right_on=main_po_col,
+            how="left",
+            indicator=True,
+        )
+        df_na_jobs = merged_df[merged_df["_merge"] == "left_only"].drop(
+            columns=["_merge"]
+        )
+
+        if not df_na_jobs.empty:
+          pallet_col_po = next(
+              (
+                  c
+                  for c in df_na_jobs.columns
+                  if "total case" in c.lower()
+                  or "ilpn" in c.lower()
+                  or "pallet" in c.lower()
+                  or "qty" in c.lower()
+              ),
+              None,
+          )
+
+          if pallet_col_po:
+            df_na_jobs[pallet_col_po] = pd.to_numeric(
+                df_na_jobs[pallet_col_po], errors="coerce"
+            ).fillna(0)
+            total_na_pallets = df_na_jobs[pallet_col_po].sum()
+
+            st.metric(
+                label=(
+                    "📦 ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ (PO ไม่ตรง)"
+                ),
+                value=(
+                    f"{total_na_pallets:,.2f} พาเลท (จากทั้งหมด"
+                    f" {len(df_na_jobs)} รายการ)"
+                ),
+            )
+          else:
+            st.warning(
+                f"📋 รายการงานนอกรอบทั้งหมด: {len(df_na_jobs)} รายการ"
+                " (ไม่พบคอลัมน์ Total Case Qty เพื่อรวมยอดพาเลท)"
+            )
+
+          st.dataframe(df_na_jobs, use_container_width=True)
+        else:
+          st.success("✅ ไม่พบรายการงานนอกรอบ ทุก PO ตรงกันทั้งหมด")
+      else:
+        st.warning("⚠️ ไม่พบคอลัมน์ PO ในตารางหลัก RP01")
+    else:
+      st.warning("⚠️ กรุณาอัปโหลดไฟล์หลัก (RP01) ก่อนทำการเปรียบเทียบ")
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาด: {e}")
+
+# --- ส่วนปุ่มพิมพ์/บันทึก PDF ---
+st.markdown("---")
+if st.button("🖨️ พิมพ์/บันทึก PDF ทันที"):
+  import streamlit.components.v1 as components
+
+  js_code = """
+        <script>
+            window.print();
+        </script>
+    """
+  components.html(js_code, height=0)
