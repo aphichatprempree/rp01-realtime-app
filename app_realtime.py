@@ -631,3 +631,44 @@ if active_source is not None and not df.empty:
         st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel: {e}")
 else:
     st.info("📂 กรุณาอัปโหลดไฟล์ Excel (RP01) ที่แถบด้านข้าง (Sidebar) ระบบจะทำการบันทึกข้อมูลไว้บน Server เพื่อให้ทุกคนเปิดมาเจอหน้าจอและข้อมูลเดิมเสมอครับ")
+    # --- ส่วนที่เพิ่มเข้ามา: แสดงตารางข้อมูล Vendor, PO, Item, Ti, Hi และระบบแจ้งเตือน ---
+st.markdown("---")
+st.subheader("📋 ตรวจสอบเงื่อนไข Ti และ Hi (Ti = 1 และ Hi = 1)")
+
+# สมมติว่าดึง DataFrame หลักของหน้าจอคุณมาใช้ (เช่น st.session_state['main_data'] หรือตัวแปรตารางของคุณ)
+# หากในโค้ดเดิมของคุณมีตัวแปรตารางอยู่แล้ว สามารถเปลี่ยนชื่อตัวแปร df ให้ตรงกันได้เลยครับ
+if "main_data" in st.session_state:
+  df_check = st.session_state["main_data"]
+else:
+  # หากต้องการดึงข้อมูลจากตารางที่มีอยู่จริง ให้แทนที่ด้วยตัวแปร DataFrame ของระบบคุณ
+  df_check = df  # (ตัวอย่างอ้างอิงจากตัวแปร df ในระบบ)
+
+# ตรวจสอบว่ามีคอลัมน์ Vendor, PO, Item, Ti, Hi ครบถ้วนหรือไม่
+required_cols = ["Vendor", "PO", "Item", "Ti", "Hi"]
+if all(col in df_check.columns for col in required_cols):
+
+  # 1. แสดงผลตารางข้อมูลทั้ง 5 คอลัมน์
+  st.dataframe(df_check[required_cols], use_container_width=True)
+
+  # 2. ตรวจสอบเงื่อนไขแจ้งเตือน เมื่อ Ti = 1 และ Hi = 1 พร้อมกัน
+  alert_items = df_check[(df_check["Ti"] == 1) & (df_check["Hi"] == 1)]
+
+  if not alert_items.empty:
+    st.warning(
+        "🚨 **แจ้งเตือนระบบ:** ตรวจพบรายการที่มีค่า **Ti = 1** และ **Hi ="
+        " 1** พร้อมกัน จำนวน "
+        f"{len(alert_items)} รายการ!"
+    )
+
+    # แสดงรายละเอียดเฉพาะรายการที่เข้าเงื่อนไขเตือน เพื่อให้ตรวจสอบง่าย
+    with st.expander(
+        "🔍 คลิกเพื่อดูรายละเอียดรายการที่ต้องตรวจสอบ (Ti=1 และ Hi=1)"
+    ):
+      st.dataframe(alert_items[required_cols], use_container_width=True)
+  else:
+    st.success("✅ ไม่พบรายการที่ค่า Ti = 1 และ Hi = 1 พร้อมกันในขณะนี้")
+else:
+  st.info(
+      "ℹ️ กรุณาตรวจสอบชื่อคอลัมน์ในฐานข้อมูลว่ามี 'Vendor', 'PO', 'Item',"
+      " 'Ti', 'Hi' ครบถ้วน"
+  )
