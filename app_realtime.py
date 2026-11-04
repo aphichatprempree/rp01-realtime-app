@@ -340,7 +340,7 @@ st.sidebar.markdown("---")
 
 # 3. ส่วนกรองประเภท Supplier & ช่วงเวลา
 st.sidebar.markdown("### 🏷️ 3. ตัวกรองเพิ่มเติม")
-status_options = ["ทั้งหมด", "CARD", "COINS"]
+status_options = ["ทั้งหมด", "STAMP", "CARD", "COINS"]
 st.session_state['filter_status'] = st.sidebar.selectbox("ประเภท Supplier", status_options, index=status_options.index(st.session_state['filter_status']), label_visibility="collapsed")
 filter_status = st.session_state['filter_status']
 
@@ -508,11 +508,12 @@ if active_source is not None and not df.empty:
             st.dataframe(dcsb_table_df, use_container_width=True, hide_index=True)
 
         st.markdown("---")
-        st.markdown('<div class="sub-title">Vendors CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sub-title">Vendors STAMP, CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
+        stamp_vendors = ["21189"]
         card_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
-            "21189", "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
+            "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
         ]
         coins_vendors = [
             "70335", "70341", "70585", "70605", "70609", "70757", "71007", "71026", "71316", "71338",
@@ -527,10 +528,18 @@ if active_source is not None and not df.empty:
         if v_col in df.columns and po_col_raw in df.columns:
             df['Vendor_str'] = df[v_col].astype(str).str.split('.').str[0].str.strip()
             
-            special_df = df[df['Vendor_str'].isin(card_vendors + coins_vendors)].copy()
+            special_df = df[df['Vendor_str'].isin(stamp_vendors + card_vendors + coins_vendors)].copy()
             
             if not special_df.empty:
-                special_df['Status_val'] = special_df['Vendor_str'].apply(lambda x: 'CARD' if x in card_vendors else 'COINS')
+                def get_status(v_id):
+                    if v_id in stamp_vendors:
+                        return 'STAMP'
+                    elif v_id in card_vendors:
+                        return 'CARD'
+                    else:
+                        return 'COINS'
+                
+                special_df['Status_val'] = special_df['Vendor_str'].apply(get_status)
                 
                 if filter_status != "ทั้งหมด":
                     special_df = special_df[special_df['Status_val'] == filter_status]
@@ -541,7 +550,7 @@ if active_source is not None and not df.empty:
                 
                 st.dataframe(vendor_table, use_container_width=True, hide_index=True)
             else:
-                st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
+                st.info("ℹ️ ไม่พบรายการ Supplier พิเศษ (STAMP/CARD/COINS) ในเงื่อนไขตัวกรองหรือวันที่เลือกนี้")
         else:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
