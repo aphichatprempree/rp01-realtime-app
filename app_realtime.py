@@ -847,3 +847,15 @@ if po_uploaded_file is not None:
 
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ PO: {e}")
+@st.cache_data(show_spinner=False)
+def load_excel_data(file_path):
+  xls = pd.ExcelFile(file_path)
+  target_sheet = xls.sheet_names[0]
+  # อ่านไฟล์โดยข้าม 3 แถวแรก (Header อยู่แถวที่ 4)
+  df_raw = pd.read_excel(
+      file_path, sheet_name=target_sheet, header=3
+  )  #
+  df_raw = df_raw.dropna(how="all")
+  if "Item Name" in df_raw.columns:
+    df_raw = df_raw[df_raw["Item Name"].notna()]
+  return df_raw
