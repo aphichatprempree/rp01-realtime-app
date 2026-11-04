@@ -1,10 +1,72 @@
-# --- ส่วนเพิ่มเติม: สรุปยอดพาเลทของงานนอกรอบ (N/A) ---
+# --- ส่วนตรวจสอบและสรุปยอดพาเลทของงานนอกรอบ (N/A) แบบปลอดภัยไม่ให้ติด NameError ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
+    unsafe_allow_html=True,
+)
+
+# ช่องอัปโหลดไฟล์ PO เพิ่มเติม
+po_uploaded_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ PO (สำหรับเทียบกับ RP01)",
+    type=["xlsx", "xls", "csv"],
+    key="po_file_uploader_safe",
+)
+
+# ประกาศตัวแปรป้องกัน NameError ไว้ก่อน
+df_na_jobs = pd.DataFrame()
+
+if po_uploaded_file is not None:
+  try:
+    if po_uploaded_file.name.endswith(".csv"):
+      df_po = pd.read_csv(po_uploaded_file)
+    else:
+      df_po = pd.read_excel(po_uploaded_file)
+
+    st.success("อัปโหลดไฟล์ PO สำเร็จ!")
+
+    # ตรวจสอบว่ามีตัวแปร df หลักอยู่แล้วหรือไม่
+    if "df" in locals() and not df.empty:
+      po_col_name = next(
+          (
+              c
+              for c in df_po.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_po.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      if main_po_col:
+        merged_df = pd.merge(
+            df_po,
+            df[[main_po_col]],
+            left_on=po_col_name,
+            right_on=main_po_col,
+            how="left",
+            indicator=True,
+        )
+        df_na_jobs = merged_df[merged_df["_merge"] == "left_only"].drop(
+            columns=["_merge"]
+        )
+      else:
+        st.warning("ไม่พบคอลัมน์ PO ในตารางหลัก RP01")
+    else:
+      st.warning(
+          "กรุณาอัปโหลดไฟล์ RP01 (ไฟล์หลัก) ที่แถบเมนูด้านซ้ายก่อนทำการเปรียบเทียบ"
+      )
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ PO: {e}")
+
+# ตรวจสอบและแสดงผลเฉพาะเมื่อมีข้อมูล df_na_jobs และไม่ว่างเปล่า
 if not df_na_jobs.empty:
   st.subheader(
       f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
   )
 
-  # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์พาเลทในไฟล์ PO
+  # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์พาเลท
   pallet_col_po = next(
       (
           c
@@ -18,13 +80,11 @@ if not df_na_jobs.empty:
   )
 
   if pallet_col_po:
-    # แปลงข้อมูลเป็นตัวเลขเพื่อความถูกต้องในการรวมยอด
     df_na_jobs[pallet_col_po] = pd.to_numeric(
         df_na_jobs[pallet_col_po], errors="coerce"
     ).fillna(0)
     total_na_pallets = df_na_jobs[pallet_col_po].sum()
 
-    # แสดงผลการ์ดสรุปยอดพาเลทงานนอกรอบ
     st.metric(
         label="📦 ยอดพาเลทงานนอกรอบรวม (Total Case Qty / iLPNs)",
         value=f"{total_na_pallets:,.2f} พาเลท",
@@ -34,10 +94,8 @@ if not df_na_jobs.empty:
         "ℹ️ ไม่พบคอลัมน์ Total Case Qty (iLPNs) ในไฟล์ PO เพื่อรวมยอดพาเลท"
     )
 
-  # แสดงตารางข้อมูลงานนอกรอบทั้งหมด
   st.dataframe(df_na_jobs, use_container_width=True)
 
-  # ปุ่มดาวน์โหลดรายงานงานนอกรอบเป็น Excel
   from io import BytesIO
 
   output = BytesIO()
@@ -51,5 +109,5 @@ if not df_na_jobs.empty:
       file_name="NA_Off_Cycle_Jobs.xlsx",
       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   )
-else:
+elif po_uploaded_file is not None:
   st.success("✅ ไม่พบรายการงานนอกรอบ ทุก PO ตรงกับรายงาน RP01 ทั้งหมด")
