@@ -677,3 +677,80 @@ import streamlit.components.v1 as components
 
 # --- ส่วนเพิ่มปุ่มพิมพ์/บันทึก PDF ---
 st.markdown("---")
+import pandas as pd
+import sqlite3
+import streamlit as st
+
+# --- 1. ตั้งค่าการเชื่อมต่อ SQLite Database ---
+DB_FILE = "inventory_data.db"
+
+
+def init_db():
+  """สร้างตารางในฐานข้อมูลหากยังไม่มี"""
+  conn = sqlite3.connect(DB_FILE)
+  cursor = conn.cursor()
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS main_data (
+            Vendor TEXT,
+            PO TEXT,
+            Item TEXT,
+            Ti INTEGER,
+            Hi INTEGER,
+            Window_Time TEXT
+        )
+    """)
+  conn.commit()
+  conn.close()
+
+
+def load_data_from_db():
+  """โหลดข้อมูลทั้งหมดจากฐานข้อมูลกลับมาเป็น Pandas DataFrame"""
+  conn = sqlite3.connect(DB_FILE)
+  df = pd.read_sql("SELECT * FROM main_data", conn)
+  conn.close()
+  return df
+
+
+def save_data_to_db(df):
+  """บันทึก DataFrame ทับข้อมูลเดิมในฐานข้อมูล"""
+  conn = sqlite3.connect(DB_FILE)
+  df.to_sql("main_data", conn, if_exists="replace", index=False)
+  conn.close()
+
+
+# เรียกใช้งานฟังก์ชันสร้างฐานข้อมูลเริ่มต้น
+init_db()
+
+st.subheader("📁 จัดการและอัปเดตข้อมูล (บันทึกถาวร)")
+
+# --- 2. ส่วนอัปโหลดไฟล์ ---
+uploaded_file = st.file_uploader(
+    "เลือกไฟล์ Excel หรือ CSV", type=["xlsx", "xls", "csv"]
+)
+
+if uploaded_file is not None:
+  try:
+    if uploaded_file.name.endswith(".csv"):
+      df_new = pd.read_csv(uploaded_file)
+    else:
+      df_new = pd.read_excel(uploaded_file)
+
+    if st.button("💾 บันทึกข้อมูลลงฐานข้อมูล"):
+      # บันทึกลง SQLite ทันที ข้อมูลจะไม่หายเมื่อรีเฟรช
+      save_data_to_db(df_new)
+      st.success("บันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว!")
+      st.rerun()  # รีเฟรชหน้าจอเพื่อแสดงข้อมูลล่าสุด
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาด: {e}")
+
+# --- 3. ดึงข้อมูลจากฐานข้อมูลมาแสดงผลในตาราง ---
+current_df = load_data_from_db()
+
+if not current_df.empty:
+  st.markdown("---")
+  st.subheader("📊 ข้อมูลปัจจุบันในระบบ")
+  st.dataframe(current_df, use_container_width=True)
+else:
+  st.info(
+      "ℹ️ ยังไม่มีข้อมูลในฐานข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน"
+  )
