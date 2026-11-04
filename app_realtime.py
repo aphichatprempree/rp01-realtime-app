@@ -859,3 +859,111 @@ def load_excel_data(file_path):
   if "Item Name" in df_raw.columns:
     df_raw = df_raw[df_raw["Item Name"].notna()]
   return df_raw
+import pandas as pd
+import streamlit as st
+from io import BytesIO
+
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบและรวมยอดพาเลทเฉพาะ PO ที่ไม่ตรง (RP03)</div>',
+    unsafe_allow_html=True,
+)
+
+# 1. ช่องอัปโหลดไฟล์ RP03
+rp03_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ RP03 (คอลัมน์ Z: Total Case Qty iLPNs)",
+    type=["xlsx", "xls", "csv"],
+    key="rp03_uploader",
+)
+
+if rp03_file is not None:
+  try:
+    # อ่านไฟล์ RP03
+    if rp03_file.name.endswith(".csv"):
+      df_rp03 = pd.read_csv(rp03_file)
+    else:
+      # ใช้ header=None หรือระบุแถวหัวข้อให้ตรงกับไฟล์จริง (สมมติให้อ่านจากไฟล์)
+      df_rp03 = pd.read_excel(rp03_file)
+
+    st.success("อัปโหลดไฟล์ RP03 สำเร็จ!")
+
+    # ตรวจสอบว่ามีตัวแปร df (ข้อมูลหลัก RP01) อยู่ในระบบหรือไม่
+    if "df" in globals() and df is not None and not df.empty:
+      # ค้นหาคอลัมน์ PO ในไฟล์ RP03 และ RP01
+      po_col_rp03 = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "po" in c.lower() or "order" in c.lower()
+          ),
+          df_rp03.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      # ค้นหาคอลัมน์ Total Case Qty (iLPNs) หรือคอลัมน์ที่อยู่ตรงคอลัมน์ Z
+      target_col = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "total case" in c.lower() or "ilpn" in c.lower()
+          ),
+          None,
+      )
+
+      if main_po_col and target_col:
+        # แปลงเลขอ้างอิง PO เป็น String เพื่อเทียบกันได้แม่นยำ
+        df_rp03[po_col_rp03] = df_rp03[po_col_rp03].astype(str).str.strip()
+        existing_pos = set(df[main_po_col].astype(str).str.strip())
+
+        # กรองเฉพาะรายการที่ PO ใน RP03 "ไม่มี" อยู่ใน RP01 (คือ PO ไม่ตรง / งานนอกรอบ)
+        df_mismatch = df_rp03[~df_rp03[po_col_rp03].isin(existing_pos)].copy()
+
+        if not df_mismatch.empty:
+          # แปลงข้อมูลในคอลัมน์ Total Case Qty (iLPNs) ให้เป็นตัวเลข เพื่อนำมาบวกกันตั้งแต่แถวแรกจนจบ
+          df_mismatch[target_col] = pd.to_numeric(
+              df_mismatch[target_col], errors="coerce"
+          ).fillna(0)
+          total_sum_z = df_mismatch[target_col].sum()
+
+          # แสดงผลลัพธ์ยอดรวม
+          st.metric(
+              label=(
+                  "📦 ยอดรวม Total Case Qty (iLPNs) เฉพาะ PO ที่ไม่ตรง (RP03)"
+              ),
+              value=f"{total_sum_z:,.2f} พาเลท",
+          )
+
+          st.subheader(
+              f"📋 รายการทั้งหมด {len(df_mismatch)} รายการ (PO ไม่ตรงกับ RP01)"
+          )
+          st.dataframe(df_mismatch, use_container_width=True)
+
+          # ปุ่มดาวน์โหลดรายงาน
+          output = BytesIO()
+          with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_mismatch.to_excel(writer, index=False, sheet_name="RP03_Mismatch")
+          processed_data = output.getvalue()
+
+          st.download_button(
+              label="📥 ดาวน์โหลดรายงาน PO ที่ไม่ตรง (Excel)",
+              data=processed_data,
+              file_name="RP03_Mismatch_Pallets.xlsx",
+              mime=(
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              ),
+          )
+        else:
+          st.success(
+              "✅ ไม่พบรายการที่ PO แตกต่าง ทุก PO ใน RP01 ตรงกันทั้งหมด"
+          )
+      else:
+        st.warning(
+            "⚠️ ไม่พบคอลัมน์ PO หรือคอลัมน์ Total Case Qty (iLPNs) ในไฟล์ RP03"
+        )
+    else:
+      st.warning("⚠️ กรุณาอัปโหลดไฟล์ข้อมูลหลัก (RP01) ที่ระบบก่อนทำการเปรียบเทียบ")
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ RP03: {e}")
