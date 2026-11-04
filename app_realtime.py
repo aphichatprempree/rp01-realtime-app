@@ -3,8 +3,12 @@ import pandas as pd
 import datetime
 import os
 
-# ตั้งค่าหน้าเว็บให้เป็นแบบ Wide
-st.set_page_config(page_title="รายงานประมาณการรับสินค้า", layout="wide")
+# ตั้งค่าหน้าเว็บให้เป็นแบบ Wide พร้อมซ่อนแถบเมนูด้านบนของ Streamlit (Header & Toolbar)
+st.set_page_config(
+    page_title="รายงานประมาณการรับสินค้า", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
@@ -36,10 +40,21 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS เพื่อคุมขนาดตัวอักษรตารางทั้งหมด
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมคำสั่งซ่อนแถบ Toolbar ด้านบน
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&display=swap');
+
+    /* === คำสั่งซ่อนแถบเมนูด้านบนของ Streamlit Cloud (Toolbar & Header) === */
+    header[data-testid="stHeader"] {{
+        display: none !important;
+    }}
+    #MainMenu {{
+        visibility: hidden !important;
+    }}
+    footer {{
+        visibility: hidden !important;
+    }}
 
     .block-container {{
         padding-top: 1rem !important;
