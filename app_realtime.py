@@ -994,12 +994,3 @@ if pallet_col_po:
       f" **{total_na_pallets:,.2f}** พาเลท (จากทั้งหมด {len(df_na_jobs)} รายการ)"
   )
 else:
-  st.subheader(
-      f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
-  )
-# --- ส่วนตรวจสอบและสรุปยอดพาเลทงานนอกรอบ (ไม่ให้แสดงผลซ้ำซ้อน) ---
-st.markdown("---")
-st.markdown(
-    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
-    unsafe_allow_html=True,
-)
