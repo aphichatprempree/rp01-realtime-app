@@ -9,6 +9,18 @@ st.set_page_config(page_title="รายงานประมาณการร�
 # กำหนดชื่อไฟล์สำหรับเซฟเก็บไว้บน Server เพื่อให้ผู้ใช้คนอื่นเปิดมาเจอข้อมูลเดิมเสมอ
 SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
 
+# --- ฟังก์ชันอ่านไฟล์ Excel พร้อมระบบ Caching (@st.cache_data) เพื่อความเร็วสูงสุด ---
+@st.cache_data(show_spinner=False)
+def load_excel_data(file_path):
+    xls = pd.ExcelFile(file_path)
+    target_sheet = xls.sheet_names[0]
+    df_raw = pd.read_excel(file_path, sheet_name=target_sheet, header=3)
+    
+    df_raw = df_raw.dropna(how='all')
+    if 'Item Name' in df_raw.columns:
+        df_raw = df_raw[df_raw['Item Name'].notna()]
+    return df_raw
+
 # --- กำหนดค่าเริ่มต้นใน Session State สำหรับแยกส่วนควบคุม ---
 if 'dcs_font_size' not in st.session_state:
     st.session_state['dcs_font_size'] = 22  # ขนาดฟอนต์ตารางบน (DCSBx / DCSB)
@@ -106,12 +118,10 @@ st.markdown(f"""
         font-size: {dcs_size}px !important;
     }}
     
-    /* บังคับขนาดฟอนต์เซลล์และหัวตารางทั้งหมดให้ใหญ่ตามตัวเลื่อน */
     [data-testid="stDataFrame"] div[data-baseweb="tab"] {{
         font-size: {dcs_size}px !important;
     }}
 
-    /* ปรับแต่งฟอนต์ตารางในหน้าเว็บผ่าน CSS สากลสำหรับตาราง Streamlit */
     .stDataFrame [data-testid="StyledMarkupTable"] td, .stDataFrame [data-testid="StyledMarkupTable"] th {{
         font-size: {dcs_size}px !important;
     }}
@@ -241,6 +251,8 @@ if uploaded_file is not None:
     try:
         with open(SERVER_SAVE_FILE, "wb") as f:
             f.write(uploaded_file.getbuffer())
+        # เคลียร์แคชเมื่อมีการอัปโหลดไฟล์ใหม่ เพื่อให้อ่านข้อมูลล่าสุดทันที
+        st.cache_data.clear()
         st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์สำเร็จ!")
     except Exception as e:
         st.sidebar.error(f"ไม่สามารถบันทึกไฟล์: {e}")
@@ -256,14 +268,8 @@ st.sidebar.markdown("### 📅 2. เลือกวันที่ดูยอ�
 
 if active_source is not None:
     try:
-        xls = pd.ExcelFile(active_source)
-        target_sheet = xls.sheet_names[0]
-        df_raw = pd.read_excel(active_source, sheet_name=target_sheet, header=3)
+        df_raw = load_excel_data(active_source)
         
-        df_raw = df_raw.dropna(how='all')
-        if 'Item Name' in df_raw.columns:
-            df_raw = df_raw[df_raw['Item Name'].notna()]
-
         if 'Delivery Date' in df_raw.columns:
             df_raw['Parsed_Date'] = pd.to_datetime(df_raw['Delivery Date'], errors='coerce', dayfirst=True)
             
