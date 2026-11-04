@@ -40,7 +40,7 @@ if 'postpone_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมแก้สีตัวหนังสือในกล่องอัปโหลดให้ชัดเจน
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมเพิ่มความคมชัดของเส้นขอบใน Sidebar
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
@@ -204,10 +204,10 @@ st.markdown(f"""
         color: #0f172a !important;
     }}
     
-    /* === ปรับแต่งแถบ Sidebar ด้านข้างให้กระชับและมืออาชีพ === */
+    /* === ปรับแต่งแถบ Sidebar ด้านข้างให้กระชับและมีความคมชัดสูง === */
     section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-        border-right: 2px solid #334155;
+        border-right: 3px solid #38bdf8;
         padding: 0.8rem 0.6rem;
     }}
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {{
@@ -219,18 +219,31 @@ st.markdown(f"""
         font-size: 15px !important;
         font-weight: 700 !important;
         color: #38bdf8 !important;
-        margin-top: 8px !important;
+        margin-top: 10px !important;
         margin-bottom: 4px !important;
         letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+        padding-bottom: 4px;
     }}
     
-    /* แก้ไขสีข้อความในกล่องอัปโหลดไฟล์ให้เป็นสีเข้มเห็นชัดเจน */
+    /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด (Crisp Border) */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
+        background: rgba(255, 255, 255, 0.06);
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 2px solid #475569;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        margin-bottom: 8px;
+    }}
+
+    /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัดขอบคมชัด */
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] small, 
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] div {{
-        color: #334155 !important;
+        color: #0f172a !important;
     }}
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {{
         background-color: #ffffff !important;
+        border: 2px dashed #0284c7 !important;
         border-radius: 8px;
     }}
 
@@ -246,7 +259,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- Sidebar: แผงควบคุมตัวกรองข้อมูล คลังข้อมูล และการปรับแต่งการแสดงผล ---
-st.sidebar.markdown("<h2 style='color: #ffffff; font-size: 20px; font-weight: 800; border-bottom: 2px solid #38bdf8; padding-bottom: 6px; margin-bottom: 10px; text-align: center;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='color: #ffffff; font-size: 20px; font-weight: 800; border-bottom: 3px solid #38bdf8; padding-bottom: 6px; margin-bottom: 12px; text-align: center;'>🎛️ แผงควบคุมระบบ</h2>", unsafe_allow_html=True)
 
 # 1. ส่วนคลังข้อมูล & อัปโหลดไฟล์
 st.sidebar.markdown("### 📂 1. จัดการข้อมูลไฟล์")
