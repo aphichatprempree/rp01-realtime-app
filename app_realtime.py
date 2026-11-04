@@ -36,6 +36,8 @@ if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
 if 'postpone_pallets' not in st.session_state:
     st.session_state['postpone_pallets'] = 0.0
+if 'postpone_from_date' not in st.session_state:
+    st.session_state['postpone_from_date'] = ""
 
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
@@ -266,7 +268,6 @@ if uploaded_file is not None:
     try:
         with open(SERVER_SAVE_FILE, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        # เคลียร์แคชเมื่อมีการอัปโหลดไฟล์ใหม่ เพื่อให้อ่านข้อมูลล่าสุดทันที
         st.cache_data.clear()
         st.sidebar.success("✅ อัปโหลดและบันทึกไฟล์สำเร็จ!")
     except Exception as e:
@@ -356,8 +357,14 @@ if active_source is not None and not df.empty:
             st.session_state['postpone_pallets'] = st.number_input("⏳ พาเลทที่เลื่อนส่งออก (Pallets):", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0, help="ใส่จำนวนพาเลทที่เลื่อนออก เพื่อหักออกจากยอดรวม")
             postpone_pallets = st.session_state['postpone_pallets']
         with col_postpone2:
+            st.session_state['postpone_from_date'] = st.text_input("📝 ระบุวันที่ต้นทางที่งานเลื่อนมา (เช่น เลื่อนมาจาก 3-4 พ.ย.):", value=st.session_state['postpone_from_date'], placeholder="ระบุวันที่เลื่อนทบมา เช่น 3-4 พ.ย.")
+            postpone_from_date = st.session_state['postpone_from_date']
+            
             if postpone_pallets > 0:
-                st.warning(f"⚠️ มีการเลื่อนส่งงานออกจำนวน **{postpone_pallets:,.0f} พาเลท** ระบบได้ทำการหักลบออกจากยอดรวมสุทธิให้เรียบร้อยแล้ว")
+                note_text = f"⚠️ มีการเลื่อนส่งงานออกจำนวน **{postpone_pallets:,.0f} พาเลท**"
+                if postpone_from_date:
+                    note_text += f" (เลื่อนทบมาจากวันที่: **{postpone_from_date}**)"
+                st.warning(note_text)
             else:
                 st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีงานเลื่อนส่ง)")
 
@@ -436,7 +443,10 @@ if active_source is not None and not df.empty:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-            st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=f"-{postpone_pallets:,.0f} เลื่อนออก" if postpone_pallets > 0 else None, delta_color="inverse")
+            delta_msg = f"-{postpone_pallets:,.0f} เลื่อนออก"
+            if postpone_from_date:
+                delta_msg += f" (จาก {postpone_from_date})"
+            st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=delta_msg if postpone_pallets > 0 else None, delta_color="inverse")
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
             st.metric("🌙 กะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_po:,} PO ({night_pct:.1f}%)")
@@ -506,10 +516,14 @@ if active_source is not None and not df.empty:
         else:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
+        postpone_display_text = f"เลื่อนออก: {postpone_pallets:,.0f}"
+        if postpone_from_date:
+            postpone_display_text += f" (จาก {postpone_from_date})"
+
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 14px 22px; border-radius: 8px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 10px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
-                <span>Pallets: {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</span>
+                <span>Pallets: {total_pallets:,.0f} ({postpone_display_text})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
@@ -553,7 +567,7 @@ if active_source is not None and not df.empty:
 </head>
 <body>
     <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-    <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} (เลื่อนออก: {postpone_pallets:,.0f})</p>
+    <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} ({postpone_display_text})</p>
     <br>
     <div style="text-align: center;">
         <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 12px 24px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
