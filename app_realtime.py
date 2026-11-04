@@ -34,10 +34,10 @@ if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
-
-# ใช้เก็บรายการประวัติการเลื่อนส่งแบบหลายรายการ (List of Dicts)
-if 'postpone_history' not in st.session_state:
-    st.session_state['postpone_history'] = []
+if 'postpone_pallets' not in st.session_state:
+    st.session_state['postpone_pallets'] = 0.0
+if 'postpone_from_date' not in st.session_state:
+    st.session_state['postpone_from_date'] = ""
 
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
@@ -332,25 +332,13 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่งข้ามวัน (เพิ่มรายการสะสม)
-st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่งสะสม")
-with st.sidebar.form("postpone_form", clear_on_submit=True):
-    from_date_input = st.text_input("วันที่ต้นทาง (เช่น 3 พ.ย. หรือ ASRS-01)", placeholder="ระบุวันที่เลื่อนมา")
-    pallets_input = st.number_input("จำนวนพาเลทที่เลื่อน:", min_value=0.0, step=1.0)
-    add_btn = st.form_submit_button("➕ เพิ่มรายการเลื่อนส่ง")
-    
-    if add_btn and pallets_input > 0 and from_date_input:
-        st.session_state['postpone_history'].append({
-            "from_date": from_date_input,
-            "pallets": pallets_input
-        })
-        st.success(f"เพิ่มรายการจาก {from_date_input} จำนวน {pallets_input:,.0f} พาเลทสำเร็จ!")
+# 4. ส่วนจัดการงานเลื่อนส่งแบบระบุวันต่อวัน (ไม่ทบยอดรวม)
+st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (วันต่อวัน)")
+st.session_state['postpone_pallets'] = st.sidebar.number_input("⏳ จำนวนพาเลทที่เลื่อนออก/เลื่อนเข้า:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
+st.session_state['postpone_from_date'] = st.sidebar.text_input("📝 ระบุวันที่เลื่อน (เช่น เลื่อนจากวันที่ 3 ไป 4):", value=st.session_state['postpone_from_date'], placeholder="เช่น วันที่ 3 ไป 4 พ.ย.")
 
-# ปุ่มล้างประวัติการเลื่อนส่ง
-if st.session_state['postpone_history']:
-    if st.sidebar.button("🗑️ ล้างรายการเลื่อนส่งทั้งหมด"):
-        st.session_state['postpone_history'] = []
-        st.rerun()
+postpone_pallets = st.session_state['postpone_pallets']
+postpone_from_date = st.session_state['postpone_from_date']
 
 st.sidebar.markdown("---")
 
@@ -374,17 +362,15 @@ if active_source is not None and not df.empty:
             st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
         st.markdown("---")
-
-        # คำนวณยอดพาเลทเลื่อนส่งรวมทั้งหมดจากประวัติ
-        total_postponed_pallets = sum([item['pallets'] for item in st.session_state['postpone_history']])
-
-        # แสดงตารางแจกแจงรายละเอียดงานเลื่อนส่ง (ถ้ามี)
-        if st.session_state['postpone_history']:
-            st.markdown("### 📑 รายละเอียดประวัติการเลื่อนส่งสินค้าสะสม")
-            postpone_df = pd.DataFrame(st.session_state['postpone_history'])
-            postpone_df.columns = ["วันที่ต้นทาง (From Date)", "จำนวนพาเลทที่เลื่อนมา (Pallets)"]
-            st.dataframe(postpone_df, use_container_width=True, hide_index=True)
-            st.markdown("---")
+        
+        # แสดงสถานะการเลื่อนส่งแบบวันต่อวัน
+        if postpone_pallets > 0:
+            msg = f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท**"
+            if postpone_from_date:
+                msg += f" (เงื่อนไข: **{postpone_from_date}**)"
+            st.warning(msg)
+        else:
+            st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
 
         # กำหนดชื่อคอลัมน์และนับจำนวน Unique Values แบบตรงเป๊ะกับไฟล์ต้นฉบับ
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
@@ -409,8 +395,8 @@ if active_source is not None and not df.empty:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        # หักลบยอดพาเลทที่เลื่อนส่งออกสุทธิ
-        total_pallets = max(0.0, raw_pallets - total_postponed_pallets)
+        # หักลบ/ปรับยอดพาเลทตามวันที่เลื่อน
+        total_pallets = max(0.0, raw_pallets - postpone_pallets)
         
         # --- กำหนดสัดส่วนตามเป้าหมาย (กะดึก 3879 / กะเช้า 1663) ---
         target_night = 3879
@@ -459,7 +445,7 @@ if active_source is not None and not df.empty:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-            delta_desc = f"-{total_postponed_pallets:,.0f} เลื่อนออก" if total_postponed_pallets > 0 else None
+            delta_desc = f"-{postpone_pallets:,.0f} ปรับออก" if postpone_pallets > 0 else None
             st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse")
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
@@ -530,15 +516,14 @@ if active_source is not None and not df.empty:
         else:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
-        postpone_summary_str = f"เลื่อนออกรวม: {total_postponed_pallets:,.0f} พาเลท"
-        if st.session_state['postpone_history']:
-            dates_list = ", ".join([item['from_date'] for item in st.session_state['postpone_history']])
-            postpone_summary_str += f" (จากวันที่: {dates_list})"
+        postpone_display_str = f"ปรับออก: {postpone_pallets:,.0f}"
+        if postpone_from_date:
+            postpone_display_str += f" ({postpone_from_date})"
 
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 14px 22px; border-radius: 8px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 10px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
                 <span>Grand Total (Net Pallets)</span>
-                <span>Pallets: {total_pallets:,.0f} ({postpone_summary_str})</span>
+                <span>Pallets: {total_pallets:,.0f} ({postpone_display_str})</span>
                 <span>UOM Qty: {total_uom:,.0f}</span>
             </div>
         """, unsafe_allow_html=True)
@@ -582,7 +567,7 @@ if active_source is not None and not df.empty:
 </head>
 <body>
     <h2>📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</h2>
-    <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} ({postpone_summary_str})</p>
+    <p style="font-size: 18px; font-weight: bold; text-align: center;"><b>Total Sup:</b> {total_sup:,} | <b>Item:</b> {total_item:,} | <b>UOM Qty:</b> {total_uom:,.0f} | <b>Net Pallets:</b> {total_pallets:,.0f} ({postpone_display_str})</p>
     <br>
     <div style="text-align: center;">
         <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 12px 24px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">🖨️ พิมพ์หน้านี้ / บันทึกเป็น PDF</button>
