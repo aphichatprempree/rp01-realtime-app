@@ -1315,3 +1315,109 @@ if st.button("🖨️ พิมพ์/บันทึก PDF ทันที", k
         </script>
     """
   components.html(js_code, height=0)
+# --- ส่วนเพิ่มพิเศษ: ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO แบบ VLOOKUP และรวมยอดพาเลท) ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO แบบ VLOOKUP'
+    " และรวมยอดพาเลท)</div>",
+    unsafe_allow_html=True,
+)
+
+rp03_file = st.file_uploader(
+    "📂 อัปโหลดไฟล์ RP03 (Goods Receive Note Summary Report)",
+    type=["xlsx", "xls", "csv"],
+    key="unique_rp03_vlookup_uploader_final",
+)
+
+if rp03_file is not None:
+  try:
+    if rp03_file.name.endswith(".csv"):
+      df_rp03 = pd.read_csv(rp03_file)
+    else:
+      df_rp03 = pd.read_excel(rp03_file)
+
+    st.success("อัปโหลดไฟล์ RP03 สำเร็จ!")
+
+    # ใช้ตัวแปร df หลักที่มีอยู่ในระบบของคุณ
+    if "df" in locals() and df is not None and not df.empty:
+      po_col_rp03 = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "purchase order" in c.lower()
+              or "po" in c.lower()
+              or "order" in c.lower()
+          ),
+          df_rp03.columns[0],
+      )
+      main_po_col = next(
+          (c for c in df.columns if "po" in c.lower() or "order" in c.lower()),
+          None,
+      )
+
+      pallet_col = next(
+          (
+              c
+              for c in df_rp03.columns
+              if "total case" in c.lower()
+              or "ilpn" in c.lower()
+              or "pallet" in c.lower()
+              or "qty" in c.lower()
+          ),
+          None,
+      )
+
+      if main_po_col and pallet_col:
+        df_rp03[po_col_rp03] = df_rp03[po_col_rp03].astype(str).str.strip()
+        existing_pos = set(df[main_po_col].astype(str).str.strip())
+
+        # VLOOKUP เปรียบเทียบหาตัวที่ไม่มีใน RP01 (เทียบเท่า #N/A)[cite: 8]
+        df_mismatch = df_rp03[~df_rp03[po_col_rp03].isin(existing_pos)].copy()
+
+        if not df_mismatch.empty:
+          df_mismatch[pallet_col] = pd.to_numeric(
+              df_mismatch[pallet_col], errors="coerce"
+          ).fillna(0)
+          total_sum_pallets = df_mismatch[pallet_col].sum()
+
+          st.metric(
+              label=(
+                  "📦 ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ (PO ไม่ตรงกับ"
+                  " RP01)"
+              ),
+              value=(
+                  f"{total_sum_pallets:,.2f} พาเลท (จากทั้งหมด"
+                  f" {len(df_mismatch)} รายการ)"
+              ),
+          )
+
+          st.subheader("📋 รายละเอียดรายการงานนอกรอบทั้งหมด (เทียบเท่า #N/A)")
+          st.dataframe(df_mismatch, use_container_width=True)
+
+          output = BytesIO()
+          with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_mismatch.to_excel(
+                writer, index=False, sheet_name="RP03_NA_Summary"
+            )
+          processed_data = output.getvalue()
+
+          st.download_button(
+              label="📥 ดาวน์โหลดรายงานงานนอกรอบ (Excel)",
+              data=processed_data,
+              file_name="RP03_Mismatch_N_A_Report.xlsx",
+              mime=(
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              ),
+              key="unique_download_mismatch_btn_final",
+          )
+        else:
+          st.success("✅ ไม่พบงานนอกรอบ ทุก PO ใน RP03 ตรงกับ RP01 ทั้งหมด")
+      else:
+        st.warning(
+            "⚠️ ไม่พบคอลัมน์ Purchase Order หรือคอลัมน์ Total Case Qty (iLPNs)"
+            " ในไฟล์ RP03"
+        )
+    else:
+      st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
