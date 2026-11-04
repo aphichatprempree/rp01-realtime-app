@@ -1,4 +1,4 @@
-# --- ส่วนตรวจสอบและสรุปยอดพาเลทของงานนอกรอบ (N/A) แบบปลอดภัยไม่ให้ติด NameError ---
+# --- ส่วนตรวจสอบและสรุปยอดพาเลทของงานนอกรอบ (N/A) แบบป้องกัน NameError ---
 st.markdown("---")
 st.markdown(
     '<div class="sub-title">🔍 ตรวจสอบงานนอกรอบ (เปรียบเทียบ PO กับ RP01)</div>',
@@ -12,7 +12,7 @@ po_uploaded_file = st.file_uploader(
     key="po_file_uploader_safe",
 )
 
-# ประกาศตัวแปรป้องกัน NameError ไว้ก่อน
+# ประกาศตัวแปรเริ่มต้น
 df_na_jobs = pd.DataFrame()
 
 if po_uploaded_file is not None:
@@ -24,8 +24,8 @@ if po_uploaded_file is not None:
 
     st.success("อัปโหลดไฟล์ PO สำเร็จ!")
 
-    # ตรวจสอบว่ามีตัวแปร df หลักอยู่แล้วหรือไม่
-    if "df" in locals() and not df.empty:
+    # ตรวจสอบว่ามีตัวแปร df (ข้อมูล RP01 หลัก) อยู่ในระบบหรือไม่
+    if "df" in globals() and df is not None and not df.empty:
       po_col_name = next(
           (
               c
@@ -55,12 +55,12 @@ if po_uploaded_file is not None:
         st.warning("ไม่พบคอลัมน์ PO ในตารางหลัก RP01")
     else:
       st.warning(
-          "กรุณาอัปโหลดไฟล์ RP01 (ไฟล์หลัก) ที่แถบเมนูด้านซ้ายก่อนทำการเปรียบเทียบ"
+          "⚠️ กรุณาอัปโหลดไฟล์ RP01 (ไฟล์หลัก) ที่แถบเมนูด้านซ้ายให้เรียบร้อยก่อน"
       )
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์ PO: {e}")
 
-# ตรวจสอบและแสดงผลเฉพาะเมื่อมีข้อมูล df_na_jobs และไม่ว่างเปล่า
+# แสดงผลเฉพาะเมื่อมีข้อมูลงานนอกรอบ
 if not df_na_jobs.empty:
   st.subheader(
       f"📋 รายการงานนอกรอบ (N/A / ไม่มีใน RP01): {len(df_na_jobs)} รายการ"
@@ -109,5 +109,5 @@ if not df_na_jobs.empty:
       file_name="NA_Off_Cycle_Jobs.xlsx",
       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   )
-elif po_uploaded_file is not None:
+elif po_uploaded_file is not None and "df" in globals() and df is not None:
   st.success("✅ ไม่พบรายการงานนอกรอบ ทุก PO ตรงกับรายงาน RP01 ทั้งหมด")
