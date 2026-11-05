@@ -805,4 +805,3 @@ if rp03_file is not None:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
      st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
-st.set_page_config(page_title="รายงานประมาณการรับสินค้า", initial_sidebar_state="expanded")
