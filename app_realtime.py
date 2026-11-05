@@ -848,3 +848,8 @@ if uploaded_file_bottom is not None:
     st.rerun()
   except Exception as e:
     st.error(f"ไม่สามารถบันทึกไฟล์ได้: {e}")
+# เพิ่มเงื่อนไขบังคับให้ บจ. เทค ทอยส์ เป็น STAMP เสมอ
+if 'เทค ทอยส์' in str(row.get('Vendor Name', '')) or '2055418' in str(
+    row.get('Vendor ID', '')
+):
+  status_val = 'STAMP'
