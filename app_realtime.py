@@ -805,3 +805,119 @@ if rp03_file is not None:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
      st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
+import sqlite3
+
+# --- 1. ฟังก์ชันสร้างตารางเก็บประวัติงานเลื่อนส่งใน SQLite ---
+DB_HISTORY_FILE = "postpone_history.db"
+
+
+def init_history_db():
+  """สร้างตารางสำหรับเก็บประวัติการเลื่อนส่งพาเลท"""
+  conn = sqlite3.connect(DB_HISTORY_FILE)
+  cursor = conn.cursor()
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS postpone_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            save_date TEXT,
+            target_date TEXT,
+            pallets REAL
+        )
+    """)
+  conn.commit()
+  conn.close()
+
+
+# เรียกใช้งานฟังก์ชันสร้างตารางเมื่อเปิดแอป
+init_history_db()
+
+# --- 2. ส่วนเพิ่มใน Sidebar สำหรับบันทึกข้อมูลงานเลื่อนส่ง ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("### ⏳ 4. จัดการและบันทึกประวัติงานเลื่อนส่ง")
+st.session_state["postpone_pallets"] = st.sidebar.number_input(
+    "จำนวนพาเลทที่เลื่อน:",
+    min_value=0.0,
+    value=float(st.session_state.get("postpone_pallets", 0.0)),
+    step=1.0,
+)
+
+col_d, col_m, col_y = st.sidebar.columns(3)
+with col_d:
+  p_day = st.selectbox(
+      "วัน",
+      list(range(1, 32)),
+      index=datetime.date.today().day - 1,
+      label_visibility="collapsed",
+  )
+with col_m:
+  months_th_list = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+  ]
+  p_month_str = st.selectbox(
+      "เดือน",
+      months_th_list,
+      index=datetime.date.today().month - 1,
+      label_visibility="collapsed",
+  )
+with col_y:
+  current_th_year = datetime.date.today().year + 543
+  p_year = st.selectbox(
+      "ปี",
+      list(range(current_th_year - 1, current_th_year + 3)),
+      index=1,
+      label_visibility="collapsed",
+  )
+
+postpone_pallets = st.session_state["postpone_pallets"]
+postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
+
+# ปุ่มกดบันทึกประวัติลงฐานข้อมูล
+if st.sidebar.button("💾 บันทึกประวัติงานเลื่อนส่ง"):
+  if postpone_pallets > 0:
+    try:
+      conn = sqlite3.connect(DB_HISTORY_FILE)
+      cursor = conn.cursor()
+      cursor.execute(
+          "INSERT INTO postpone_log (save_date, target_date, pallets) VALUES"
+          " (?, ?, ?)",
+          (str(datetime.date.today()), postpone_from_str, postpone_pallets),
+      )
+      conn.commit()
+      conn.close()
+      st.sidebar.success("✅ บันทึกประวัติสำเร็จ!")
+    except Exception as e:
+      st.sidebar.error(f"เกิดข้อผิดพลาดในการบันทึก: {e}")
+  else:
+    st.sidebar.warning("⚠️ กรุณากำหนดจำนวนพาเลทมากกว่า 0 ก่อนบันทึก")
+
+# --- 3. ส่วนแสดงตารางประวัติงานเลื่อนส่งที่บันทึกไว้ (แสดงในหน้าหลัก) ---
+st.markdown("---")
+st.markdown("### 📜 ประวัติการบันทึกงานเลื่อนส่งทั้งหมดในระบบ")
+
+try:
+  conn = sqlite3.connect(DB_HISTORY_FILE)
+  df_history = pd.read_sql("SELECT * FROM postpone_log ORDER BY id DESC", conn)
+  conn.close()
+
+  if not df_history.empty:
+    df_history.columns = [
+        "ID",
+        "วันที่บันทึก",
+        "วันที่เลื่อนส่งจาก",
+        "จำนวนพาเลท (Pallets)",
+    ]
+    st.dataframe(df_history, use_container_width=True, hide_index=True)
+  else:
+    st.info("ℹ️ ยังไม่มีประวัติการบันทึกงานเลื่อนส่งในฐานข้อมูล")
+except Exception as e:
+  st.error(f"ไม่สามารถโหลดประวัติได้: {e}")
