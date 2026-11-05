@@ -804,3 +804,4 @@ if rp03_file is not None:
     else:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
+     st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
