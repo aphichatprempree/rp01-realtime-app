@@ -796,12 +796,10 @@ if rp03_file is not None:
           )
         else:
           st.success("✅ ไม่พบงานนอกรอบ ทุก PO ใน RP03 ตรงกับ RP01 ทั้งหมด")
-      else:
         st.warning(
             "⚠️ ไม่พบคอลัมน์ Purchase Order หรือคอลัมน์ Total Case Qty (iLPNs)"
             f" ในไฟล์ RP03 (พบ PO: {po_col_rp03}, Qty: {pallet_col})"
         )
-    else:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
      st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
