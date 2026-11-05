@@ -809,3 +809,19 @@ st.markdown(
     " ข้อมูลหน้าจอหลัก</div>",
     unsafe_allow_html=True,
 )
+
+uploaded_file_bottom = st.file_uploader(
+    "📂 เลือกไฟล์ Excel (RP01) ด้านล่าง",
+    type=["xlsx", "xls"],
+    key="unique_rp01_extra_bottom_main_key",
+)
+
+if uploaded_file_bottom is not None:
+  try:
+    with open(SERVER_SAVE_FILE, "wb") as f:
+      f.write(uploaded_file_bottom.getbuffer())
+    st.cache_data.clear()
+    st.success("✅ อัปโหลดไฟล์สำเร็จ! กำลังรีเฟรชระบบ...")
+    st.rerun()
+  except Exception as e:
+    st.error(f"ไม่สามารถบันทึกไฟล์ได้: {e}")
