@@ -794,7 +794,6 @@ if rp03_file is not None:
               ),
               key="unique_download_mismatch_btn_final_v2",
           )
-        else:
           st.success("✅ ไม่พบงานนอกรอบ ทุก PO ใน RP03 ตรงกับ RP01 ทั้งหมด")
         st.warning(
             "⚠️ ไม่พบคอลัมน์ Purchase Order หรือคอลัมน์ Total Case Qty (iLPNs)"
@@ -803,3 +802,26 @@ if rp03_file is not None:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
      st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
+# --- เพิ่มปุ่มอัปโหลดไฟล์ RP01 ไว้ด้านล่างสุดของหน้าจอหลักด้วย ---
+st.markdown("---")
+st.markdown(
+    '<div class="sub-title">📂 เพิ่มเติม: อัปโหลดไฟล์ Excel (RP01)'
+    " ข้อมูลหน้าจอหลัก</div>",
+    unsafe_allow_html=True,
+)
+
+uploaded_file_bottom = st.file_uploader(
+    "📂 เลือกไฟล์ Excel (RP01) ด้านล่าง",
+    type=["xlsx", "xls"],
+    key="unique_rp01_extra_bottom_main_key",
+)
+
+if uploaded_file_bottom is not None:
+  try:
+    with open(SERVER_SAVE_FILE, "wb") as f:
+      f.write(uploaded_file_bottom.getbuffer())
+    st.cache_data.clear()
+    st.success("✅ อัปโหลดไฟล์สำเร็จ! กำลังรีเฟรชระบบ...")
+    st.rerun()
+  except Exception as e:
+    st.error(f"ไม่สามารถบันทึกไฟล์ได้: {e}")
