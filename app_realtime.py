@@ -805,3 +805,380 @@ if rp03_file is not None:
       st.warning("⚠️ กรุณามีข้อมูลหลัก (RP01) ในระบบก่อนทำการอัปโหลดเพื่อเทียบข้อมูล")
   except Exception as e:
      st.error(f"เกิดข้อผิดพลาดในการประมวลผลไฟล์: {e}")
+from io import BytesIO
+import datetime
+import os
+import sqlite3
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+
+# --- ตั้งค่าหน้าเว็บ ---
+st.set_page_config(
+    page_title="รายงานประมาณการรับสินค้า",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+SERVER_SAVE_FILE = "latest_uploaded_rp01.xlsx"
+DB_HISTORY_FILE = "postpone_history.db"
+
+
+# --- ฟังก์ชันสร้างฐานข้อมูลประวัติงานเลื่อนส่ง ---
+def init_history_db():
+  conn = sqlite3.connect(DB_HISTORY_FILE)
+  cursor = conn.cursor()
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS postpone_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            save_date TEXT,
+            target_date TEXT,
+            pallets REAL
+        )
+    """)
+  conn.commit()
+  conn.close()
+
+
+init_history_db()
+
+
+# --- ฟังก์ชันอ่านไฟล์ Excel พร้อม Caching ---
+@st.cache_data(show_spinner=False)
+def load_excel_data(file_path):
+  xls = pd.ExcelFile(file_path)
+  target_sheet = xls.sheet_names[0]
+  df_raw = pd.read_excel(file_path, sheet_name=target_sheet, header=3)
+  df_raw = df_raw.dropna(how="all")
+  if "Item Name" in df_raw.columns:
+    df_raw = df_raw[df_raw["Item Name"].notna()]
+  return df_raw
+
+
+# --- กำหนดค่าเริ่มต้นใน Session State ---
+if "dcs_font_size" not in st.session_state:
+  st.session_state["dcs_font_size"] = 22
+if "vendor_font_size" not in st.session_state:
+  st.session_state["vendor_font_size"] = 20
+if "enable_time_filter" not in st.session_state:
+  st.session_state["enable_time_filter"] = False
+if "filter_status" not in st.session_state:
+  st.session_state["filter_status"] = "ทั้งหมด"
+if "postpone_pallets" not in st.session_state:
+  st.session_state["postpone_pallets"] = 0.0
+
+dcs_size = st.session_state["dcs_font_size"]
+vendor_size = st.session_state["vendor_font_size"]
+
+# --- CSS ตกแต่งหน้าเว็บ ---
+st.markdown(
+    f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
+    header[data-testid="stHeader"] {{ display: none !important; }}
+    #MainMenu {{ visibility: hidden !important; }}
+    footer {{ visibility: hidden !important; }}
+    .block-container {{ padding-top: 1rem !important; padding-bottom: 1rem !important; }}
+    .stApp {{ background-color: #f8fafc !important; color: #0f172a !important; font-family: 'Prompt', sans-serif !important; }}
+    
+    .header-box {{
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
+        padding: 22px 24px 20px 24px; border-radius: 12px; color: #ffffff;
+        text-align: center; font-weight: 800; font-size: 30px; margin-bottom: 14px;
+        box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4); border: 2px solid rgba(255, 255, 255, 0.2);
+    }}
+    .sub-title {{
+        color: #1e40af; font-weight: 800; font-size: 24px;
+        border-left: 8px solid #2563eb; padding-left: 12px; margin-top: 10px; margin-bottom: 8px;
+        height: 34px; display: flex; align-items: center;
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+        border-radius: 0 8px 8px 0;
+    }}
+    section[data-testid="stSidebar"] {{ background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); border-right: 3px solid #38bdf8; padding: 0.8rem 0.6rem; }}
+    section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p {{ color: #f8fafc !important; text-align: center !important; }}
+    section[data-testid="stSidebar"] h3 {{ color: #38bdf8 !important; border-bottom: 1px solid rgba(56, 189, 248, 0.3); padding-bottom: 4px; text-align: center !important; }}
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
+# --- Sidebar: แผงควบคุม ---
+st.sidebar.markdown(
+    """
+    <div style="text-align: center; padding: 10px 0;">
+        <h2 style='color: #ffffff; font-size: 18px; font-weight: 800; margin: 0;'>DATA ENTRY (DCSB)</h2>
+        <p style='color: #38bdf8; font-size: 12px; font-weight: 600; margin-top: 4px;'>📊 ระบบรายงานประมาณการรับสินค้า</p>
+    </div>
+    <hr style="border-color: #38bdf8; margin: 5px 0 15px 0;">
+""",
+    unsafe_allow_html=True,
+)
+
+st.sidebar.markdown(
+    "<h2 style='color: #ffffff; font-size: 18px; font-weight: 800; border-bottom:"
+    " 3px solid #38bdf8; padding-bottom: 6px; margin-bottom: 12px; text-align:"
+    " center;'>🎛️ แผงควบคุมระบบ</h2>",
+    unsafe_allow_html=True,
+)
+
+# 1. เลือกวันที่ดูย้อนหลัง
+st.sidebar.markdown("### 📅 1. เลือกวันที่ดูย้อนหลัง")
+active_source = SERVER_SAVE_FILE if os.path.exists(SERVER_SAVE_FILE) else None
+
+if active_source is not None:
+  try:
+    df_raw = load_excel_data(active_source)
+    if "Delivery Date" in df_raw.columns:
+      df_raw["Parsed_Date"] = pd.to_datetime(
+          df_raw["Delivery Date"], errors="coerce", dayfirst=True
+      )
+      if "historical_data" not in st.session_state:
+        st.session_state["historical_data"] = {}
+      for dt_val, group_df in df_raw.groupby(df_raw["Parsed_Date"].dt.date):
+        if pd.notna(dt_val):
+          st.session_state["historical_data"][str(dt_val)] = group_df
+
+    if (
+        "historical_data" in st.session_state
+        and st.session_state["historical_data"]
+    ):
+      available_dates = sorted(list(st.session_state["historical_data"].keys()))
+      selected_date_str = st.sidebar.selectbox(
+          "เลือกวันที่",
+          available_dates,
+          index=len(available_dates) - 1,
+          label_visibility="collapsed",
+          key="unique_date_select_key",
+      )
+      df = st.session_state["historical_data"][selected_date_str].copy()
+    else:
+      df = df_raw.copy()
+      selected_date_str = str(datetime.date.today())
+  except Exception as e:
+    st.sidebar.error(f"อ่านไฟล์ไม่สำเร็จ: {e}")
+    df = pd.DataFrame()
+    selected_date_str = str(datetime.date.today())
+else:
+  df = pd.DataFrame()
+  selected_date_str = str(datetime.date.today())
+
+st.sidebar.markdown("---")
+
+# 2. ตัวกรองเพิ่มเติม
+st.sidebar.markdown("### 🏷️ 2. ตัวกรองเพิ่มเติม")
+status_options = ["ทั้งหมด", "STAMP", "CARD", "COINS"]
+st.session_state["filter_status"] = st.sidebar.selectbox(
+    "ประเภท Supplier",
+    status_options,
+    index=status_options.index(st.session_state["filter_status"]),
+    label_visibility="collapsed",
+    key="unique_filter_status_key",
+)
+filter_status = st.session_state["filter_status"]
+
+st.sidebar.markdown("---")
+
+# 3. จัดการงานเลื่อนส่ง & ระบบบันทึกอัตโนมัติ
+st.sidebar.markdown("### ⏳ 3. จัดการงานเลื่อนส่ง (บันทึกออโต้)")
+st.session_state["postpone_pallets"] = st.sidebar.number_input(
+    "จำนวนพาเลทที่เลื่อน:",
+    min_value=0.0,
+    value=float(st.session_state.get("postpone_pallets", 0.0)),
+    step=1.0,
+    key="unique_postpone_number_input_key",
+)
+
+col_d, col_m, col_y = st.sidebar.columns(3)
+with col_d:
+  p_day = st.selectbox(
+      "วัน",
+      list(range(1, 32)),
+      index=datetime.date.today().day - 1,
+      label_visibility="collapsed",
+      key="unique_day_select_key",
+  )
+with col_m:
+  months_th_list = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+  ]
+  p_month_str = st.selectbox(
+      "เดือน",
+      months_th_list,
+      index=datetime.date.today().month - 1,
+      label_visibility="collapsed",
+      key="unique_month_select_key",
+  )
+with col_y:
+  current_th_year = datetime.date.today().year + 543
+  p_year = st.selectbox(
+      "ปี",
+      list(range(current_th_year - 1, current_th_year + 3)),
+      index=1,
+      label_visibility="collapsed",
+      key="unique_year_select_key",
+  )
+
+postpone_pallets = st.session_state["postpone_pallets"]
+postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
+
+if postpone_pallets > 0:
+  try:
+    conn = sqlite3.connect(DB_HISTORY_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, pallets FROM postpone_log WHERE save_date = ? AND"
+        " target_date = ?",
+        (str(datetime.date.today()), postpone_from_str),
+    )
+    existing_record = cursor.fetchone()
+    if existing_record:
+      if existing_record[1] != postpone_pallets:
+        cursor.execute(
+            "UPDATE postpone_log SET pallets = ? WHERE id = ?",
+            (postpone_pallets, existing_record[0]),
+        )
+        conn.commit()
+    else:
+      cursor.execute(
+          "INSERT INTO postpone_log (save_date, target_date, pallets) VALUES"
+          " (?, ?, ?)",
+          (str(datetime.date.today()), postpone_from_str, postpone_pallets),
+      )
+      conn.commit()
+    conn.close()
+  except Exception as e:
+    st.sidebar.error(f"เกิดข้อผิดพลาดในการบันทึกออโต้: {e}")
+
+st.sidebar.markdown("---")
+
+# 4. ปรับขนาดฟอนต์
+st.sidebar.markdown("### 🔠 4. ปรับขนาดฟอนต์ตาราง")
+col_fs1, col_fs2 = st.sidebar.columns(2)
+with col_fs1:
+  st.session_state["dcs_font_size"] = st.slider(
+      "ตารางบน",
+      min_value=16,
+      max_value=40,
+      value=st.session_state["dcs_font_size"],
+      step=2,
+      key="unique_dcs_slider_key",
+  )
+with col_fs2:
+  st.session_state["vendor_font_size"] = st.slider(
+      "ตารางล่าง",
+      min_value=16,
+      max_value=35,
+      value=st.session_state["vendor_font_size"],
+      step=2,
+      key="unique_vendor_slider_key",
+  )
+
+st.sidebar.markdown("---")
+
+# 5. จัดการข้อมูลไฟล์ (ปุ่มอัปโหลดอยู่ด้านล่างสุดของ Sidebar)
+st.sidebar.markdown("### 📂 5. จัดการข้อมูลไฟล์ (อัปโหลด RP01)")
+uploaded_file = st.sidebar.file_uploader(
+    "📂 เลือกไฟล์ Excel (RP01)",
+    type=["xlsx", "xls"],
+    key="unique_rp01_file_uploader_bottom_key",
+)
+if uploaded_file is not None:
+  try:
+    with open(SERVER_SAVE_FILE, "wb") as f:
+      f.write(uploaded_file.getbuffer())
+    st.cache_data.clear()
+    st.sidebar.success("✅ อัปโหลดสำเร็จ!")
+    st.rerun()
+  except Exception as e:
+    st.sidebar.error(f"ไม่สามารถบันทึก: {e}")
+
+# --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
+if active_source is not None and not df.empty:
+  try:
+    try:
+      dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
+      months_th = {
+          1: "ม.ค.",
+          2: "ก.พ.",
+          3: "มี.ค.",
+          4: "เม.ย.",
+          5: "พ.ค.",
+          6: "มิ.ย.",
+          7: "ก.ค.",
+          8: "ส.ค.",
+          9: "ก.ย.",
+          10: "ต.ค.",
+          11: "พ.ย.",
+          12: "ธ.ค.",
+      }
+      current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
+    except Exception:
+      current_date = selected_date_str
+
+    st.markdown(
+        f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่'
+        f" {current_date}</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("---")
+
+    if postpone_pallets > 0:
+      st.warning(
+          f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท**"
+          f" (บันทึกออโต้จากวันที่: **{postpone_from_str}**)"
+      )
+    else:
+      st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
+
+    sup_col = (
+        "Vendor Name"
+        if "Vendor Name" in df.columns
+        else next(
+            (
+                col
+                for col in df.columns
+                if "vendor" in str(col).lower()
+                or "supplier" in str(col).lower()
+            ),
+            df.columns[4],
+        )
+    )
+    total_sup = (
+        df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
+    )
+
+    item_col = (
+        "Item Name"
+        if "Item Name" in df.columns
+        else next(
+            (col for col in df.columns if "item" in str(col).lower()),
+            df.columns[12],
+        )
+    )
+    total_item = (
+        df[item_col].dropna().nunique() if item_col in df.columns else len(df)
+    )
+
+    po_col_raw = next(
+        (
+            c
+            for c in df.columns
+            if "p/o" in str(c).lower() or "po" in str(c).lower()
+        ),
+        None,
+    )
+    if not po_col_raw:
+      po_col_raw = "P/O" if "P/O" in df.columns else df.columns[1]
+
+    if
