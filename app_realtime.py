@@ -510,7 +510,7 @@ if active_source is not None and not df.empty:
         st.markdown("---")
         st.markdown('<div class="sub-title">Vendors STAMP, CARD & COINS (Special Suppliers)</div>', unsafe_allow_html=True)
         
-        stamp_vendors = ["70979", "21189"]
+        stamp_vendors = ["70979", "21189" , "2055418"]
         card_vendors = [
             "592", "3751", "3924", "12457", "12790", "12810", "12922", "12990", "13725", "17157",
             "21265", "21541", "21653", "21738", "40334", "40352", "40678", "41068", "70082"
@@ -518,7 +518,7 @@ if active_source is not None and not df.empty:
         coins_vendors = [
             "70335", "70341", "70585", "70605", "70609", "70757", "71007", "71026", "71316", "71338",
             "71573", "71758", "72204", "72215", "72472", "72715", "72736", "72747", "72852", "72853",
-            "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616", "2055418"
+            "73204", "73208", "1101530", "FS", "73005", "1102038", "2052496", "2053616",
         ]
         
         v_col = next((c for c in df.columns if 'vendor' in str(c).lower() and 'name' not in str(c).lower()), None)
