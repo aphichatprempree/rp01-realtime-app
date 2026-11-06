@@ -429,7 +429,7 @@ if active_source is not None and not df.empty:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        total_pallets = max(0.0, raw_pallets - postpone_pallets)
+        total_pallets = max(0.0, raw_pallets + postpone_pallets)
         
         target_night = 3879
         target_morning = 1663
@@ -825,3 +825,4 @@ if uploaded_file_bottom is not None:
     st.rerun()
   except Exception as e:
     st.error(f"ไม่สามารถบันทึกไฟล์ได้: {e}")
+total_pallets = raw_pallets + postpone_pallets
