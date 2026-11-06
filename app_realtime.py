@@ -554,7 +554,7 @@ if active_source is not None and not df.empty:
         else:
             st.warning("⚠️ ไม่พบคอลัมน์ Vendor หรือ P/O ในไฟล์รีพอร์ต")
         
-        postpone_display_str = f"ปรับออก: {postpone_pallets:,.0f} (จาก {postpone_from_str})"
+        postpone_display_str = f"ปรับเข้า: {postpone_pallets:,.0f} (จาก {postpone_from_str})"
 
         st.markdown(f"""
             <div style='background: linear-gradient(135deg, #047857 0%, #065f46 100%); color: white; padding: 14px 22px; border-radius: 8px; font-weight: 800; display: flex; justify-content: space-between; margin-top: 10px; font-size: 24px; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3); border: 2px solid #10b981;'>
