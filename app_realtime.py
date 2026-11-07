@@ -488,11 +488,24 @@ if active_source is not None and not df.empty:
 
         st.markdown("---")
         
-        if postpone_pallets > 0:
-            st.warning(f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่: **{postpone_from_str}**)")
-        else:
-            st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
-
+        if inbound_pallets > 0 and outbound_pallets > 0:
+  st.warning(
+      f"📥 มีงานเลื่อนเข้า: **{inbound_pallets:,.0f} พาเลท** (จากวันที่:"
+      f" **{inbound_from_str}**) | 📤 มีงานเลื่อนออก: **{outbound_pallets:,.0f}"
+      f" พาเลท** (ไปวันที่: **{outbound_to_str}**)"
+  )
+elif inbound_pallets > 0:
+  st.warning(
+      f"📥 มีงานเลื่อนเข้าจำนวน **{inbound_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่:"
+      f" **{inbound_from_str}**)"
+  )
+elif outbound_pallets > 0:
+  st.warning(
+      f"📤 มีงานเลื่อนออกจำนวน **{outbound_pallets:,.0f} พาเลท** (เลื่อนไปวันที่:"
+      f" **{outbound_to_str}**)"
+  )
+else:
+  st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
 
@@ -515,7 +528,9 @@ if active_source is not None and not df.empty:
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        total_pallets = max(0.0, raw_pallets + postpone_pallets)
+        total_pallets = max(
+    0.0, raw_pallets + inbound_pallets - outbound_pallets
+)
         
         target_night = 3879
         target_morning = 1663
