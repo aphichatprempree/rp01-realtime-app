@@ -488,7 +488,7 @@ if active_source is not None and not df.empty:
 
         st.markdown("---")
         
-        if inbound_pallets > 0 and outbound_pallets > 0:
+if inbound_pallets > 0 and outbound_pallets > 0:
   st.warning(
       f"📥 มีงานเลื่อนเข้า: **{inbound_pallets:,.0f} พาเลท** (จากวันที่:"
       f" **{inbound_from_str}**) | 📤 มีงานเลื่อนออก: **{outbound_pallets:,.0f}"
@@ -505,6 +505,7 @@ elif outbound_pallets > 0:
       f" **{outbound_to_str}**)"
   )
 else:
+  st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
   st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
