@@ -825,4 +825,3 @@ if uploaded_file_bottom is not None:
     st.rerun()
   except Exception as e:
     st.error(f"ไม่สามารถบันทึกไฟล์ได้: {e}")
-total_pallets = raw_pallets + postpone_pallets
