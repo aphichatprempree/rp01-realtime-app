@@ -474,7 +474,7 @@ with col_fs2:
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
-    try:
+
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
             months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
@@ -482,29 +482,59 @@ if active_source is not None and not df.empty:
         except:
             current_date = selected_date_str
         
-        st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
-        if st.session_state['enable_time_filter']:
-            st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
+# --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
+if active_source is not None and not df.empty:
+  try:
+    dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
+    months_th = {
+        1: "ม.ค.",
+        2: "ก.พ.",
+        3: "มี.ค.",
+        4: "เม.ย.",
+        5: "พ.ค.",
+        6: "มิ.ย.",
+        7: "ก.ค.",
+        8: "ส.ค.",
+        9: "ก.ย.",
+        10: "ต.ค.",
+        11: "พ.ย.",
+        12: "ธ.ค.",
+    }
+    current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
+  except:
+    current_date = selected_date_str
 
-        st.markdown("---")
+  st.markdown(
+      f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่'
+      f" {current_date}</div>",
+      unsafe_allow_html=True,
+  )
+  if st.session_state["enable_time_filter"]:
+    st.info(
+        f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} -"
+        f" {end_t.strftime('%H:%M')}**"
+    )
 
-if inbound_pallets > 0 and outbound_pallets > 0:
-  st.warning(
-      f"📥 มีงานเลื่อนเข้า: **{inbound_pallets:,.0f} พาเลท** (จากวันที่:"
-      f" **{inbound_from_str}**) | 📤 มีงานเลื่อนออก: **{outbound_pallets:,.0f}"
-      f" พาเลท** (ไปวันที่: **{outbound_to_str}**)"
-  )
-elif inbound_pallets > 0:
-  st.warning(
-      f"📥 มีงานเลื่อนเข้าจำนวน **{inbound_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่:"
-      f" **{inbound_from_str}**)"
-  )
-elif outbound_pallets > 0:
-  st.warning(
-      f"📤 มีงานเลื่อนออกจำนวน **{outbound_pallets:,.0f} พาเลท** (เลื่อนไปวันที่:"
-      f" **{outbound_to_str}**)"
-  )
-else:
+  st.markdown("---")
+
+  if inbound_pallets > 0 and outbound_pallets > 0:
+    st.warning(
+        f"📥 มีงานเลื่อนเข้า: **{inbound_pallets:,.0f} พาเลท** (จากวันที่:"
+        f" **{inbound_from_str}**) | 📤 มีงานเลื่อนออก: **{outbound_pallets:,.0f}"
+        f" พาเลท** (ไปวันที่: **{outbound_to_str}**)"
+    )
+  elif inbound_pallets > 0:
+    st.warning(
+        f"📥 มีงานเลื่อนเข้าจำนวน **{inbound_pallets:,.0f} พาเลท**"
+        f" (เลื่อนมาจากวันที่: **{inbound_from_str}**)"
+    )
+  elif outbound_pallets > 0:
+    st.warning(
+        f"📤 มีงานเลื่อนออกจำนวน **{outbound_pallets:,.0f} พาเลท** (เลื่อนไปวันที่:"
+        f" **{outbound_to_str}**)"
+    )
+  else:
+    st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
   st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
 
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
