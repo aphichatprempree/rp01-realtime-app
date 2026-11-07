@@ -538,7 +538,7 @@ else:
 sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
 total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
 
-        item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
+item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
         total_item = df[item_col].dropna().nunique() if item_col in df.columns else len(df)
 
         po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
