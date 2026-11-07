@@ -34,10 +34,8 @@ if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
-if 'inbound_pallets' not in st.session_state:
-  st.session_state['inbound_pallets'] = 0.0
-if 'outbound_pallets' not in st.session_state:
-  st.session_state['outbound_pallets'] = 0.0
+if 'postpone_pallets' not in st.session_state:
+    st.session_state['postpone_pallets'] = 0.0
 
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
@@ -361,107 +359,23 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# --- ⏳ 4. จัดการงานเลื่อนส่ง (แยกเป็น เลื่อนเข้า และ เลื่อนออก) ---
+# 4. ส่วนจัดการงานเลื่อนส่ง (วันต่อวันแบบกระชับ)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง")
+st.session_state['postpone_pallets'] = st.sidebar.number_input("จำนวนพาเลทที่เลื่อน:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 
-# 📥 4.1 งานเลื่อนเข้า (ปรับเข้า)
-st.sidebar.markdown("#### 📥 งานเลื่อนเข้า (ปรับเข้า)")
-if 'inbound_pallets' not in st.session_state:
-  st.session_state['inbound_pallets'] = 0.0
+col_d, col_m, col_y = st.sidebar.columns(3)
+with col_d:
+    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1, label_visibility="collapsed")
+with col_m:
+    months_th_list = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
+    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1, label_visibility="collapsed")
+with col_y:
+    current_th_year = datetime.date.today().year + 543
+    p_year = st.selectbox("ปี", list(range(current_th_year - 1, current_th_year + 3)), index=1, label_visibility="collapsed")
 
-st.session_state['inbound_pallets'] = st.sidebar.number_input(
-    "จำนวนพาเลทเลื่อนเข้า:",
-    min_value=0.0,
-    value=float(st.session_state['inbound_pallets']),
-    step=1.0,
-)
+postpone_pallets = st.session_state['postpone_pallets']
+postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
 
-col_d1, col_m1, col_y1 = st.sidebar.columns(3)
-with col_d1:
-  in_day = st.selectbox(
-      "วันเข้า",
-      list(range(1, 32)),
-      index=datetime.date.today().day - 1,
-      key="in_d",
-      label_visibility="collapsed",
-  )
-with col_m1:
-  months_th_list = [
-      "ม.ค.",
-      "ก.พ.",
-      "มี.ค.",
-      "เม.ย.",
-      "พ.ค.",
-      "มิ.ย.",
-      "ก.ค.",
-      "ส.ค.",
-      "ก.ย.",
-      "ต.ค.",
-      "พ.ย.",
-      "ธ.ค.",
-  ]
-  in_month_str = st.selectbox(
-      "เดือนเข้า",
-      months_th_list,
-      index=datetime.date.today().month - 1,
-      key="in_m",
-      label_visibility="collapsed",
-  )
-with col_y1:
-  current_th_year = datetime.date.today().year + 543
-  in_year = st.selectbox(
-      "ปีเข้า",
-      list(range(current_th_year - 1, current_th_year + 3)),
-      index=1,
-      key="in_y",
-      label_visibility="collapsed",
-  )
-
-inbound_pallets = st.session_state['inbound_pallets']
-inbound_from_str = f"{in_day} {in_month_str} {str(in_year)[-2:]}"
-
-st.sidebar.markdown("---")
-
-# 📤 4.2 งานเลื่อนออก (ปรับออก)
-st.sidebar.markdown("#### 📤 งานเลื่อนออก (ปรับออก)")
-if 'outbound_pallets' not in st.session_state:
-  st.session_state['outbound_pallets'] = 0.0
-
-st.session_state['outbound_pallets'] = st.sidebar.number_input(
-    "จำนวนพาเลทเลื่อนออก:",
-    min_value=0.0,
-    value=float(st.session_state['outbound_pallets']),
-    step=1.0,
-)
-
-col_d2, col_m2, col_y2 = st.sidebar.columns(3)
-with col_d2:
-  out_day = st.selectbox(
-      "วันออก",
-      list(range(1, 32)),
-      index=datetime.date.today().day - 1,
-      key="out_d",
-      label_visibility="collapsed",
-  )
-with col_m2:
-  out_month_str = st.selectbox(
-      "เดือนออก",
-      months_th_list,
-      index=datetime.date.today().month - 1,
-      key="out_m",
-      label_visibility="collapsed",
-  )
-with col_y2:
-  out_year = st.selectbox(
-      "ปีออก",
-      list(range(current_th_year - 1, current_th_year + 3)),
-      index=1,
-      key="out_y",
-      label_visibility="collapsed",
-  )
-
-outbound_pallets = st.session_state['outbound_pallets']
-outbound_to_str = f"{out_day} {out_month_str} {str(out_year)[-2:]}"
 st.sidebar.markdown("---")
 
 # 5. ส่วนปรับขนาดตัวอักษร
@@ -474,7 +388,7 @@ with col_fs2:
 
 # --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
 if active_source is not None and not df.empty:
-
+    try:
         try:
             dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
             months_th = {1: 'ม.ค.', 2: 'ก.พ.', 3: 'มี.ค.', 4: 'เม.ย.', 5: 'พ.ค.', 6: 'มิ.ย.', 7: 'ก.ค.', 8: 'ส.ค.', 9: 'ก.ย.', 10: 'ต.ค.', 11: 'พ.ย.', 12: 'ธ.ค.'}
@@ -482,63 +396,23 @@ if active_source is not None and not df.empty:
         except:
             current_date = selected_date_str
         
-# --- ส่วนประมวลผลและแสดงผลหน้าจอหลัก ---
-if active_source is not None and not df.empty:
-  try:
-    dt_obj = datetime.datetime.strptime(selected_date_str, "%Y-%m-%d")
-    months_th = {
-        1: "ม.ค.",
-        2: "ก.พ.",
-        3: "มี.ค.",
-        4: "เม.ย.",
-        5: "พ.ค.",
-        6: "มิ.ย.",
-        7: "ก.ค.",
-        8: "ส.ค.",
-        9: "ก.ย.",
-        10: "ต.ค.",
-        11: "พ.ย.",
-        12: "ธ.ค.",
-    }
-    current_date = f"{dt_obj.day:02d} {months_th[dt_obj.month]} {str(dt_obj.year + 543)[-2:]}"
-  except:
-    current_date = selected_date_str
+        st.markdown(f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่ {current_date}</div>', unsafe_allow_html=True)
+        if st.session_state['enable_time_filter']:
+            st.info(f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} - {end_t.strftime('%H:%M')}**")
 
-  st.markdown(
-      f'<div class="header-box">📋 รายงานประมาณการรับสินค้า ประจำวันที่'
-      f" {current_date}</div>",
-      unsafe_allow_html=True,
-  )
-  if st.session_state["enable_time_filter"]:
-    st.info(
-        f"🔍 กำลังแสดงผลข้อมูลเฉพาะช่วงเวลา: **{start_t.strftime('%H:%M')} -"
-        f" {end_t.strftime('%H:%M')}**"
-    )
+        st.markdown("---")
+        
+        if postpone_pallets > 0:
+            st.warning(f"⚠️ มีการจัดการงานเลื่อนส่งจำนวน **{postpone_pallets:,.0f} พาเลท** (เลื่อนมาจากวันที่: **{postpone_from_str}**)")
+        else:
+            st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
 
-  st.markdown("---")
+        sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
+        total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
 
-  if inbound_pallets > 0 and outbound_pallets > 0:
-    st.warning(
-        f"📥 มีงานเลื่อนเข้า: **{inbound_pallets:,.0f} พาเลท** (จากวันที่:"
-        f" **{inbound_from_str}**) | 📤 มีงานเลื่อนออก: **{outbound_pallets:,.0f}"
-        f" พาเลท** (ไปวันที่: **{outbound_to_str}**)"
-    )
-  elif inbound_pallets > 0:
-    st.warning(
-        f"📥 มีงานเลื่อนเข้าจำนวน **{inbound_pallets:,.0f} พาเลท**"
-        f" (เลื่อนมาจากวันที่: **{inbound_from_str}**)"
-    )
-  elif outbound_pallets > 0:
-    st.warning(
-        f"📤 มีงานเลื่อนออกจำนวน **{outbound_pallets:,.0f} พาเลท** (เลื่อนไปวันที่:"
-        f" **{outbound_to_str}**)"
-    )
-else:
-  st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
-sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
-total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
-item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
+        item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
         total_item = df[item_col].dropna().nunique() if item_col in df.columns else len(df)
+
         po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
         if not po_col_raw:
             po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
@@ -555,9 +429,7 @@ item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in d
         total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
-        total_pallets = max(
-0.0, raw_pallets + inbound_pallets - outbound_pallets
-)
+        total_pallets = max(0.0, raw_pallets + postpone_pallets)
         
         target_night = 3879
         target_morning = 1663
