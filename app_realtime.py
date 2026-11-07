@@ -45,13 +45,14 @@ st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
 
-    /* === คำสั่งซ่อนแถบเมนูด้านบนของ Streamlit Cloud (Toolbar & Header) === */
-    header[data-testid="stHeader"] {{
-        display: none !important;
-    }}
-    #MainMenu {{
-        visibility: hidden !important;
-    }}
+/*
+header[data-testid="stHeader"] {
+    display: none !important;
+}
+#MainMenu {
+    visibility: hidden !important;
+}
+*/
     footer {{
         visibility: hidden !important;
     }}
