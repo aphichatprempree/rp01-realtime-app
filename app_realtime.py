@@ -45,14 +45,13 @@ st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
 
-/*
-header[data-testid="stHeader"] {
-    display: none !important;
-}
-#MainMenu {
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
+
+footer {{
     visibility: hidden !important;
-}
-*/
+}}
+
     footer {{
         visibility: hidden !important;
     }}
