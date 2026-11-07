@@ -537,10 +537,8 @@ else:
   st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
 sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
 total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
-
 item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
         total_item = df[item_col].dropna().nunique() if item_col in df.columns else len(df)
-
         po_col_raw = next((c for c in df.columns if 'p/o' in str(c).lower() or 'po' in str(c).lower()), None)
         if not po_col_raw:
             po_col_raw = 'P/O' if 'P/O' in df.columns else df.columns[1]
@@ -558,7 +556,7 @@ item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in d
         raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
         
         total_pallets = max(
-    0.0, raw_pallets + inbound_pallets - outbound_pallets
+0.0, raw_pallets + inbound_pallets - outbound_pallets
 )
         
         target_night = 3879
