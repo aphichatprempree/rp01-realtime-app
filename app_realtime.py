@@ -359,23 +359,107 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (วันต่อวันแบบกระชับ)
+# --- ⏳ 4. จัดการงานเลื่อนส่ง (แยกเป็น เลื่อนเข้า และ เลื่อนออก) ---
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง")
-st.session_state['postpone_pallets'] = st.sidebar.number_input("จำนวนพาเลทที่เลื่อน:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 
-col_d, col_m, col_y = st.sidebar.columns(3)
-with col_d:
-    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1, label_visibility="collapsed")
-with col_m:
-    months_th_list = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1, label_visibility="collapsed")
-with col_y:
-    current_th_year = datetime.date.today().year + 543
-    p_year = st.selectbox("ปี", list(range(current_th_year - 1, current_th_year + 3)), index=1, label_visibility="collapsed")
+# 📥 4.1 งานเลื่อนเข้า (ปรับเข้า)
+st.sidebar.markdown("#### 📥 งานเลื่อนเข้า (ปรับเข้า)")
+if 'inbound_pallets' not in st.session_state:
+  st.session_state['inbound_pallets'] = 0.0
 
-postpone_pallets = st.session_state['postpone_pallets']
-postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
+st.session_state['inbound_pallets'] = st.sidebar.number_input(
+    "จำนวนพาเลทเลื่อนเข้า:",
+    min_value=0.0,
+    value=float(st.session_state['inbound_pallets']),
+    step=1.0,
+)
 
+col_d1, col_m1, col_y1 = st.sidebar.columns(3)
+with col_d1:
+  in_day = st.selectbox(
+      "วันเข้า",
+      list(range(1, 32)),
+      index=datetime.date.today().day - 1,
+      key="in_d",
+      label_visibility="collapsed",
+  )
+with col_m1:
+  months_th_list = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+  ]
+  in_month_str = st.selectbox(
+      "เดือนเข้า",
+      months_th_list,
+      index=datetime.date.today().month - 1,
+      key="in_m",
+      label_visibility="collapsed",
+  )
+with col_y1:
+  current_th_year = datetime.date.today().year + 543
+  in_year = st.selectbox(
+      "ปีเข้า",
+      list(range(current_th_year - 1, current_th_year + 3)),
+      index=1,
+      key="in_y",
+      label_visibility="collapsed",
+  )
+
+inbound_pallets = st.session_state['inbound_pallets']
+inbound_from_str = f"{in_day} {in_month_str} {str(in_year)[-2:]}"
+
+st.sidebar.markdown("---")
+
+# 📤 4.2 งานเลื่อนออก (ปรับออก)
+st.sidebar.markdown("#### 📤 งานเลื่อนออก (ปรับออก)")
+if 'outbound_pallets' not in st.session_state:
+  st.session_state['outbound_pallets'] = 0.0
+
+st.session_state['outbound_pallets'] = st.sidebar.number_input(
+    "จำนวนพาเลทเลื่อนออก:",
+    min_value=0.0,
+    value=float(st.session_state['outbound_pallets']),
+    step=1.0,
+)
+
+col_d2, col_m2, col_y2 = st.sidebar.columns(3)
+with col_d2:
+  out_day = st.selectbox(
+      "วันออก",
+      list(range(1, 32)),
+      index=datetime.date.today().day - 1,
+      key="out_d",
+      label_visibility="collapsed",
+  )
+with col_m2:
+  out_month_str = st.selectbox(
+      "เดือนออก",
+      months_th_list,
+      index=datetime.date.today().month - 1,
+      key="out_m",
+      label_visibility="collapsed",
+  )
+with col_y2:
+  out_year = st.selectbox(
+      "ปีออก",
+      list(range(current_th_year - 1, current_th_year + 3)),
+      index=1,
+      key="out_y",
+      label_visibility="collapsed",
+  )
+
+outbound_pallets = st.session_state['outbound_pallets']
+outbound_to_str = f"{out_day} {out_month_str} {str(out_year)[-2:]}"
 st.sidebar.markdown("---")
 
 # 5. ส่วนปรับขนาดตัวอักษร
