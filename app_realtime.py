@@ -534,10 +534,9 @@ if active_source is not None and not df.empty:
         f" **{outbound_to_str}**)"
     )
   else:
-    st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
-  st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
 
-        sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
+  st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนเข้า/ออกในวันนี้)")
+sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
 
         item_col = 'Item Name' if 'Item Name' in df.columns else (next((col for col in df.columns if 'item' in str(col).lower()), df.columns[12]))
