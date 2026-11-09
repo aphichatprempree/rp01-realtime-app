@@ -155,6 +155,50 @@ hr {border-color:#c7ddf5;}
  section[data-testid="stSidebar"],button,.stDownloadButton {display:none!important;}
  .stApp {background:#fff!important;}
 }
+section[data-testid="stSidebar"] input {color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* ช่อง Dropdown ที่เลือกข้อมูลแล้ว */
+section[data-testid="stSidebar"] [data-baseweb="select"] div {
+    color: #0f172a !important;
+}
+
+/* ข้อความใน Dropdown */
+section[data-testid="stSidebar"] [data-baseweb="select"] span {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* ไอคอนลูกศร Dropdown */
+section[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    fill: #0f172a !important;
+}
+
+/* ข้อความ Placeholder */
+section[data-testid="stSidebar"] input::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+}
+
+/* ช่องกรอกข้อมูลพื้นหลังสีขาว */
+section[data-testid="stSidebar"] [data-baseweb="input"] {
+    background-color: #ffffff !important;
+}
+
+/* ข้อความตัวเลือกใน Dropdown */
+div[role="option"] {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+}
+
+
+
+ผลลัพธ์หลังแก้ไข
+- ช่องเลือกวันที่: ตัวเลขสีน้ำเงินเข้ม
+- ช่อง Supplier: ข้อความสีดำ อ่านง่าย
 </style>
 """, unsafe_allow_html=True)
 
