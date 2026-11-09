@@ -59,7 +59,26 @@ section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { colo
 .kpi-label {font-size:14px;font-weight:700;color:#23416c;}
 .kpi-value {font-size:clamp(23px,2vw,32px);font-weight:800;color:#071d4a;line-height:1.35;}
 .kpi-note {font-size:12px;font-weight:700;color:#07843d;}
-.kpi.night {background:linear-gradient(145deg,#fff8e7,#ffe8ad);border:2px solid #f5a400;}
+
+.kpi.night {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(129,140,248,.35), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(168,85,247,.35), transparent 45%),
+        linear-gradient(135deg,#172554 0%,#312e81 50%,#581c87 100%);
+    border: 2px solid #818cf8;
+    box-shadow: 0 0 15px rgba(124,58,237,.45);
+}
+.kpi.night .kpi-label {
+    color: #e0e7ff;
+}
+.kpi.night .kpi-value {
+    color: #ffffff;
+    text-shadow: 0 0 12px #a78bfa;
+}
+.kpi.night .kpi-note {
+    color: #c4b5fd;
+}
+
 .kpi.morning {background:linear-gradient(145deg,#edfff2,#c8f8d4);border:2px solid #20b65a;}
 .panel {
   background:#fff;border:1px solid #c5dcf7;border-radius:13px;
