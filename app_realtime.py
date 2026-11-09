@@ -528,12 +528,12 @@ if active_source is not None and not df.empty:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-  if postpone_in_pallets > 0:
-    delta_desc = f"+{postpone_in_pallets:,.0f} ปรับเข้า"
-  elif postpone_out_pallets > 0:
-    delta_desc = f"-{postpone_out_pallets:,.0f} ปรับออก"
-  else:
-    delta_desc = None
+          if postpone_in_pallets > 0:
+            delta_desc = f"+{postpone_in_pallets:,.0f} ปรับเข้า"
+          elif postpone_out_pallets > 0:
+            delta_desc = f"-{postpone_out_pallets:,.0f} ปรับออก"
+          else:
+            delta_desc = None
 
   st.metric(
       "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse"
