@@ -237,21 +237,13 @@ footer {{
         text-align: center !important;
     }}
    /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
+/* กรอบบล็อกเครื่องมือใน Sidebar แบบมาตรฐาน */
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
-    background-color: rgb(9, 13, 22) !important;
     padding: 12px 14px;
     border-radius: 8px;
-    border: 2px solid rgb(51, 65, 85) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     margin-bottom: 10px;
     text-align: center;
-}
-
-/* บังคับตัวหนังสือข้างในกรอบให้เป็นสีขาวคมชัด อ่านง่าย */
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] p,
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] span,
-section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] label {
-    color: rgb(255, 255, 255) !important;
 }
 
     /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัวหนังสือชัดเจนและจัดกึ่งกลาง */
