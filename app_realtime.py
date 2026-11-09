@@ -199,6 +199,27 @@ div[role="option"] {
 ผลลัพธ์หลังแก้ไข
 - ช่องเลือกวันที่: ตัวเลขสีน้ำเงินเข้ม
 - ช่อง Supplier: ข้อความสีดำ อ่านง่าย
+
+/* === แก้สีตัวอักษรช่องเลือกวันที่ === */
+section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    font-weight: 700 !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* แก้สีไอคอนปฏิทิน */
+section[data-testid="stSidebar"] [data-testid="stDateInput"] svg {
+    fill: #334155 !important;
+    color: #334155 !important;
+}
+
+/* แก้สีข้อความวันที่ในช่อง */
+section[data-testid="stSidebar"] [data-testid="stDateInput"] div {
+    color: #0f172a;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
