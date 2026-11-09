@@ -77,14 +77,6 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True,
-)
-        background-color: #f8fafc !important;
-        color: #0f172a !important;
-        font-family: 'Prompt', sans-serif !important;
-    }}
-    .main {{ 
-        background-color: #f8fafc !important;
-    }}
     
     /* กรอบหัวข้อหลัก (Header Box) */
     .header-box {{
