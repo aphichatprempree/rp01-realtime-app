@@ -215,7 +215,7 @@ footer {{
     section[data-testid="stSidebar"] label, section[data-testid="stSidebar"] span {{
         font-size: 14px !important;
         font-weight: 600 !important;
-        color: #0f172a !important;
+        color: #f8fafc !important;
         text-align: center !important;
     }}
     section[data-testid="stSidebar"] h3 {{
