@@ -79,7 +79,54 @@ section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { colo
     color: #c4b5fd;
 }
 
-.kpi.morning {background:linear-gradient(145deg,#edfff2,#c8f8d4);border:2px solid #20b65a;}
+
+/* === SUNRISE GOLDEN DAWN : MORNING SHIFT === */
+.kpi.morning {
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(255,255,255,0.95),
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(251,146,60,0.25),
+            transparent 45%
+        ),
+        linear-gradient(
+            135deg,
+            #fff7ed 0%,
+            #ffedd5 40%,
+            #fed7aa 75%,
+            #fef3c7 100%
+        );
+
+    border: 2px solid #f59e0b;
+
+    box-shadow:
+        0 5px 15px rgba(245,158,11,0.22),
+        inset 0 1px 5px rgba(255,255,255,0.9);
+}
+
+/* ชื่อกะเช้า */
+.kpi.morning .kpi-label {
+    color: #9a3412;
+    font-weight: 800;
+}
+
+/* ตัวเลขยอดพาเลท */
+.kpi.morning .kpi-value {
+    color: #9a3412;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+    font-weight: 900;
+}
+
+/* จำนวน PO และเปอร์เซ็นต์ */
+.kpi.morning .kpi-note {
+    color: #c2410c;
+    font-weight: 800;
+}
+
 .panel {
   background:#fff;border:1px solid #c5dcf7;border-radius:13px;
   box-shadow:0 4px 12px #174b851c;overflow:hidden;margin:7px 0 14px 0;
