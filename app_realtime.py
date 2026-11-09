@@ -63,7 +63,7 @@ st.markdown(
         padding-bottom: 1rem !important;
     }
     
-  /* หัวข้อหลัก (Header Box) */
+    /* หัวข้อหลัก (Header Box) */
     .header-box {
         background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
         padding: 22px 24px;
@@ -73,10 +73,13 @@ st.markdown(
         font-weight: 800;
         font-size: 30px;
         margin-bottom: 14px;
+        box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.2);
     }
     </style>
     """,
     unsafe_allow_html=True,
+)
     
     /* กรอบหัวข้อหลัก (Header Box) */
     .header-box {{
