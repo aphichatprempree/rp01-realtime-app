@@ -359,32 +359,38 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (ระบบบันทึกความจำอัตโนมัติเก็บไว้ 7 วัน)
-st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง")
+# 4. ส่วนจัดการงานเลื่อนส่ง (แยกอิสระ: เลื่อนเข้าบวกเพิ่ม / เลื่อนออกหักลบ พร้อมบันทึกความจำ 7 วัน)
+st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (เข้า/ออก)")
 
-# สร้างตัวแปรเก็บประวัติใน Session State (ถ้ายังไม่มี)
+# สร้างตัวแปรเก็บประวัติแยกตามวันที่ใน Session State (ถ้ายังไม่มี)
 if 'postpone_records' not in st.session_state:
   st.session_state['postpone_records'] = {}
 
 # ฟอร์มบันทึกยอดงานเลื่อนส่งประจำวัน
 with st.sidebar.form(key='save_postpone_form', clear_on_submit=True):
   p_target_date = st.date_input(
-      "วันที่รับงานเลื่อนส่ง", value=datetime.date.today()
+      "เลือกวันที่ต้องการบันทึก", value=datetime.date.today()
   )
-  p_pallets_val = st.number_input(
-      "จำนวนพาเลท", min_value=0.0, step=1.0, value=0.0
+  p_in_val = st.number_input(
+      "📥 ยอดเลื่อนเข้า (บวกเพิ่ม +)", min_value=0.0, step=1.0, value=0.0
   )
-  p_note = st.text_input("หมายเหตุ (เช่น เลื่อนมาจากวันที่ 6)", value="")
+  p_out_val = st.number_input(
+      "📤 ยอดเลื่อนออก (หักลบ -)", min_value=0.0, step=1.0, value=0.0
+  )
+  p_note = st.text_input("หมายเหตุ (เช่น เลื่อนเข้า/ออก)", value="")
   submit_btn = st.form_submit_button("💾 บันทึกเก็บไว้")
 
-if submit_btn and p_pallets_val > 0:
+if submit_btn and (p_in_val > 0 or p_out_val > 0):
   date_key = str(p_target_date)
   st.session_state['postpone_records'][date_key] = {
-      'pallets': p_pallets_val,
+      'in_pallets': p_in_val,
+      'out_pallets': p_out_val,
       'note': p_note,
       'timestamp': datetime.datetime.now(),
   }
-  st.sidebar.success(f'บันทึกยอด {p_pallets_val:,.0f} พาเลท สำเร็จ!')
+  st.sidebar.success(
+      f'บันทึกสำเร็จ! (เข้า: +{p_in_val:,.0f} | ออก: -{p_out_val:,.0f})'
+  )
 
 # --- ระบบเคลียร์ข้อมูลอัตโนมัติ (เก็บรักษาไว้ไม่เกิน 7 วัน) ---
 current_time = datetime.datetime.now()
@@ -402,14 +408,16 @@ for k in keys_to_delete:
 selected_key = str(selected_date_str)
 if selected_key in st.session_state['postpone_records']:
   saved_data = st.session_state['postpone_records'][selected_key]
-  postpone_pallets = saved_data['pallets']
+  postpone_in_pallets = saved_data.get('in_pallets', 0.0)
+  postpone_out_pallets = saved_data.get('out_pallets', 0.0)
   postpone_from_str = saved_data['note']
   st.sidebar.info(
-      f"📌 โหลดข้อมูลวันที่ {selected_key}: **{saved_data['pallets']:,.0f} พาเลท**"
-      f" ({saved_data['note']})"
+      f"📌 ข้อมูลวันที่ {selected_key}: 📥 +{postpone_in_pallets:,.0f} | 📤"
+      f" -{postpone_out_pallets:,.0f} ({saved_data['note']})"
   )
 else:
-  postpone_pallets = 0.0
+  postpone_in_pallets = 0.0
+  postpone_out_pallets = 0.0
   postpone_from_str = selected_date_str
 
 st.sidebar.markdown("---")
@@ -462,10 +470,13 @@ if active_source is not None and not df.empty:
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
         
-        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
-        raw_pallets = pd.to_numeric(df[pallets_col], errors='coerce').fillna(0).sum()
-        
-        total_pallets = max(0.0, raw_pallets + postpone_pallets)
+        raw_pallets = pd.to_numeric(
+            df[pallets_col], errors="coerce"
+        ).fillna(0).sum()
+        total_pallets = max(
+        0.0,
+        raw_pallets + postpone_in_pallets - postpone_out_pallets,
+        )
         
         target_night = 3879
         target_morning = 1663
