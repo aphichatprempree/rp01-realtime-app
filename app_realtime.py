@@ -233,7 +233,7 @@ footer {{
     /* บังคับให้ข้อความหัวข้อย่อยและป้ายกำกับใน Sidebar เป็นสีขาวสว่างทั้งหมด */
     section[data-testid="stSidebar"] .stFileUploader label, 
     section[data-testid="stSidebar"] p {{
-        color: #0f172a !important;
+        color: #f8fafc !important;
         text-align: center !important;
     }}
     
