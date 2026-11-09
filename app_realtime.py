@@ -236,14 +236,12 @@ footer {{
         color: #f8fafc !important;
         text-align: center !important;
     }}
-    
-    /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
-    /* เปลี่ยนพื้นหลังกรอบบล็อกเครื่องมือใน Sidebar เป็นสีดำเข้ม และตัวหนังสือสีขาว */
+   /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
-    background: #090d16 !important;
+    background-color: rgb(9, 13, 22) !important;
     padding: 12px 14px;
     border-radius: 8px;
-    border: 2px solid #334155 !important;
+    border: 2px solid rgb(51, 65, 85) !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
     margin-bottom: 10px;
     text-align: center;
@@ -253,7 +251,7 @@ section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-t
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] p,
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] span,
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] label {
-    color: #ffffff !important;
+    color: rgb(255, 255, 255) !important;
 }
 
     /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัวหนังสือชัดเจนและจัดกึ่งกลาง */
