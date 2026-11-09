@@ -215,6 +215,21 @@ section[data-testid="stSidebar"] [data-testid="stDateInput"] svg {
     color: #334155 !important;
 }
 
+
+/* === แก้สีช่องวันที่งานเลื่อนส่ง === */
+section[data-testid="stSidebar"] [data-baseweb="datepicker"] input {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    font-weight: 800 !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+section[data-testid="stSidebar"] [data-baseweb="datepicker"] svg {
+    color: #1e3a8a !important;
+    fill: #1e3a8a !important;
+}
+
 /* แก้สีข้อความวันที่ในช่อง */
 section[data-testid="stSidebar"] [data-testid="stDateInput"] div {
     color: #0f172a;
