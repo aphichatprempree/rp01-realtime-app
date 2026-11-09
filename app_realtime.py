@@ -535,9 +535,10 @@ if active_source is not None and not df.empty:
           else:
             delta_desc = None
 
-  st.metric(
-      "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse"
+          st.metric(
+              "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse"
   )
+            
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
             st.metric("🌙 กะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_po:,} PO ({night_pct:.1f}%)")
