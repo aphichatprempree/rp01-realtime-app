@@ -196,9 +196,10 @@ div[role="option"] {
 
 
 
-ผลลัพธ์หลังแก้ไข
+/* ผลลัพธ์หลังแก้ไข
 - ช่องเลือกวันที่: ตัวเลขสีน้ำเงินเข้ม
 - ช่อง Supplier: ข้อความสีดำ อ่านง่าย
+*/
 
 /* === แก้สีตัวอักษรช่องเลือกวันที่ === */
 section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
@@ -233,6 +234,100 @@ section[data-testid="stSidebar"] [data-baseweb="datepicker"] svg {
 /* แก้สีข้อความวันที่ในช่อง */
 section[data-testid="stSidebar"] [data-testid="stDateInput"] div {
     color: #0f172a;
+}
+
+
+/* =====================================
+   SIDEBAR - HIGH CONTRAST
+   ===================================== */
+
+/* ข้อความหัวข้อ */
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] p {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* ช่องกรอกข้อมูล */
+section[data-testid="stSidebar"] input {
+    background: #ffffff !important;
+    color: #10234b !important;
+    -webkit-text-fill-color: #10234b !important;
+    font-weight: 700 !important;
+    border-radius: 9px !important;
+}
+
+/* ช่องเลือกวันที่ */
+section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
+    background: #ffffff !important;
+    color: #10234b !important;
+    -webkit-text-fill-color: #10234b !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+}
+
+/* ไอคอนปฏิทิน */
+section[data-testid="stSidebar"] [data-testid="stDateInput"] svg {
+    color: #174477 !important;
+    fill: #174477 !important;
+}
+
+/* Dropdown */
+section[data-testid="stSidebar"] [data-baseweb="select"] > div {
+    background: #ffffff !important;
+    border-radius: 9px !important;
+}
+
+section[data-testid="stSidebar"] [data-baseweb="select"] span {
+    color: #10234b !important;
+    -webkit-text-fill-color: #10234b !important;
+    font-weight: 800 !important;
+}
+
+/* ลูกศร Dropdown */
+section[data-testid="stSidebar"] [data-baseweb="select"] svg {
+    fill: #174477 !important;
+}
+
+/* Placeholder */
+section[data-testid="stSidebar"] input::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+}
+
+/* ช่องเวลา */
+section[data-testid="stSidebar"] [data-testid="stTimeInput"] input {
+    background: #ffffff !important;
+    color: #10234b !important;
+    -webkit-text-fill-color: #10234b !important;
+    font-weight: 800 !important;
+}
+
+/* ช่องหมายเหตุ */
+section[data-testid="stSidebar"] [data-testid="stTextInput"] input {
+    background: #ffffff !important;
+    color: #10234b !important;
+    -webkit-text-fill-color: #10234b !important;
+}
+
+/* ปุ่ม */
+section[data-testid="stSidebar"] button {
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+}
+
+/* Checkbox */
+section[data-testid="stSidebar"] [data-testid="stCheckbox"] label {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* ขอบแบ่งเมนู */
+section[data-testid="stSidebar"] hr {
+    border-color: #5b9bd5 !important;
 }
 
 </style>
