@@ -359,22 +359,58 @@ if st.session_state['enable_time_filter']:
 
 st.sidebar.markdown("---")
 
-# 4. ส่วนจัดการงานเลื่อนส่ง (วันต่อวันแบบกระชับ)
+# 4. ส่วนจัดการงานเลื่อนส่ง (ระบบบันทึกความจำอัตโนมัติเก็บไว้ 7 วัน)
 st.sidebar.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง")
-st.session_state['postpone_pallets'] = st.sidebar.number_input("จำนวนพาเลทที่เลื่อน:", min_value=0.0, value=float(st.session_state['postpone_pallets']), step=1.0)
 
-col_d, col_m, col_y = st.sidebar.columns(3)
-with col_d:
-    p_day = st.selectbox("วัน", list(range(1, 32)), index=datetime.date.today().day - 1, label_visibility="collapsed")
-with col_m:
-    months_th_list = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-    p_month_str = st.selectbox("เดือน", months_th_list, index=datetime.date.today().month - 1, label_visibility="collapsed")
-with col_y:
-    current_th_year = datetime.date.today().year + 543
-    p_year = st.selectbox("ปี", list(range(current_th_year - 1, current_th_year + 3)), index=1, label_visibility="collapsed")
+# สร้างตัวแปรเก็บประวัติใน Session State (ถ้ายังไม่มี)
+if 'postpone_records' not in st.session_state:
+  st.session_state['postpone_records'] = {}
 
-postpone_pallets = st.session_state['postpone_pallets']
-postpone_from_str = f"{p_day} {p_month_str} {str(p_year)[-2:]}"
+# ฟอร์มบันทึกยอดงานเลื่อนส่งประจำวัน
+with st.sidebar.form(key='save_postpone_form', clear_on_submit=True):
+  p_target_date = st.date_input(
+      "วันที่รับงานเลื่อนส่ง", value=datetime.date.today()
+  )
+  p_pallets_val = st.number_input(
+      "จำนวนพาเลท", min_value=0.0, step=1.0, value=0.0
+  )
+  p_note = st.text_input("หมายเหตุ (เช่น เลื่อนมาจากวันที่ 6)", value="")
+  submit_btn = st.form_submit_button("💾 บันทึกเก็บไว้")
+
+if submit_btn and p_pallets_val > 0:
+  date_key = str(p_target_date)
+  st.session_state['postpone_records'][date_key] = {
+      'pallets': p_pallets_val,
+      'note': p_note,
+      'timestamp': datetime.datetime.now(),
+  }
+  st.sidebar.success(f'บันทึกยอด {p_pallets_val:,.0f} พาเลท สำเร็จ!')
+
+# --- ระบบเคลียร์ข้อมูลอัตโนมัติ (เก็บรักษาไว้ไม่เกิน 7 วัน) ---
+current_time = datetime.datetime.now()
+keys_to_delete = []
+for d_str, info in st.session_state['postpone_records'].items():
+  record_date = datetime.datetime.strptime(d_str, '%Y-%m-%d')
+  days_diff = (current_time - record_date).days
+  if days_diff > 7 or days_diff < -1:
+    keys_to_delete.append(d_str)
+
+for k in keys_to_delete:
+  del st.session_state['postpone_records'][k]
+
+# --- ดึงข้อมูลงานเลื่อนส่งของวันที่กำลังเลือกดูมาใช้งานอัตโนมัติ ---
+selected_key = str(selected_date_str)
+if selected_key in st.session_state['postpone_records']:
+  saved_data = st.session_state['postpone_records'][selected_key]
+  postpone_pallets = saved_data['pallets']
+  postpone_from_str = saved_data['note']
+  st.sidebar.info(
+      f"📌 โหลดข้อมูลวันที่ {selected_key}: **{saved_data['pallets']:,.0f} พาเลท**"
+      f" ({saved_data['note']})"
+  )
+else:
+  postpone_pallets = 0.0
+  postpone_from_str = selected_date_str
 
 st.sidebar.markdown("---")
 
