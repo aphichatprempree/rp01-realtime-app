@@ -238,15 +238,23 @@ footer {{
     }}
     
     /* กรอบบล็อกเครื่องมือใน Sidebar พร้อมเส้นขอบคมชัด */
-    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {{
-        background: rgba(255, 255, 255, 0.06);
-        padding: 12px 14px;
-        border-radius: 8px;
-        border: 2px solid #475569;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        margin-bottom: 10px;
-        text-align: center;
-    }}
+    /* เปลี่ยนพื้นหลังกรอบบล็อกเครื่องมือใน Sidebar เป็นสีดำเข้ม และตัวหนังสือสีขาว */
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
+    background: #090d16 !important;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 2px solid #334155 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* บังคับตัวหนังสือข้างในกรอบให้เป็นสีขาวคมชัด อ่านง่าย */
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] p,
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] span,
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] label {
+    color: #ffffff !important;
+}
 
     /* ตกแต่งกล่องอัปโหลดไฟล์ให้ตัวหนังสือชัดเจนและจัดกึ่งกลาง */
     section[data-testid="stSidebar"] [data-testid="stFileUploader"] {{
