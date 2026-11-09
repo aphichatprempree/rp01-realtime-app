@@ -43,20 +43,23 @@ dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
 # นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่งสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
-st.markdown(f"""
+# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS
+st.markdown(
+    """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
-
-footer {{
-    visibility: hidden !important;
-}}
-
-    footer {{
+    
+    footer {
         visibility: hidden !important;
-    }}
+    }
+    
+    .stApp {
+        font-family: 'Prompt', sans-serif !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
     .block-container {{
         padding-top: 1rem !important;
