@@ -450,9 +450,9 @@ if active_source is not None and not df.empty:
           st.warning(
               f"⚠️ มีการจัดการงานเลื่อนส่ง (เข้า: +{postpone_in_pallets:,.0f} พาเลท |"
               f" ออก: -{postpone_out_pallets:,.0f} พาเลท) ({postpone_from_str})"
-              )
-    else:
-      st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
+          )
+        else:
+          st.info("ℹ️ กำลังแสดงยอดพาเลทตามแผนปกติ (ไม่มีการเลื่อนส่งในวันนี้)")
 
         sup_col = 'Vendor Name' if 'Vendor Name' in df.columns else (next((col for col in df.columns if 'vendor' in str(col).lower() or 'supplier' in str(col).lower()), df.columns[4]))
         total_sup = df[sup_col].dropna().nunique() if sup_col in df.columns else len(df)
