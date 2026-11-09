@@ -42,7 +42,6 @@ if 'postpone_out_pallets' not in st.session_state:
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
-# นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS พร้อมปรับแต่งสีตัวหนังสือใน Sidebar ให้สว่างและชัดเจน
 # นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS
 st.markdown(
     """
@@ -54,18 +53,31 @@ st.markdown(
     }
     
     .stApp {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
         font-family: 'Prompt', sans-serif !important;
+    }
+    
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+  /* หัวข้อหลัก (Header Box) */
+    .header-box {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
+        padding: 22px 24px;
+        border-radius: 12px;
+        color: #ffffff;
+        text-align: center;
+        font-weight: 800;
+        font-size: 30px;
+        margin-bottom: 14px;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-    .block-container {{
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-    }}
-    .stApp {{ 
         background-color: #f8fafc !important;
         color: #0f172a !important;
         font-family: 'Prompt', sans-serif !important;
