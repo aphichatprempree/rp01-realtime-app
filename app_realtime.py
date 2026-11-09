@@ -34,8 +34,10 @@ if 'enable_time_filter' not in st.session_state:
     st.session_state['enable_time_filter'] = False
 if 'filter_status' not in st.session_state:
     st.session_state['filter_status'] = "ทั้งหมด"
-if 'postpone_pallets' not in st.session_state:
-    st.session_state['postpone_pallets'] = 0.0
+if 'postpone_in_pallets' not in st.session_state:
+  st.session_state['postpone_in_pallets'] = 0.0
+if 'postpone_out_pallets' not in st.session_state:
+  st.session_state['postpone_out_pallets'] = 0.0
 
 dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
