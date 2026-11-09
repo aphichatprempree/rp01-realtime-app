@@ -528,16 +528,17 @@ if active_source is not None and not df.empty:
         with c3:
             st.metric("UOM Qty", f"{total_uom:,.0f}")
         with c4:
-        delta_desc = (
-            f"+{postpone_in_pallets:,.0f} ปรับเข้า"
-            if postpone_in_pallets > 0
-            else (
-                f"-{postpone_out_pallets:,.0f} ปรับออก"
-                if postpone_out_pallets > 0
-                else None
-            )
-        )
-            st.metric("Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse")
+          delta_desc = (
+              f"+{postpone_in_pallets:,.0f} ปรับเข้า"
+              if postpone_in_pallets > 0
+              else (
+                  f"-{postpone_out_pallets:,.0f} ปรับออก"
+                  if postpone_out_pallets > 0
+                  else None
+              )
+          )
+        st.metric(
+                "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse")
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
             st.metric("🌙 กะดึก (05:00-17:00)", f"{night_pallets:,.0f}", f"{night_po:,} PO ({night_pct:.1f}%)")
