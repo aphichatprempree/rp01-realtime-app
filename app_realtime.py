@@ -43,43 +43,43 @@ dcs_size = st.session_state['dcs_font_size']
 vendor_size = st.session_state['vendor_font_size']
 
 # นำค่าฟอนต์ที่ปรับแต่งมาใส่ใน Dynamic CSS
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap');
     
-    footer {
-        visibility: hidden !important;
-    }
+        footer {
+            visibility: hidden !important;
+        }
     
-    .stApp {
-        background-color: #f8fafc !important;
-        color: #0f172a !important;
-        font-family: 'Prompt', sans-serif !important;
-    }
+        .stApp {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            font-family: 'Prompt', sans-serif !important;
+        }
     
-    .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-    }
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
     
-    /* หัวข้อหลัก (Header Box) */
-    .header-box {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
-        padding: 22px 24px;
-        border-radius: 12px;
-        color: #ffffff;
-        text-align: center;
-        font-weight: 800;
-        font-size: 30px;
-        margin-bottom: 14px;
-        box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+        /* หัวข้อหลัก (Header Box) */
+        .header-box {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #1e40af 100%);
+            padding: 22px 24px;
+            border-radius: 12px;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 800;
+            font-size: 30px;
+            margin-bottom: 14px;
+            box-shadow: 0 6px 15px -4px rgba(37, 99, 235, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     
     /* กรอบหัวข้อหลัก (Header Box) */
     .header-box {{
