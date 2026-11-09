@@ -472,13 +472,14 @@ if active_source is not None and not df.empty:
 
         uom_col = 'UOM Qty' if 'UOM Qty' in df.columns else df.columns[17]
         pallets_col = 'Pallets Qty' if 'Pallets Qty' in df.columns else df.columns[21]
-        
+
+        total_uom = pd.to_numeric(df[uom_col], errors='coerce').fillna(0).sum()
         raw_pallets = pd.to_numeric(
             df[pallets_col], errors="coerce"
         ).fillna(0).sum()
         total_pallets = max(
-        0.0,
-        raw_pallets + postpone_in_pallets - postpone_out_pallets,
+            0.0,
+            raw_pallets + postpone_in_pallets - postpone_out_pallets,
         )
         
         target_night = 3879
