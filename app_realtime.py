@@ -536,8 +536,7 @@ if active_source is not None and not df.empty:
             delta_desc = None
 
           st.metric(
-              "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse"
-  )
+              "Net Pallets", f"{total_pallets:,.0f}", delta=delta_desc, delta_color="inverse")
             
         with c5:
             st.markdown('<div class="metric-night"></div>', unsafe_allow_html=True)
