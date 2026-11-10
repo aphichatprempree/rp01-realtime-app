@@ -786,3 +786,59 @@ with c3:
               help="กด Ctrl+P หรือเลือก Print จากเบราว์เซอร์ แล้วเลือก Save as PDF")
     st.caption("ใช้ Ctrl + P แล้วเลือก Save as PDF")
 st.caption("หมายเหตุ: การจัดสรรยอดกะดึก/กะเช้ายังคงใช้อัตราส่วนเป้าหมาย 3,879 : 1,663 ตามโค้ดเดิม")
+
+import sqlite3
+import streamlit as st
+
+st.subheader("⚙️ จัดการ Window Time สำหรับ New Supplier (Manual Setup)")
+
+# ช่องกรอกข้อมูลสำหรับเพิ่มหรืออแก้ไข Window Time ของ Supplier ใหม่
+with st.form("manual_window_form"):
+  col1, col2, col3 = st.columns(3)
+  with col1:
+    new_v_id = st.text_input("รหัส Supplier ID")
+  with col2:
+    new_v_name = st.text_input("ชื่อ Supplier")
+  with col3:
+    new_w_time = st.text_input(
+        "กำหนด Window Time (เช่น 09:00:00)", value="00:00:00"
+    )
+
+  submitted = st.form_submit_button("บันทึก / อัปเดตข้อมูล")
+  if submitted and new_v_id:
+    with sqlite3.connect(DB_PATH) as con:
+      con.execute(
+          """
+                INSERT INTO vendor_window_time (vendor_id, vendor_name, window_time, updated_at)
+                VALUES (?, ?, ?, datetime('now'))
+                ON CONFLICT(vendor_id) DO UPDATE SET 
+                    vendor_name = excluded.vendor_name,
+                    window_time = excluded.window_time,
+                    updated_at = datetime('now')
+            """,
+          (new_v_id.strip(), new_v_name.strip(), new_w_time.strip()),
+      )
+    st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว!")
+    st.rerun()
+    def get_window_time(vendor_id):
+  """ค้นหา Window Time ของ Supplier จากรหัส
+
+  หากไม่พบในระบบ จะคืนค่าเป็น N/A เพื่อให้เจ้าหน้าที่ตั้งค่าแบบ Manual
+  """
+  v_id = str(vendor_id).strip()
+  with sqlite3.connect(DB_PATH) as con:
+    cursor = con.cursor()
+    cursor.execute(
+        "SELECT vendor_name, window_time FROM vendor_window_time WHERE"
+        " vendor_id = ?",
+        (v_id,),
+    )
+    row = cursor.fetchone()
+    if row:
+      return {"vendor_name": row[0], "window_time": row[1]}
+    else:
+      # หากเป็น New Supplier ที่ไม่มีในระบบ จะแสดงผลเป็น N/A ทันที
+      return {
+          "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
+          "window_time": "N/A",
+      }  
