@@ -821,24 +821,24 @@ with st.form("manual_window_form"):
     st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว!")
     st.rerun()
     def get_window_time(vendor_id):
-  """ค้นหา Window Time ของ Supplier จากรหัส
+      """ค้นหา Window Time ของ Supplier จากรหัส
 
-  หากไม่พบในระบบ จะคืนค่าเป็น N/A เพื่อให้เจ้าหน้าที่ตั้งค่าแบบ Manual
-  """
-  v_id = str(vendor_id).strip()
-  with sqlite3.connect(DB_PATH) as con:
-    cursor = con.cursor()
-    cursor.execute(
-        "SELECT vendor_name, window_time FROM vendor_window_time WHERE"
-        " vendor_id = ?",
-        (v_id,),
-    )
-    row = cursor.fetchone()
-    if row:
-      return {"vendor_name": row[0], "window_time": row[1]}
-    else:
-      # หากเป็น New Supplier ที่ไม่มีในระบบ จะแสดงผลเป็น N/A ทันที
-      return {
-          "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
-          "window_time": "N/A",
-      }  
+      หากไม่พบในระบบ จะคืนค่าเป็น N/A เพื่อให้เจ้าหน้าที่ตั้งค่าแบบ Manual
+      """
+      v_id = str(vendor_id).strip()
+      with sqlite3.connect(DB_PATH) as con:
+        cursor = con.cursor()
+        cursor.execute(
+            "SELECT vendor_name, window_time FROM vendor_window_time WHERE"
+            " vendor_id = ?",
+            (v_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+          return {"vendor_name": row[0], "window_time": row[1]}
+        else:
+          # หากเป็น New Supplier ที่ไม่มีในระบบ จะแสดงผลเป็น N/A ทันที
+          return {
+              "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
+              "window_time": "N/A",
+          }  
