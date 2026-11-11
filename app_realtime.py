@@ -610,12 +610,13 @@ kpis = [
     ("📦","Item",f"{total_item:,}",""),
     ("🛢️","UOM Qty",f"{total_uom:,.0f}",""),
     ("🪵","Net Pallets",f"{total_pallets:,.0f}",f"ปรับเข้า +{postpone_in:,.0f} / ออก -{postpone_out:,.0f}"),
+    ("📋","PO รวมทั้งหมด",f"{total_po:,}",f"กะดึก {night_po:,} + กะเช้า {morning_po:,} PO"),
     ("🌙","กะดึก (05:00-17:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
     ("☀️","กะเช้า (17:00-05:00)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
 ]
-cols = st.columns(6)
+cols = st.columns(7)
 for i,(icon,label,value,note) in enumerate(kpis):
-    cls = "night" if i == 4 else ("morning" if i == 5 else "")
+    cls = "night" if i == 5 else ("morning" if i == 6 else "")
     cols[i].markdown(
         f'<div class="kpi {cls}"><div class="kpi-label">{icon} {label}</div>'
         f'<div class="kpi-value">{value}</div><div class="kpi-note">{html.escape(note)}</div></div>',
