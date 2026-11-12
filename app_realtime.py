@@ -843,3 +843,95 @@ with st.form("manual_window_form"):
               "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
               "window_time": "N/A",
           }  
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ตรวจสอบว่ามีคอลัมน์ PMA หรือไม่ (ปรับชื่อคอลัมน์ตามไฟล์จริงของคุณ เช่น 'PMA', 'PMA Name', หรือ 'TYP PMA')
+pma_col = find_col(
+    df, ["PMA", "TYP PMA", "PMA Name"], contains=["pma", "region", "zone"]
+)
+
+if pma_col and pallet_col:
+  st.markdown(
+      '<div class="panel"><div class="panel-head purple">📊 สรุปยอดพาเลท'
+      " (Pallets) แยกตามแต่ละ PMA</div><div class=\"panel-body\">",
+      unsafe_allow_html=True,
+  )
+
+  # จัดกลุ่มข้อมูลรวมยอด Pallets และจำนวน PO / Item ตาม PMA
+  pma_summary = (
+      df.groupby(pma_col)
+      .agg(
+          Total_Pallets=("_PALLETS", "sum"),
+          Total_PO=("_PO", lambda x: x.replace("", pd.NA).nunique()),
+          Total_Items=(item_col, "nunique") if item_col else ("_PO", "count"),
+      )
+      .reset_index()
+  )
+
+  # คำนวณเปอร์เซ็นต์สัดส่วน Pallets ของแต่ละ PMA
+  total_all_pallets = pma_summary["Total_Pallets"].sum()
+  pma_summary["% Share"] = (
+      pma_summary["Total_Pallets"] / total_all_pallets * 100
+      if total_all_pallets > 0
+      else 0
+  )
+
+  # จัดเรียงลำดับจากยอดมากไปน้อย
+  pma_summary = pma_summary.sort_values(
+      by="Total_Pallets", ascending=False
+  ).reset_index(drop=True)
+
+  # แปลงรูปแบบตัวเลขให้สวยงามสำหรับแสดงในตาราง
+  display_pma = pma_summary.copy()
+  display_pma["Total_Pallets"] = display_pma["Total_Pallets"].apply(
+      lambda x: f"{x:,.2f}"
+  )
+  display_pma["% Share"] = display_pma["% Share"].apply(lambda x: f"{x:.1f}%")
+
+  # แบ่งหน้าจอแสดงผลเป็น ตาราง (Left) และ กราฟแท่ง (Right)
+  col_t1, col_t2 = st.columns([1.2, 1.8])
+
+  with col_t1:
+    st.subheader("📋 ตารางแสดงยอดตาม PMA")
+    st.dataframe(display_pma, use_container_width=True, hide_index=True)
+
+  with col_t2:
+    st.subheader("📈 กราฟแสดงยอด Pallets ตาม PMA")
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    sns.barplot(
+        data=pma_summary,
+        x=pma_col,
+        y="Total_Pallets",
+        palette="Blues_r",
+        ax=ax,
+    )
+    ax.set_title("Pallets by PMA", fontsize=14, fontweight="bold", color="#10234b")
+    ax.set_xlabel("PMA", fontsize=11, fontweight="bold")
+    ax.set_ylabel("Total Pallets", fontsize=11, fontweight="bold")
+    plt.xticks(rotation=30, ha="right")
+
+    # ใส่ตัวเลขบนแท่งกราฟ
+    for p in ax.patches:
+      height = p.get_height()
+      if height > 0:
+        ax.annotate(
+            f"{height:,.0f}",
+            (p.get_x() + p.get_width() / 2.0, height),
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            fontweight="bold",
+            color="#0f172a",
+        )
+
+    sns.despine()
+    st.pyplot(fig)
+
+  st.markdown("</div></div>", unsafe_allow_html=True)
+else:
+  st.info(
+      "ℹ️ ไม่พบคอลัมน์ PMA ในไฟล์ข้อมูล กรุณาตรวจสอบชื่อคอลัมน์ในชีท RP01 หรือ"
+      " TYP PMA"
+  )
