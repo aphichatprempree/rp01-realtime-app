@@ -650,8 +650,7 @@ else:
     if pma_summary.empty:
         st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
     else:
-        chart_data = pma_summary.set_index("PMA")["Pallets"]
-        st.bar_chart(chart_data, use_container_width=True, y_label="Pallets")
+      
         st.dataframe(pma_summary.rename(columns={"PMA": "PMA", "Pallets": "ยอด Pallets"}),
                      use_container_width=True, hide_index=True)
         no_type = int((pma_summary["PMA TYP"] == "ไม่พบประเภท").sum())
