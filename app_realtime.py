@@ -632,32 +632,6 @@ if postpone_in or postpone_out:
 else:
     st.caption("ℹ️ แสดงยอดพาเลทตามแผนปกติ ไม่มีการปรับเลื่อนส่งในวันที่เลือก")
 
-
-# PMA pallets chart and detail table
-st.markdown('<div class="panel"><div class="panel-head cyan">📦 ยอด Pallets แยกตาม PMA และ PMA TYP</div><div class="panel-body">', unsafe_allow_html=True)
-pma_col = find_col(df, ["PMA"], contains=["pma"])
-if pma_col is None:
-    st.info("ไม่พบคอลัมน์ PMA ในไฟล์ RP01 จึงยังแสดงยอดแยกตาม PMA ไม่ได้")
-else:
-    pma_view = df[[pma_col, "_PALLETS"]].copy()
-    pma_view["PMA"] = pd.to_numeric(pma_view[pma_col], errors="coerce")
-    pma_view = pma_view.dropna(subset=["PMA"])
-    pma_view["PMA"] = pma_view["PMA"].astype(int)
-    pma_view["PMA TYP"] = pma_view["PMA"].map(PMA_TYPE_MAP).fillna("ไม่พบประเภท")
-    pma_summary = (pma_view.groupby(["PMA", "PMA TYP"], as_index=False)
-                   .agg(Pallets=("_PALLETS", "sum"))
-                   .sort_values("PMA"))
-    if pma_summary.empty:
-        st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
-    else:
-      
-        st.dataframe(pma_summary.rename(columns={"PMA": "PMA", "Pallets": "ยอด Pallets"}),
-                     use_container_width=True, hide_index=True)
-        no_type = int((pma_summary["PMA TYP"] == "ไม่พบประเภท").sum())
-        if no_type:
-            st.caption(f"มี {no_type} PMA ที่ไม่พบ PMA TYP ในไฟล์อ้างอิง")
-st.markdown("</div></div>", unsafe_allow_html=True)
-
 # DCSBx and DCSB tables
 st.markdown('<div class="panel"><div class="panel-head">📊 DCSBx / DCSB — สรุปแยกประเภทพื้นที่จัดเก็บ</div><div class="panel-body">', unsafe_allow_html=True)
 dc1, dc2 = st.columns(2)
