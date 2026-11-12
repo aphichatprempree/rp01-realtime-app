@@ -6,7 +6,6 @@ import io
 import os
 import re
 import html
-import plotly.graph_objects as go
 
 # =========================================================
 # DATA ENTRY (DCSB) | Receiving Forecast Dashboard
@@ -20,9 +19,6 @@ st.set_page_config(
 
 RP01_PATH = "latest_uploaded_rp01.xlsx"
 DB_PATH = "receiving_dashboard.db"
-
-# PMA TYP lookup from the supplied "TYP PMA" workbook
-PMA_TYPE_MAP = {1: 'Fresh RTE Food', 2: 'Fresh RTE Food', 3: 'Fresh RTE Food', 5: 'Counter Drink', 6: 'Fresh RTE Food', 7: 'Fresh RTE Food', 8: 'Fresh RTE Food', 10: 'Package Bev.', 11: 'Package Bev.', 12: 'Non Food', 14: 'Non Food', 16: 'Fresh RTE Food', 18: 'Non Food', 19: 'Fresh RTE Food', 20: 'Fresh RTE Food', 21: 'Fresh RTE Food', 22: 'Fresh RTE Food', 23: 'Fresh RTE Food', 24: 'Fresh RTE Food', 25: 'Fresh RTE Food', 27: 'Non Food', 28: 'Non Food', 29: 'Package Bev.', 32: 'Process Food', 33: 'Process Food', 34: 'Process Food', 35: 'Non Food', 36: 'Fresh RTE Food', 38: 'Package Bev.', 39: 'Non Food', 40: 'Process Food', 41: 'Process Food', 42: 'Package Bev.', 43: 'Non Food', 44: 'Package Bev.', 45: 'Package Bev.', 46: 'Non Food', 49: 'Package Bev.', 50: 'Non Food', 51: 'Non Food', 52: 'Non Food', 53: 'Non Food', 54: 'Non Food', 55: 'Non Food', 56: 'Non Food', 58: 'Non Food', 59: 'Non Food', 60: 'Fresh RTE Food', 61: 'Fresh RTE Food', 63: 'Process Food', 64: 'Non Food', 66: 'Non Food', 68: 'Non Food', 69: 'Non Food', 70: 'Non Food', 71: 'Non Food', 72: 'Non Food', 74: 'Non Food', 78: 'Fresh RTE Food', 80: 'Fresh RTE Food', 82: 'Fresh RTE Food', 83: 'Fresh RTE Food', 85: 'Fresh RTE Food', 86: 'Non Food', 30: 'Counter Drink', 31: 'Counter Drink', 75: 'Counter Drink', 76: 'Counter Drink', 62: 'Counter Drink', 79: 'Counter Drink', 87: 'Counter Drink', 95: 'Counter Drink', 73: 'Counter Drink'}
 
 # ------------------------- CSS --------------------------
 st.markdown("""
@@ -632,71 +628,6 @@ if postpone_in or postpone_out:
                + (f" | หมายเหตุ: {postpone_note}" if postpone_note else ""))
 else:
     st.caption("ℹ️ แสดงยอดพาเลทตามแผนปกติ ไม่มีการปรับเลื่อนส่งในวันที่เลือก")
-
-
-# PMA pallets chart and detail table
-st.markdown('<div class="panel"><div class="panel-head cyan">📦 ยอด Pallets แยกตาม PMA และ PMA TYP</div><div class="panel-body">', unsafe_allow_html=True)
-pma_col = find_col(df, ["PMA"], contains=["pma"])
-if pma_col is None:
-    st.info("ไม่พบคอลัมน์ PMA ในไฟล์ RP01 จึงยังแสดงยอดแยกตาม PMA ไม่ได้")
-else:
-    pma_view = df[[pma_col, "_PALLETS"]].copy()
-    pma_view["PMA"] = pd.to_numeric(pma_view[pma_col], errors="coerce")
-    pma_view = pma_view.dropna(subset=["PMA"])
-    pma_view["PMA"] = pma_view["PMA"].astype(int)
-    pma_view["PMA TYP"] = pma_view["PMA"].map(PMA_TYPE_MAP).fillna("ไม่พบประเภท")
-    pma_summary = (pma_view.groupby(["PMA", "PMA TYP"], as_index=False)
-                   .agg(Pallets=("_PALLETS", "sum"))
-                   .sort_values("PMA"))
-    if pma_summary.empty:
-        st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
-    else:
-        chart_data = pma_summary.set_index("PMA")["Pallets"]
-        st.bar_chart(chart_data, use_container_width=True, y_label="Pallets")
-        st.dataframe(pma_summary.rename(columns={"PMA": "PMA", "Pallets": "ยอด Pallets"}),
-                     use_container_width=True, hide_index=True)
-        # Interactive 3D scatter: PMA along X, PMA TYP along Y, pallet volume on Z.
-        type_order = sorted(pma_summary["PMA TYP"].unique())
-        type_y = {name: idx for idx, name in enumerate(type_order)}
-        palette = ["#35C6F4", "#637BFF", "#A56BFF", "#20D6A2", "#FFB84D", "#FF6B8A"]
-        pma_summary["_TYPE_Y"] = pma_summary["PMA TYP"].map(type_y)
-        pma_summary["_SIZE"] = pma_summary["Pallets"].clip(lower=0).apply(
-            lambda value: 7 + min(15, value ** 0.5 * 2)
-        )
-        fig = go.Figure()
-        for idx, typ in enumerate(type_order):
-            part = pma_summary[pma_summary["PMA TYP"] == typ]
-            fig.add_trace(go.Scatter3d(
-                x=part["PMA"], y=part["_TYPE_Y"], z=part["Pallets"],
-                mode="markers+text", name=typ,
-                text=part["PMA"].astype(str), textposition="top center",
-                customdata=part[["PMA TYP", "Pallets"]],
-                marker=dict(size=part["_SIZE"], color=palette[idx % len(palette)],
-                            opacity=0.92, line=dict(color="white", width=1)),
-                hovertemplate="PMA %{x}<br>PMA TYP: %{customdata[0]}<br>ยอด Pallets: %{z:,.2f}<extra></extra>"
-            ))
-        fig.update_layout(
-            height=620, margin=dict(l=0, r=0, t=30, b=0),
-            paper_bgcolor="rgba(0,0,0,0)",
-            scene=dict(
-                bgcolor="#F4F9FF",
-                xaxis=dict(title="PMA", gridcolor="#D5E4F5", backgroundcolor="#F4F9FF"),
-                yaxis=dict(title="PMA TYP", tickmode="array",
-                           tickvals=list(range(len(type_order))), ticktext=type_order,
-                           gridcolor="#D5E4F5", backgroundcolor="#F4F9FF"),
-                zaxis=dict(title="Pallets", gridcolor="#D5E4F5", backgroundcolor="#F4F9FF"),
-                camera=dict(eye=dict(x=1.55, y=1.65, z=1.05)),
-                aspectmode="manual", aspectratio=dict(x=1.5, y=1.0, z=0.85),
-            ),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
-        )
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": True})
-        st.dataframe(pma_summary[["PMA", "PMA TYP", "Pallets"]].rename(
-            columns={"Pallets": "ยอด Pallets"}), use_container_width=True, hide_index=True)
-        no_type = int((pma_summary["PMA TYP"] == "ไม่พบประเภท").sum())
-        if no_type:
-            st.caption(f"มี {no_type} PMA ที่ไม่พบ PMA TYP ในไฟล์อ้างอิง")
-st.markdown("</div></div>", unsafe_allow_html=True)
 
 # DCSBx and DCSB tables
 st.markdown('<div class="panel"><div class="panel-head">📊 DCSBx / DCSB — สรุปแยกประเภทพื้นที่จัดเก็บ</div><div class="panel-body">', unsafe_allow_html=True)
