@@ -650,13 +650,10 @@ else:
     if pma_summary.empty:
         st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
     else:
-        # Standard Streamlit bar chart grouped by PMA, with PMA TYP shown in the table.
         chart_data = pma_summary.set_index("PMA")["Pallets"]
         st.bar_chart(chart_data, use_container_width=True, y_label="Pallets")
         st.dataframe(pma_summary.rename(columns={"PMA": "PMA", "Pallets": "ยอด Pallets"}),
                      use_container_width=True, hide_index=True)
-        st.dataframe(pma_summary[["PMA", "PMA TYP", "Pallets"]].rename(
-            columns={"Pallets": "ยอด Pallets"}), use_container_width=True, hide_index=True)
         no_type = int((pma_summary["PMA TYP"] == "ไม่พบประเภท").sum())
         if no_type:
             st.caption(f"มี {no_type} PMA ที่ไม่พบ PMA TYP ในไฟล์อ้างอิง")
@@ -721,6 +718,31 @@ if vendor_id_col:
         st.info("ไม่พบ Supplier พิเศษตามตัวกรองหรือวันที่ที่เลือก")
 else:
     st.warning("ไม่พบคอลัมน์ Vendor ID ใน RP01")
+st.markdown("</div></div>", unsafe_allow_html=True)
+
+# PMA pallets summary by PMA TYP
+st.markdown('<div class="panel"><div class="panel-head cyan">📦 สรุปยอด Pallets ตาม PMA TYP</div><div class="panel-body">', unsafe_allow_html=True)
+pma_col = find_col(df, ["PMA"], contains=["pma"])
+if pma_col is None:
+    st.info("ไม่พบคอลัมน์ PMA ในไฟล์ RP01 จึงยังสรุปยอดตาม PMA TYP ไม่ได้")
+else:
+    pma_view = df[[pma_col, "_PALLETS"]].copy()
+    pma_view["PMA"] = pd.to_numeric(pma_view[pma_col], errors="coerce")
+    pma_view = pma_view.dropna(subset=["PMA"])
+    pma_view["PMA"] = pma_view["PMA"].astype(int)
+    pma_view["PMA TYP"] = pma_view["PMA"].map(PMA_TYPE_MAP).fillna("ไม่พบประเภท")
+    pma_summary = (pma_view.groupby("PMA TYP", as_index=False)
+                   .agg(**{"จำนวน PMA": ("PMA", "nunique"), "ยอด Pallets": ("_PALLETS", "sum")})
+                   .sort_values("ยอด Pallets", ascending=False))
+    if pma_summary.empty:
+        st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
+    else:
+        k1, k2 = st.columns(2)
+        k1.metric("Pallets รวมตาม PMA", f"{pma_summary['ยอด Pallets'].sum():,.0f}")
+        k2.metric("PMA ที่พบ", f"{pma_summary['จำนวน PMA'].sum():,}")
+        chart_data = pma_summary.set_index("PMA TYP")["ยอด Pallets"]
+        st.bar_chart(chart_data, use_container_width=True, y_label="Pallets")
+        st.dataframe(pma_summary, use_container_width=True, hide_index=True)
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
