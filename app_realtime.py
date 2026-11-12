@@ -720,6 +720,33 @@ else:
     st.warning("ไม่พบคอลัมน์ Vendor ID ใน RP01")
 st.markdown("</div></div>", unsafe_allow_html=True)
 
+# PMA pallet totals summary (no chart)
+st.markdown('<div class="panel"><div class="panel-head cyan">📦 สรุปยอด Pallets ตาม PMA TYP</div><div class="panel-body">', unsafe_allow_html=True)
+pma_col = find_col(df, ["PMA"], contains=["pma"])
+if pma_col is None:
+    st.info("ไม่พบคอลัมน์ PMA ในไฟล์ RP01 จึงยังสรุปยอดตาม PMA TYP ไม่ได้")
+else:
+    pma_view = df[[pma_col, "_PALLETS"]].copy()
+    pma_view["PMA"] = pd.to_numeric(pma_view[pma_col], errors="coerce")
+    pma_view = pma_view.dropna(subset=["PMA"])
+    pma_view["PMA"] = pma_view["PMA"].astype(int)
+    pma_view["PMA TYP"] = pma_view["PMA"].map(PMA_TYPE_MAP).fillna("ไม่พบประเภท")
+    if pma_view.empty:
+        st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
+    else:
+        pma_summary = (pma_view.groupby("PMA TYP", as_index=False)
+                       .agg(**{"จำนวน PMA": ("PMA", "nunique"), "ยอด Pallets": ("_PALLETS", "sum")})
+                       .sort_values("ยอด Pallets", ascending=False))
+        total_pma_pallets = float(pma_summary["ยอด Pallets"].sum())
+        total_pma_count = int(pma_view["PMA"].nunique())
+        total_types = int(pma_summary["PMA TYP"].nunique())
+        k1, k2, k3 = st.columns(3)
+        k1.metric("ยอด Pallets รวม", f"{total_pma_pallets:,.0f} พาเลท")
+        k2.metric("จำนวน PMA", f"{total_pma_count:,} หมายเลข")
+        k3.metric("จำนวน PMA TYP", f"{total_types:,} ประเภท")
+        st.dataframe(pma_summary, use_container_width=True, hide_index=True)
+st.markdown("</div></div>", unsafe_allow_html=True)
+
 # Ti / Hi validation
 st.markdown('<div class="panel"><div class="panel-head green">✅ ตรวจสอบเงื่อนไข Ti และ Hi (Ti = 1 และ Hi = 1)</div><div class="panel-body">', unsafe_allow_html=True)
 if ti_col and hi_col:
