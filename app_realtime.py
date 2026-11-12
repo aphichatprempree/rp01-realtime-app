@@ -935,3 +935,123 @@ else:
       "ℹ️ ไม่พบคอลัมน์ PMA ในไฟล์ข้อมูล กรุณาตรวจสอบชื่อคอลัมน์ในชีท RP01 หรือ"
       " TYP PMA"
   )
+# ==========================================
+# PMA & PMA TYP SUMMARY (Table & Bar Chart)
+# ==========================================
+pma_col = find_col(
+    df, ["PMA", "TYP PMA", "PMA Name"], contains=["pma", "region", "zone"]
+)
+
+if pma_col and pallet_col:
+  st.markdown(
+      '<div class="panel"><div class="panel-head purple">📊 สรุปยอดพาเลท'
+      ' (Pallets) และประเภท (PMA TYP) แยกตามแต่ละ PMA</div><div class="panel-body">',
+      unsafe_allow_html=True,
+  )
+
+  # กำหนดตารางเทียบประเภท PMA TYP (อ้างอิงจากไฟล์ข้อมูลหลัก)
+  pma_typ_mapping = {
+      1: "Fresh RTE Food",
+      2: "Fresh RTE Food",
+      3: "Fresh RTE Food",
+      5: "Counter Drink",
+      6: "Fresh RTE Food",
+      7: "Fresh RTE Food",
+      8: "Fresh RTE Food",
+      9: "Package Bev.",
+      10: "Package Bev.",
+      11: "Package Bev.",
+      12: "Non Food",
+      14: "Non Food",
+      16: "Fresh RTE Food",
+      18: "Non Food",
+      19: "Fresh RTE Food",
+      20: "Fresh RTE Food",
+      21: "Fresh RTE Food",
+      22: "Fresh RTE Food",
+      23: "Fresh RTE Food",
+      24: "Non Food",
+      25: "Fresh RTE Food",
+      27: "Non Food",
+      28: "Non Food",
+      29: "Package Bev.",
+      32: "Process Food",
+      33: "Process Food",
+      34: "Process Food",
+      35: "Non Food",
+      36: "Fresh RTE Food",
+      38: "Package Bev.",
+      39: "Non Food",
+      40: "Process Food",
+      41: "Process Food",
+      42: "Package Bev.",
+      43: "Non Food",
+      44: "Package Bev.",
+  }
+
+  # จัดกลุ่มข้อมูลรวมยอด Pallets, PO และ Items ตาม PMA
+  pma_summary = (
+      df.groupby(pma_col)
+      .agg(
+          Total_Pallets=("_PALLETS", "sum"),
+          Total_PO=("_PO", lambda x: x.replace("", pd.NA).nunique()),
+          Total_Items=(item_col, "nunique") if item_col else ("_PO", "count"),
+      )
+      .reset_index()
+  )
+
+  # แปลงรหัส PMA เป็นตัวเลขเพื่อ map หา PMA TYP
+  try:
+    pma_summary["_PMA_KEY"] = pd.to_numeric(
+        pma_summary[pma_col], errors="coerce"
+    )
+    pma_summary["PMA TYP"] = (
+        pma_summary["_PMA_KEY"]
+        .map(pma_typ_mapping)
+        .fillna("Other / Unspecified")
+    )
+    pma_summary = pma_summary.drop(columns=["_PMA_KEY"])
+  except Exception:
+    pma_summary["PMA TYP"] = "Other / Unspecified"
+
+  # จัดเรียงคอลัมน์ให้แสดง PMA, PMA TYP, Pallets, PO, Items
+  pma_summary = pma_summary[
+      [pma_col, "PMA TYP", "Total_Pallets", "Total_PO", "Total_Items"]
+  ]
+
+  # คำนวณเปอร์เซ็นต์สัดส่วน
+  total_all_pallets = pma_summary["Total_Pallets"].sum()
+  pma_summary["% Share"] = (
+      pma_summary["Total_Pallets"] / total_all_pallets * 100
+      if total_all_pallets > 0
+      else 0
+  )
+
+  # จัดเรียงลำดับจากยอดพาเลทมากไปน้อย
+  pma_summary = pma_summary.sort_values(
+      by="Total_Pallets", ascending=False
+  ).reset_index(drop=True)
+
+  # แปลงฟอร์แมตตัวเลขสำหรับแสดงผล
+  display_pma = pma_summary.copy()
+  display_pma["Total_Pallets"] = display_pma["Total_Pallets"].apply(
+      lambda x: f"{x:,.2f}"
+  )
+  display_pma["% Share"] = display_pma["% Share"].apply(lambda x: f"{x:.1f}%")
+
+  # แบ่งหน้าจอแสดงผลเป็น ตาราง และ กราฟ
+  col_t1, col_t2 = st.columns([1.3, 1.7])
+
+  with col_t1:
+    st.subheader("📋 ตารางสรุปตาม PMA และ PMA TYP")
+    st.dataframe(display_pma, use_container_width=True, hide_index=True)
+
+  with col_t2:
+    st.subheader("📈 กราฟแสดงยอด Pallets ตาม PMA")
+    # ใช้ st.bar_chart ของ Streamlit แสดงผลกราฟแท่งโดยไม่ต้องพึ่ง matplotlib
+    chart_data = pma_summary.set_index(pma_col)["Total_Pallets"]
+    st.bar_chart(chart_data)
+
+  st.markdown("</div></div>", unsafe_allow_html=True)
+else:
+  st.info("ℹ️ ไม่พบคอลัมน์ PMA ในไฟล์ข้อมูลสำหรับสร้างกราฟและตาราง")
