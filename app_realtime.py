@@ -530,11 +530,6 @@ with st.sidebar:
     postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
     st.info(f"วันที่ {fmt_date(selected_date)} | เข้า +{postpone_in:,.0f} | ออก -{postpone_out:,.0f}")
 
-    st.markdown("---")
-    st.markdown("### 🔠 5. ปรับขนาดฟอนต์ตาราง")
-    dcs_font = st.slider("ตาราง DCSBx / DCSB", 12, 30, 18, 1)
-    vendor_font = st.slider("ตาราง Supplier", 12, 28, 16, 1)
-
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
 <div class="hero">
