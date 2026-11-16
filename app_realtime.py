@@ -34,8 +34,22 @@ html, body, [class*="css"], .stApp { font-family:'Prompt',sans-serif !important;
 header[data-testid="stHeader"] { background:transparent; }
 footer { visibility:hidden; }
 section[data-testid="stSidebar"] {
-  background:linear-gradient(180deg,#062958 0%,#0b3b78 100%);
-  border-right:3px solid #48baff;
+  background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%);
+  border-right:1px solid #48baff;
+}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
+  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
+  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
+}
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
+  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
+section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
+section[data-testid="stSidebar"] [data-testid="stForm"] {
+  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
 }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
@@ -445,14 +459,14 @@ init_db()
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:8px 0 14px">
-      <div style="font-size:28px">📊</div>
-      <div style="font-size:20px;font-weight:800">DATA ENTRY (DCSB)</div>
-      <div style="font-size:12px;color:#7dd3fc!important">ระบบรายงานประมาณการรับสินค้า</div>
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#38bdf8,#0b62c4);font-size:27px;box-shadow:0 5px 16px #031b3c80">📦</div>
+      <div style="font-size:19px;font-weight:800;margin-top:9px;letter-spacing:.3px">DATA ENTRY <span style="color:#7dd3fc!important">(DCSB)</span></div>
+      <div style="font-size:12px;color:#c7e7ff!important;margin-top:3px">RECEIVING FORECAST</div>
     </div><hr>
     """, unsafe_allow_html=True)
 
-    st.markdown("### 📂 1. จัดการข้อมูลไฟล์")
-    rp01_upload = st.file_uploader("อัปโหลดไฟล์ Excel (RP01)", type=["xlsx","xls"], key="rp01_side")
+    st.markdown("### 📂 1 · ไฟล์ข้อมูล")
+    rp01_upload = st.file_uploader("ไฟล์ประมาณการหลัก · RP01", type=["xlsx","xls"], key="rp01_side", help="รองรับ Excel .xlsx และ .xls")
     if rp01_upload is not None:
         try:
             with open(RP01_PATH, "wb") as f:
@@ -463,7 +477,7 @@ with st.sidebar:
             st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
     st.markdown("---")
-    st.markdown("### 📅 2. เลือกวันที่ย้อนหลัง")
+    st.markdown("### 📅 2 · วันที่รายงาน")
     raw_df = pd.DataFrame()
     df = pd.DataFrame()
     selected_date = dt.date.today()
@@ -493,8 +507,8 @@ with st.sidebar:
         st.info("ยังไม่มีไฟล์ RP01")
 
     st.markdown("---")
-    st.markdown("### 🏷️ 3. ตัวกรองเพิ่มเติม")
-    status_filter = st.selectbox("ประเภท Supplier", ["ทั้งหมด","STAMP","CARD","COINS"])
+    st.markdown("### 🏷️ 3 · ตัวกรองข้อมูล")
+    status_filter = st.selectbox("ประเภท Supplier", ["ทั้งหมด","STAMP","CARD","COINS"], help="เลือกดู Supplier ตามประเภท")
     use_time = st.checkbox("⏰ กรองตามช่วงเวลา", value=False)
     start_time, end_time = dt.time(2,0), dt.time(5,0)
     if use_time:
@@ -514,7 +528,7 @@ with st.sidebar:
             st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
 
     st.markdown("---")
-    st.markdown("### ⏳ 4. จัดการงานเลื่อนส่ง (เข้า/ออก)")
+    st.markdown("### ⏳ 4 · งานเลื่อนส่ง")
     with st.form("postpone_form", clear_on_submit=False):
         postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
         p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
