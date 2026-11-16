@@ -635,12 +635,6 @@ for i,(icon,label,value,note) in enumerate(kpis):
         unsafe_allow_html=True
     )
 
-if postpone_in or postpone_out:
-    st.warning(f"⚠️ มีการปรับแผนเลื่อนส่ง: เข้า +{postpone_in:,.0f} พาเลท | ออก -{postpone_out:,.0f} พาเลท"
-               + (f" | หมายเหตุ: {postpone_note}" if postpone_note else ""))
-else:
-    st.caption("ℹ️ แสดงยอดพาเลทตามแผนปกติ ไม่มีการปรับเลื่อนส่งในวันที่เลือก")
-
 # DCSBx and DCSB tables
 st.markdown('<div class="panel"><div class="panel-head">📊 DCSBx / DCSB — สรุปแยกประเภทพื้นที่จัดเก็บ</div><div class="panel-body">', unsafe_allow_html=True)
 dc1, dc2 = st.columns(2)
