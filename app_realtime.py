@@ -53,7 +53,7 @@ section[data-testid="stSidebar"] [data-testid="stForm"] {
 }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-  color:#fff !important; font-weight:800 !important;
+  color:#000000 !important; font-weight:800 !important;
 }
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {
   background:#f4f9ff !important; border:2px dashed #42b8ff !important; border-radius:12px;
