@@ -535,6 +535,14 @@ with st.sidebar:
         p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
         p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
         save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
+    if save_btn:
+        if p_in == 0 and p_out == 0:
+            st.warning("กรุณาระบุยอดเลื่อนเข้า หรือเลื่อนออก")
+        else:
+            save_postpone(str(postpone_date), p_in, p_out, p_note)
+            st.success("บันทึกข้อมูลแล้ว")
+    postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
+    st.info(f"วันที่ {fmt_date(selected_date)} | เข้า +{postpone_in:,.0f} | ออก -{postpone_out:,.0f}")
 
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
