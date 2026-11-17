@@ -492,7 +492,7 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-with st.sidebar.expander("✅ Checking Ti & Hi", expanded=False):
+with st.sidebar.expander("✅  Ti & Hi", expanded=False):
     if ti_col and hi_col:
         ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
         alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
@@ -544,7 +544,7 @@ with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ Checking Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
