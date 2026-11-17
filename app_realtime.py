@@ -225,7 +225,7 @@ with st.sidebar:
     </div><hr>
     """, unsafe_allow_html=True)
 
-    with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
+    with st.expander("📂 IMPORT RP01", expanded=False):
         rp01_upload = st.file_uploader(
             "ไฟล์ประมาณการหลัก · RP01", type=["xlsx", "xls"], key="rp01_side",
             help="รองรับไฟล์ Excel .xlsx และ .xls"
@@ -239,14 +239,8 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
-    with st.expander("📥 IMPORT RP03 (งานรับนอกรอบ)", expanded=False):
-        rp03_upload = st.file_uploader(
-            "ไฟล์ Goods Receive Note Summary Report · RP03",
-            type=["xlsx", "xls", "csv"], key="rp03_upload"
-        )
-
     # Expander contents run on every Streamlit rerun; data preparation stays available when collapsed.
-    with st.expander("📅 วันที่รายงาน", expanded=False):
+    with st.expander("📅 Date", expanded=False):
         raw_df = pd.DataFrame()
         df = pd.DataFrame()
         selected_date = dt.date.today()
@@ -275,7 +269,7 @@ with st.sidebar:
         else:
             st.info("ยังไม่มีไฟล์ RP01")
 
-    with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
+    with st.expander("🏷️ Fillter time", expanded=False):
         status_filter = st.selectbox(
             "ประเภท Supplier", ["ทั้งหมด", "STAMP", "CARD", "COINS"],
             help="เลือกดู Supplier ตามประเภท"
@@ -498,7 +492,7 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expanded=False):
+with st.sidebar.expander("✅  Ti & Hi", expanded=False):
     if ti_col and hi_col:
         ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
         alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
@@ -511,7 +505,11 @@ with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expan
     else:
         st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01")
 # RP03 out-of-cycle comparison
-with st.sidebar.expander("🔎 6 · ผลตรวจ RP03", expanded=False):
+with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)", expanded=False):
+    rp03_upload = st.file_uploader(
+        "อัปโหลด RP03 (Goods Receive Note Summary Report)",
+        type=["xlsx", "xls", "csv"], key="rp03_upload"
+    )
     if rp03_upload is not None:
         try:
             rp03 = read_uploaded_table(rp03_upload)
@@ -546,7 +544,7 @@ with st.sidebar.expander("🔎 6 · ผลตรวจ RP03", expanded=False):
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
