@@ -19,7 +19,6 @@ st.set_page_config(
 
 RP01_PATH = "latest_uploaded_rp01.xlsx"
 DB_PATH = "receiving_dashboard.db"
-LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo_data_entry.png")
 
 # PMA TYP lookup from the supplied "TYP PMA" workbook
 PMA_TYPE_MAP = {1: 'Fresh RTE Food', 2: 'Fresh RTE Food', 3: 'Fresh RTE Food', 5: 'Counter Drink', 6: 'Fresh RTE Food', 7: 'Fresh RTE Food', 8: 'Fresh RTE Food', 10: 'Package Bev.', 11: 'Package Bev.', 12: 'Non Food', 14: 'Non Food', 16: 'Fresh RTE Food', 18: 'Non Food', 19: 'Fresh RTE Food', 20: 'Fresh RTE Food', 21: 'Fresh RTE Food', 22: 'Fresh RTE Food', 23: 'Fresh RTE Food', 24: 'Fresh RTE Food', 25: 'Fresh RTE Food', 27: 'Non Food', 28: 'Non Food', 29: 'Package Bev.', 32: 'Process Food', 33: 'Process Food', 34: 'Process Food', 35: 'Non Food', 36: 'Fresh RTE Food', 38: 'Package Bev.', 39: 'Non Food', 40: 'Process Food', 41: 'Process Food', 42: 'Package Bev.', 43: 'Non Food', 44: 'Package Bev.', 45: 'Package Bev.', 46: 'Non Food', 49: 'Package Bev.', 50: 'Non Food', 51: 'Non Food', 52: 'Non Food', 53: 'Non Food', 54: 'Non Food', 55: 'Non Food', 56: 'Non Food', 58: 'Non Food', 59: 'Non Food', 60: 'Fresh RTE Food', 61: 'Fresh RTE Food', 63: 'Process Food', 64: 'Non Food', 66: 'Non Food', 68: 'Non Food', 69: 'Non Food', 70: 'Non Food', 71: 'Non Food', 72: 'Non Food', 74: 'Non Food', 78: 'Fresh RTE Food', 80: 'Fresh RTE Food', 82: 'Fresh RTE Food', 83: 'Fresh RTE Food', 85: 'Fresh RTE Food', 86: 'Non Food', 30: 'Counter Drink', 31: 'Counter Drink', 75: 'Counter Drink', 76: 'Counter Drink', 62: 'Counter Drink', 79: 'Counter Drink', 87: 'Counter Drink', 95: 'Counter Drink', 73: 'Counter Drink'}
@@ -218,15 +217,15 @@ init_db()
 
 # ------------------------- Sidebar ----------------------
 with st.sidebar:
-    logo_left, logo_center, logo_right = st.columns([0.25, 2.5, 0.25])
-    with logo_center:
-        if os.path.isfile(LOGO_PATH):
-            st.image(LOGO_PATH, width=200)
-        else:
-            st.markdown("<div style='text-align:center;font-size:18px;font-weight:800'>📦 DATA ENTRY (DCSB)</div>", unsafe_allow_html=True)
-    st.markdown("<div style='text-align:center;color:#c7e7ff;font-size:11px;letter-spacing:1px;padding:0 0 8px'>RECEIVING FORECAST</div><hr>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align:center;padding:8px 0 14px">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#38bdf8,#0b62c4);font-size:27px;box-shadow:0 5px 16px #031b3c80">📦</div>
+      <div style="font-size:19px;font-weight:800;margin-top:9px;letter-spacing:.3px">DATA ENTRY <span style="color:#7dd3fc!important">(DCSB)</span></div>
+      <div style="font-size:12px;color:#c7e7ff!important;margin-top:3px">RECEIVING FORECAST</div>
+    </div><hr>
+    """, unsafe_allow_html=True)
 
-    with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
+    with st.expander("📂 IMPORT RP01", expanded=False):
         rp01_upload = st.file_uploader(
             "ไฟล์ประมาณการหลัก · RP01", type=["xlsx", "xls"], key="rp01_side",
             help="รองรับไฟล์ Excel .xlsx และ .xls"
@@ -240,14 +239,8 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
-    with st.expander("📥 IMPORT RP03 (งานรับนอกรอบ)", expanded=False):
-        rp03_upload = st.file_uploader(
-            "ไฟล์ Goods Receive Note Summary Report · RP03",
-            type=["xlsx", "xls", "csv"], key="rp03_upload"
-        )
-
     # Expander contents run on every Streamlit rerun; data preparation stays available when collapsed.
-    with st.expander("📅 วันที่รายงาน", expanded=False):
+    with st.expander("📅 Date", expanded=False):
         raw_df = pd.DataFrame()
         df = pd.DataFrame()
         selected_date = dt.date.today()
@@ -276,7 +269,7 @@ with st.sidebar:
         else:
             st.info("ยังไม่มีไฟล์ RP01")
 
-    with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
+    with st.expander("🏷️ Fillter time", expanded=False):
         status_filter = st.selectbox(
             "ประเภท Supplier", ["ทั้งหมด", "STAMP", "CARD", "COINS"],
             help="เลือกดู Supplier ตามประเภท"
@@ -499,7 +492,7 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expanded=False):
+with st.sidebar.expander("✅  Ti & Hi", expanded=False):
     if ti_col and hi_col:
         ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
         alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
@@ -512,7 +505,11 @@ with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expan
     else:
         st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01")
 # RP03 out-of-cycle comparison
-with st.sidebar.expander("🔎 6 · ผลตรวจ RP03", expanded=False):
+with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)", expanded=False):
+    rp03_upload = st.file_uploader(
+        "อัปโหลด RP03 (Goods Receive Note Summary Report)",
+        type=["xlsx", "xls", "csv"], key="rp03_upload"
+    )
     if rp03_upload is not None:
         try:
             rp03 = read_uploaded_table(rp03_upload)
@@ -547,7 +544,7 @@ with st.sidebar.expander("🔎 6 · ผลตรวจ RP03", expanded=False):
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
