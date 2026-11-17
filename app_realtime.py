@@ -480,129 +480,112 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-st.markdown('<div class="panel"><div class="panel-head green">✅ ตรวจสอบเงื่อนไข Ti และ Hi (Ti = 1 และ Hi = 1)</div><div class="panel-body">', unsafe_allow_html=True)
-if ti_col and hi_col:
-    ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
-    alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
-    display_cols = [c for c in [vendor_id_col, po_col, item_col, ti_col, hi_col] if c]
-    left, right = st.columns([1.25, .85])
-    with left:
-        st.dataframe(alert[display_cols] if not alert.empty else df[display_cols].head(0),
-                     use_container_width=True, hide_index=True)
-    with right:
-        if not alert.empty:
-            st.markdown(f'<div class="notice">🚨 แจ้งเตือนระบบ!<br>พบรายการที่ Ti = 1 และ Hi = 1 พร้อมกัน<br><span style="font-size:30px">{len(alert):,} รายการ</span></div>', unsafe_allow_html=True)
-            with st.expander("🔍 ดูรายละเอียดรายการที่ต้องตรวจสอบ"):
-                st.dataframe(alert[display_cols], use_container_width=True, hide_index=True)
+with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expanded=False):
+    if ti_col and hi_col:
+        ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
+        alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
+        display_cols = [c for c in [vendor_id_col, po_col, item_col, ti_col, hi_col] if c]
+        if alert.empty:
+            st.success("ไม่พบรายการที่ Ti = 1 และ Hi = 1 พร้อมกัน")
         else:
-            st.markdown('<div class="notice ok">✅ ไม่พบรายการที่เข้าเงื่อนไข Ti = 1 และ Hi = 1</div>', unsafe_allow_html=True)
-else:
-    st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01 กรุณาตรวจสอบชื่อหัวคอลัมน์")
-st.markdown("</div></div>", unsafe_allow_html=True)
-
+            st.warning(f"พบ {len(alert):,} รายการที่ Ti = 1 และ Hi = 1")
+            st.dataframe(alert[display_cols], use_container_width=True, hide_index=True)
+    else:
+        st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01")
 # RP03 out-of-cycle comparison
-st.markdown('<div class="panel"><div class="panel-head purple">🔎 ตรวจสอบงานนอกรอบ (RP03) — เปรียบเทียบ PO กับ RP01</div><div class="panel-body">', unsafe_allow_html=True)
-rp03_upload = st.file_uploader("อัปโหลดไฟล์ RP03 (Goods Receive Note Summary Report)", type=["xlsx","xls","csv"], key="rp03_upload")
-if rp03_upload is not None:
-    try:
-        rp03 = read_uploaded_table(rp03_upload)
-        rp03_po_col = find_col(rp03, ["Purchase Order","PO","P/O"], contains=["purchaseorder","pono"])
-        qty_col = find_col(rp03, ["Total Case Qty","Total Case Qty (iLPNs)","iLPNs","Pallets Qty"], contains=["totalcase","ilpn","pallet"])
-        if rp03_po_col is None or qty_col is None:
-            st.error(f"ไม่พบคอลัมน์ PO หรือ Total Case Qty ใน RP03 (PO: {rp03_po_col}, Qty: {qty_col})")
-        else:
-            rp03["_PO"] = clean_po(rp03[rp03_po_col])
-            rp03["_QTY"] = to_num(rp03[qty_col])
-            main_pos = set(df["_PO"].loc[df["_PO"] != ""])
-            mismatch = rp03.loc[(rp03["_PO"] != "") & (~rp03["_PO"].isin(main_pos))].copy()
-            total_mismatch = float(mismatch["_QTY"].sum())
-            if mismatch.empty:
-                st.markdown('<div class="notice ok">✅ ไม่พบงานนอกรอบ — ทุก PO ใน RP03 ตรงกับ RP01</div>', unsafe_allow_html=True)
+with st.sidebar.expander("🔎 6 · ตรวจสอบงาน RP03", expanded=False):
+    rp03_upload = st.file_uploader(
+        "อัปโหลด RP03 (Goods Receive Note Summary Report)",
+        type=["xlsx", "xls", "csv"], key="rp03_upload"
+    )
+    if rp03_upload is not None:
+        try:
+            rp03 = read_uploaded_table(rp03_upload)
+            rp03_po_col = find_col(rp03, ["Purchase Order", "PO", "P/O"], contains=["purchaseorder", "pono"])
+            qty_col = find_col(rp03, ["Total Case Qty", "Total Case Qty (iLPNs)", "iLPNs", "Pallets Qty"], contains=["totalcase", "ilpn", "pallet"])
+            if rp03_po_col is None or qty_col is None:
+                st.error("ไม่พบคอลัมน์ PO หรือ Total Case Qty ใน RP03")
             else:
-                st.metric("ยอดรวม Total Case Qty (iLPNs) ของงานนอกรอบ", f"{total_mismatch:,.2f}", f"{len(mismatch):,} รายการ")
-                st.dataframe(mismatch.drop(columns=["_PO","_QTY"], errors="ignore").assign(
-                    **{"PO ที่ตรวจสอบ":mismatch["_PO"],"จำนวนที่รวม":mismatch["_QTY"]}
-                ), use_container_width=True, hide_index=True)
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                    mismatch.to_excel(writer, index=False, sheet_name="RP03_Mismatch")
-                st.download_button("📥 ดาวน์โหลดรายงานงานนอกรอบ (Excel)", output.getvalue(),
-                                   "RP03_Mismatch_Report.xlsx",
-                                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                   use_container_width=True)
-    except Exception as e:
-        st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
-else:
-    st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-st.markdown("</div></div>", unsafe_allow_html=True)
-
+                rp03["_PO"] = clean_po(rp03[rp03_po_col])
+                rp03["_QTY"] = to_num(rp03[qty_col])
+                main_pos = set(df["_PO"].loc[df["_PO"] != ""])
+                mismatch = rp03.loc[(rp03["_PO"] != "") & (~rp03["_PO"].isin(main_pos))].copy()
+                if mismatch.empty:
+                    st.success("ไม่พบงานนอกรอบ — ทุก PO ใน RP03 ตรงกับ RP01")
+                else:
+                    st.metric("ยอด Total Case Qty ของงานนอกรอบ", f"{mismatch['_QTY'].sum():,.2f}", f"{len(mismatch):,} รายการ")
+                    st.dataframe(
+                        mismatch.drop(columns=["_PO", "_QTY"], errors="ignore").assign(
+                            **{"PO ที่ตรวจสอบ": mismatch["_PO"], "จำนวนที่รวม": mismatch["_QTY"]}
+                        ), use_container_width=True, hide_index=True
+                    )
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                        mismatch.to_excel(writer, index=False, sheet_name="RP03_Mismatch")
+                    st.download_button(
+                        "📥 ดาวน์โหลดรายงาน RP03 (Excel)", output.getvalue(),
+                        "RP03_Mismatch_Report.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
+                    )
+        except Exception as e:
+            st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
+    else:
+        st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
 # Grand total and export controls
-st.markdown(f"""
-<div style="background:linear-gradient(100deg,#08764c,#079b65);color:white;border:2px solid #42d69a;
-border-radius:12px;padding:14px 20px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
-font-size:18px;font-weight:800;box-shadow:0 4px 12px #08764c30">
-<span>GRAND TOTAL (NET PALLETS)</span>
-<span>📦 Pallets: {total_pallets:,.0f}</span>
-<span>UOM Qty: {total_uom:,.0f}</span>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("### 📥 ดาวน์โหลดและพิมพ์รายงาน")
-summary = pd.DataFrame([{
-    "Date":fmt_date(selected_date),"Total Sup.":total_sup,"Item":total_item,
-    "UOM Qty":total_uom,"Net Pallets":total_pallets,
-    "Postpone In":postpone_in,"Postpone Out":postpone_out
-}])
-vendor_export = pd.DataFrame()
-if vendor_id_col:
-    vendor_export = df[[c for c in [vendor_id_col,vendor_name_col,po_col,item_col,pallet_col,uom_col] if c]].copy()
-c1,c2,c3 = st.columns(3)
-with c1:
-    st.download_button("📗 ดาวน์โหลดตารางสรุป (CSV)", summary.to_csv(index=False).encode("utf-8-sig"),
-                       f"RP01_Summary_{selected_date}.csv","text/csv",use_container_width=True)
-with c2:
+with st.sidebar.expander("📥 7 · ยอดรวมและดาวน์โหลด", expanded=False):
+    st.metric("GRAND TOTAL (NET PALLETS)", f"{total_pallets:,.0f}", f"UOM Qty: {total_uom:,.0f}")
+    summary = pd.DataFrame([{
+        "Date": fmt_date(selected_date), "Total Sup.": total_sup, "Item": total_item,
+        "UOM Qty": total_uom, "Net Pallets": total_pallets,
+        "Postpone In": postpone_in, "Postpone Out": postpone_out
+    }])
+    vendor_export = pd.DataFrame()
+    if vendor_id_col:
+        export_cols = [c for c in [vendor_id_col, vendor_name_col, po_col, item_col, pallet_col, uom_col] if c]
+        vendor_export = df[export_cols].copy()
+    st.download_button(
+        "📗 ดาวน์โหลดตารางสรุป (CSV)", summary.to_csv(index=False).encode("utf-8-sig"),
+        f"RP01_Summary_{selected_date}.csv", "text/csv", use_container_width=True
+    )
     xout = io.BytesIO()
     with pd.ExcelWriter(xout, engine="openpyxl") as writer:
-        summary.to_excel(writer,index=False,sheet_name="Summary")
-        dcsbx_table.to_excel(writer,index=False,sheet_name="DCSBx")
-        dcsb_table.to_excel(writer,index=False,sheet_name="DCSB")
-        vendor_export.to_excel(writer,index=False,sheet_name="RP01_Detail")
-    st.download_button("📘 ดาวน์โหลดรายงาน Excel", xout.getvalue(),
-                       f"RP01_Report_{selected_date}.xlsx",
-                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                       use_container_width=True)
-with c3:
-    st.button("🖨️ พิมพ์ / บันทึก PDF", on_click=None, use_container_width=True,
-              help="กด Ctrl+P หรือเลือก Print จากเบราว์เซอร์ แล้วเลือก Save as PDF")
-    st.caption("ใช้ Ctrl + P แล้วเลือก Save as PDF")
-st.caption("หมายเหตุ: การจัดสรรยอดกะดึก/กะเช้ายังคงใช้อัตราส่วนเป้าหมาย 3,879 : 1,663 ตามโค้ดเดิม")
-st.subheader("⚙️ จัดการ Window Time สำหรับ New Supplier (Manual Setup)")
-
-# ช่องกรอกข้อมูลสำหรับเพิ่มหรืออแก้ไข Window Time ของ Supplier ใหม่
-with st.form("manual_window_form"):
-  col1, col2, col3 = st.columns(3)
-  with col1:
-    new_v_id = st.text_input("รหัส Supplier ID")
-  with col2:
-    new_v_name = st.text_input("ชื่อ Supplier")
-  with col3:
-    new_w_time = st.text_input(
-        "กำหนด Window Time (เช่น 09:00:00)", value="00:00:00"
+        summary.to_excel(writer, index=False, sheet_name="Summary")
+        dcsbx_table.to_excel(writer, index=False, sheet_name="DCSBx")
+        dcsb_table.to_excel(writer, index=False, sheet_name="DCSB")
+        vendor_export.to_excel(writer, index=False, sheet_name="RP01_Detail")
+    st.download_button(
+        "📘 ดาวน์โหลดรายงาน Excel", xout.getvalue(), f"RP01_Report_{selected_date}.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
     )
-
-  submitted = st.form_submit_button("บันทึก / อัปเดตข้อมูล")
-  if submitted and new_v_id:
-    with sqlite3.connect(DB_PATH) as con:
-      con.execute(
-          """
-                INSERT INTO vendor_window_time (vendor_id, vendor_name, window_time, updated_at)
-                VALUES (?, ?, ?, datetime('now'))
-                ON CONFLICT(vendor_id) DO UPDATE SET 
-                    vendor_name = excluded.vendor_name,
-                    window_time = excluded.window_time,
-                    updated_at = datetime('now')
-            """,
-          (new_v_id.strip(), new_v_name.strip(), new_w_time.strip()),
-      )
-    st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว!")
-    st.rerun()
+    st.button(
+        "🖨️ พิมพ์ / บันทึก PDF", use_container_width=True,
+        help="กด Ctrl+P หรือเลือก Print จากเบราว์เซอร์ แล้วเลือก Save as PDF"
+    )
+    st.caption("ใช้ Ctrl + P แล้วเลือก Save as PDF")
+    st.caption("หมายเหตุ: การจัดสรรยอดกะดึก/กะเช้ายังคงใช้อัตราส่วน 3,879 : 1,663 ตามโค้ดเดิม")
+with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
+    with st.form("manual_window_form", clear_on_submit=False):
+        new_v_id = st.text_input("รหัส Supplier ID")
+        new_v_name = st.text_input("ชื่อ Supplier")
+        new_w_time = st.text_input("กำหนด Window Time (เช่น 09:00:00)", value="00:00:00")
+        submitted = st.form_submit_button("บันทึก / อัปเดตข้อมูล", use_container_width=True)
+    if submitted:
+        if not new_v_id.strip():
+            st.warning("กรุณากรอกรหัส Supplier ID")
+        else:
+            with sqlite3.connect(DB_PATH) as con:
+                con.execute(
+                    """
+                    INSERT INTO vendor_window_time (vendor_id, vendor_name, window_time, updated_at)
+                    VALUES (?, ?, ?, datetime('now'))
+                    ON CONFLICT(vendor_id) DO UPDATE SET
+                        vendor_name = excluded.vendor_name,
+                        window_time = excluded.window_time,
+                        updated_at = datetime('now')
+                    """,
+                    (new_v_id.strip(), new_v_name.strip(), new_w_time.strip()),
+                )
+            st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว")
+            st.rerun()
