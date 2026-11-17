@@ -269,7 +269,7 @@ with st.sidebar:
         else:
             st.info("ยังไม่มีไฟล์ RP01")
 
-    with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
+    with st.expander("🏷️ Fillter time", expanded=False):
         status_filter = st.selectbox(
             "ประเภท Supplier", ["ทั้งหมด", "STAMP", "CARD", "COINS"],
             help="เลือกดู Supplier ตามประเภท"
