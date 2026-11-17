@@ -12,7 +12,7 @@ import html
 # =========================================================
 st.set_page_config(
     page_title="รายงานประมาณการรับสินค้า | DATA ENTRY (DCSB)",
-    page_icon=""C:\Users\Aphichatpre\Desktop\File program\logo dataentry.jpg",
+    page_icon="📦",
     layout="wide",
     initial_sidebar_state="expanded",
 )
