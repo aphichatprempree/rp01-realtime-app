@@ -33,63 +33,21 @@ html, body, [class*="css"], .stApp { font-family:'Prompt',sans-serif !important;
 .block-container { padding-top:1rem !important; padding-bottom:1.5rem !important; max-width:1800px; }
 header[data-testid="stHeader"] { background:transparent; }
 footer { visibility:hidden; }
-section[data-testid="stSidebar"] {
-  background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%);
-  border-right:1px solid #48baff;
-}
-section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
-  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
-  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
-  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
-  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
-}
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
-section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
-section[data-testid="stSidebar"] [data-testid="stForm"] {
-  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
-section[data-testid="stSidebar"] {
-  background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%);
-  border-right:1px solid #48baff;
-}
+section[data-testid="stSidebar"] { background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%); border-right:1px solid #48baff; }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
-section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-  color:#fff !important; font-weight:800 !important;
-}
-section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
-  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
-  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
-  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
-}
-section[data-testid="stSidebar"] [data-testid="stExpander"] {
-  margin:.16rem 0;border:1px solid rgba(125,211,252,.35)!important;
-  border-left:3px solid #38bdf8!important;border-radius:11px!important;
-  background:rgba(255,255,255,.055)!important;
-}
-section[data-testid="stSidebar"] [data-testid="stExpander"] summary {
-  padding:.62rem .72rem!important;font-weight:800!important;
-}
-section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-  padding:.15rem .7rem .7rem!important;
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
-  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {
-  background:#f4f9ff !important; border:2px dashed #42b8ff !important; border-radius:12px;
-  background:#f4f9ff!important;border:2px dashed #42b8ff!important;border-radius:12px;
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#174477 !important; }
+section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#fff !important; font-weight:800 !important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] { margin:.16rem 0; border:1px solid rgba(125,211,252,.35)!important; border-left:3px solid #38bdf8!important; border-radius:11px!important; background:rgba(255,255,255,.055)!important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding:.62rem .72rem!important; font-weight:800!important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding:.15rem .7rem .7rem!important; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section { background:#f4f9ff!important; border:2px dashed #42b8ff!important; border-radius:12px; }
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#174477!important; }
+section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid rgba(125,211,252,.3); border-radius:12px; background:rgba(3,24,55,.34); }
+section[data-testid="stSidebar"] input { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:700!important; background:#fff!important; border-radius:9px!important; }
+section[data-testid="stSidebar"] [data-baseweb="select"] > div { background:#fff!important; border-radius:9px!important; }
+section[data-testid="stSidebar"] [data-baseweb="select"] span { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:800!important; }
+section[data-testid="stSidebar"] [data-baseweb="select"] svg, section[data-testid="stSidebar"] [data-testid="stDateInput"] svg { fill:#174477!important; color:#174477!important; }
+section[data-testid="stSidebar"] input::placeholder { color:#64748b!important; -webkit-text-fill-color:#64748b!important; }
 .hero {
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * {color:#174477!important;}
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
-section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
-section[data-testid="stSidebar"] [data-testid="stForm"] {
-  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
-}.hero {
   background:linear-gradient(105deg,#062e72 0%,#075ed0 62%,#8bc8f6 100%);
   border:1px solid #b7d9ff; border-radius:16px; padding:19px 25px;
   color:white; box-shadow:0 7px 18px #164b8a35; margin-bottom:15px;
@@ -98,288 +56,29 @@ section[data-testid="stSidebar"] [data-testid="stForm"] {
 .hero-title {font-size:clamp(20px,2.2vw,32px);font-weight:800;line-height:1.35;}
 .hero-sub {font-size:13px;opacity:.9;margin-top:4px;}
 .hero-logo {font-size:27px;font-weight:800;background:#ffffffeb;color:#164b91;border-radius:13px;padding:10px 17px;}
-.kpi {
-  background:linear-gradient(145deg,#fff,#eef6ff); border:1px solid #c4dcfa;
-  border-radius:14px; padding:13px 14px; min-height:112px;
-  box-shadow:0 4px 12px #174b8520; text-align:center;
-}
+.kpi { background:linear-gradient(145deg,#fff,#eef6ff); border:1px solid #c4dcfa; border-radius:14px; padding:13px 14px; min-height:112px; box-shadow:0 4px 12px #174b8520; text-align:center; }
 .kpi-label {font-size:14px;font-weight:700;color:#23416c;}
 .kpi-value {font-size:clamp(23px,2vw,32px);font-weight:800;color:#071d4a;line-height:1.35;}
 .kpi-note {font-size:12px;font-weight:700;color:#07843d;}
-
-.kpi.night {
-    background:
-        radial-gradient(circle at 15% 20%, rgba(129,140,248,.35), transparent 40%),
-        radial-gradient(circle at 85% 80%, rgba(168,85,247,.35), transparent 45%),
-        linear-gradient(135deg,#172554 0%,#312e81 50%,#581c87 100%);
-    border: 2px solid #818cf8;
-    box-shadow: 0 0 15px rgba(124,58,237,.45);
-}
-.kpi.night .kpi-label {
-    color: #e0e7ff;
-}
-.kpi.night .kpi-value {
-    color: #ffffff;
-    text-shadow: 0 0 12px #a78bfa;
-}
-.kpi.night .kpi-note {
-    color: #c4b5fd;
-}
-
-
-/* === SUNRISE GOLDEN DAWN : MORNING SHIFT === */
-.kpi.morning {
-    background:
-        radial-gradient(
-            circle at 15% 15%,
-            rgba(255,255,255,0.95),
-            transparent 38%
-        ),
-        radial-gradient(
-            circle at 85% 85%,
-            rgba(251,146,60,0.25),
-            transparent 45%
-        ),
-        linear-gradient(
-            135deg,
-            #fff7ed 0%,
-            #ffedd5 40%,
-            #fed7aa 75%,
-            #fef3c7 100%
-        );
-
-    border: 2px solid #f59e0b;
-
-    box-shadow:
-        0 5px 15px rgba(245,158,11,0.22),
-        inset 0 1px 5px rgba(255,255,255,0.9);
-}
-
-/* ชื่อกะเช้า */
-.kpi.morning .kpi-label {
-    color: #9a3412;
-    font-weight: 800;
-}
-
-/* ตัวเลขยอดพาเลท */
-.kpi.morning .kpi-value {
-    color: #9a3412;
-    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
-    font-weight: 900;
-}
-
-/* จำนวน PO และเปอร์เซ็นต์ */
-.kpi.morning .kpi-note {
-    color: #c2410c;
-    font-weight: 800;
-}
-
-.panel {
-  background:#fff;border:1px solid #c5dcf7;border-radius:13px;
-  box-shadow:0 4px 12px #174b851c;overflow:hidden;margin:7px 0 14px 0;
-}
-.panel-head {padding:9px 15px;color:#fff;font-size:19px;font-weight:800;
-  background:linear-gradient(90deg,#073b91,#0879df);}
-.panel-head.cyan {background:linear-gradient(90deg,#078acb,#08b5e9);}
-.panel-head.green {background:linear-gradient(90deg,#087b4c,#13b76e);}
-.panel-head.purple {background:linear-gradient(90deg,#6840bb,#a46de9);}
+.kpi.night { background:radial-gradient(circle at 15% 20%, rgba(129,140,248,.35), transparent 40%),radial-gradient(circle at 85% 80%, rgba(168,85,247,.35), transparent 45%),linear-gradient(135deg,#172554 0%,#312e81 50%,#581c87 100%); border:2px solid #818cf8; box-shadow:0 0 15px rgba(124,58,237,.45); }
+.kpi.night .kpi-label {color:#e0e7ff;}.kpi.night .kpi-value {color:#fff;text-shadow:0 0 12px #a78bfa;}.kpi.night .kpi-note {color:#c4b5fd;}
+.kpi.morning { background:radial-gradient(circle at 15% 15%,rgba(255,255,255,.95),transparent 38%),radial-gradient(circle at 85% 85%,rgba(251,146,60,.25),transparent 45%),linear-gradient(135deg,#fff7ed 0%,#ffedd5 40%,#fed7aa 75%,#fef3c7 100%); border:2px solid #f59e0b; box-shadow:0 5px 15px rgba(245,158,11,.22),inset 0 1px 5px rgba(255,255,255,.9); }
+.kpi.morning .kpi-label,.kpi.morning .kpi-value {color:#9a3412;font-weight:900;}.kpi.morning .kpi-note {color:#c2410c;font-weight:800;}
+.panel { background:#fff;border:1px solid #c5dcf7;border-radius:13px;box-shadow:0 4px 12px #174b851c;overflow:hidden;margin:7px 0 14px; }
+.panel-head {padding:9px 15px;color:#fff;font-size:19px;font-weight:800;background:linear-gradient(90deg,#073b91,#0879df);}
+.panel-head.cyan {background:linear-gradient(90deg,#078acb,#08b5e9);}.panel-head.green {background:linear-gradient(90deg,#087b4c,#13b76e);}.panel-head.purple {background:linear-gradient(90deg,#6840bb,#a46de9);}
 .panel-body {padding:12px;}
-.notice {
- border-radius:12px;padding:15px;text-align:center;font-weight:700;
- border:2px solid #ff7777;background:linear-gradient(145deg,#fff1f1,#ffdede);color:#a51f29;
-}
+.notice {border-radius:12px;padding:15px;text-align:center;font-weight:700;border:2px solid #ff7777;background:linear-gradient(145deg,#fff1f1,#ffdede);color:#a51f29;}
 .notice.ok {border-color:#27b76a;background:linear-gradient(145deg,#effff4,#d7ffe4);color:#12663a;}
 .small-muted {color:#64748b;font-size:12px;}
 div[data-testid="stMetric"] {background:#fff;border:1px solid #c8dcf4;border-radius:12px;padding:10px 13px;box-shadow:0 3px 9px #174b8515;}
-div[data-testid="stMetric"] label {font-weight:700;color:#28456e !important;}
-div[data-testid="stMetricValue"] {font-weight:800;color:#08275b;}
-.stButton button,.stDownloadButton button {
- border-radius:10px !important;font-weight:700 !important;min-height:42px;
-}
+div[data-testid="stMetric"] label {font-weight:700;color:#28456e!important;}div[data-testid="stMetricValue"] {font-weight:800;color:#08275b;}
+.stButton button,.stDownloadButton button {border-radius:10px!important;font-weight:700!important;min-height:42px;}
 div[data-testid="stDataFrame"] {border:1px solid #c4d9f1;border-radius:9px;overflow:hidden;}
 hr {border-color:#c7ddf5;}
-@media print {
- section[data-testid="stSidebar"],button,.stDownloadButton {display:none!important;}
- .stApp {background:#fff!important;}
-}
-section[data-testid="stSidebar"] input {color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    font-weight: 700 !important;
-}
-
-/* ช่อง Dropdown ที่เลือกข้อมูลแล้ว */
-section[data-testid="stSidebar"] [data-baseweb="select"] div {
-    color: #0f172a !important;
-}
-
-/* ข้อความใน Dropdown */
-section[data-testid="stSidebar"] [data-baseweb="select"] span {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    font-weight: 700 !important;
-}
-
-/* ไอคอนลูกศร Dropdown */
-section[data-testid="stSidebar"] [data-baseweb="select"] svg {
-    fill: #0f172a !important;
-}
-
-/* ข้อความ Placeholder */
-section[data-testid="stSidebar"] input::placeholder {
-    color: #64748b !important;
-    -webkit-text-fill-color: #64748b !important;
-}
-
-/* ช่องกรอกข้อมูลพื้นหลังสีขาว */
-section[data-testid="stSidebar"] [data-baseweb="input"] {
-    background-color: #ffffff !important;
-}
-
-/* ข้อความตัวเลือกใน Dropdown */
-div[role="option"] {
-    color: #0f172a !important;
-    background-color: #ffffff !important;
-}
-
-
-
-/* ผลลัพธ์หลังแก้ไข
-- ช่องเลือกวันที่: ตัวเลขสีน้ำเงินเข้ม
-- ช่อง Supplier: ข้อความสีดำ อ่านง่าย
-*/
-
-/* === แก้สีตัวอักษรช่องเลือกวันที่ === */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    font-weight: 700 !important;
-    background-color: #ffffff !important;
-    opacity: 1 !important;
-}
-
-/* แก้สีไอคอนปฏิทิน */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] svg {
-    fill: #334155 !important;
-    color: #334155 !important;
-}
-
-
-/* === แก้สีช่องวันที่งานเลื่อนส่ง === */
-section[data-testid="stSidebar"] [data-baseweb="datepicker"] input {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    font-weight: 800 !important;
-    background-color: #ffffff !important;
-    opacity: 1 !important;
-}
-
-section[data-testid="stSidebar"] [data-baseweb="datepicker"] svg {
-    color: #1e3a8a !important;
-    fill: #1e3a8a !important;
-}
-
-/* แก้สีข้อความวันที่ในช่อง */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] div {
-    color: #0f172a;
-}
-
-
-/* =====================================
-   SIDEBAR - HIGH CONTRAST
-   ===================================== */
-
-/* ข้อความหัวข้อ */
-section[data-testid="stSidebar"] h1,
-section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3,
-section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] p {
-    color: #ffffff !important;
-    font-weight: 700 !important;
-}
-
-/* ช่องกรอกข้อมูล */
-section[data-testid="stSidebar"] input {
-    background: #ffffff !important;
-    color: #10234b !important;
-    -webkit-text-fill-color: #10234b !important;
-    font-weight: 700 !important;
-    border-radius: 9px !important;
-}
-
-/* ช่องเลือกวันที่ */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] input {
-    background: #ffffff !important;
-    color: #10234b !important;
-    -webkit-text-fill-color: #10234b !important;
-    font-weight: 800 !important;
-    opacity: 1 !important;
-}
-
-/* ไอคอนปฏิทิน */
-section[data-testid="stSidebar"] [data-testid="stDateInput"] svg {
-    color: #174477 !important;
-    fill: #174477 !important;
-}
-
-/* Dropdown */
-section[data-testid="stSidebar"] [data-baseweb="select"] > div {
-    background: #ffffff !important;
-    border-radius: 9px !important;
-}
-
-section[data-testid="stSidebar"] [data-baseweb="select"] span {
-    color: #10234b !important;
-    -webkit-text-fill-color: #10234b !important;
-    font-weight: 800 !important;
-}
-
-/* ลูกศร Dropdown */
-section[data-testid="stSidebar"] [data-baseweb="select"] svg {
-    fill: #174477 !important;
-}
-
-/* Placeholder */
-section[data-testid="stSidebar"] input::placeholder {
-    color: #64748b !important;
-    -webkit-text-fill-color: #64748b !important;
-}
-
-/* ช่องเวลา */
-section[data-testid="stSidebar"] [data-testid="stTimeInput"] input {
-    background: #ffffff !important;
-    color: #10234b !important;
-    -webkit-text-fill-color: #10234b !important;
-    font-weight: 800 !important;
-}
-
-/* ช่องหมายเหตุ */
-section[data-testid="stSidebar"] [data-testid="stTextInput"] input {
-    background: #ffffff !important;
-    color: #10234b !important;
-    -webkit-text-fill-color: #10234b !important;
-}
-
-/* ปุ่ม */
-section[data-testid="stSidebar"] button {
-    font-weight: 800 !important;
-    border-radius: 9px !important;
-}
-
-/* Checkbox */
-section[data-testid="stSidebar"] [data-testid="stCheckbox"] label {
-    color: #ffffff !important;
-    font-weight: 700 !important;
-}
-
-/* ขอบแบ่งเมนู */
-section[data-testid="stSidebar"] hr {
-    border-color: #5b9bd5 !important;
-}
-
+@media print { section[data-testid="stSidebar"],button,.stDownloadButton {display:none!important;} .stApp {background:#fff!important;} }
 </style>
 """, unsafe_allow_html=True)
-
 
 # ---------------------- Utilities ----------------------
 def norm_name(value):
@@ -457,7 +156,7 @@ def init_db():
         """)
 
 def get_window_time(vendor_id):
-    """Return a saved supplier window time, or a setup hint when not found."""
+    """Return the stored supplier window or a manual setup prompt."""
     v_id = str(vendor_id).strip()
     with sqlite3.connect(DB_PATH) as con:
         row = con.execute(
@@ -466,11 +165,7 @@ def get_window_time(vendor_id):
         ).fetchone()
     if row:
         return {"vendor_name": row[0], "window_time": row[1]}
-    return {
-        "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
-        "window_time": "N/A",
-    }
-
+    return {"vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)", "window_time": "N/A"}
 def save_postpone(date_key, incoming, outgoing, note):
     with sqlite3.connect(DB_PATH) as con:
         con.execute("""
@@ -521,16 +216,6 @@ with st.sidebar:
     with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
         rp01_upload = st.file_uploader(
             "ไฟล์ประมาณการหลัก · RP01", type=["xlsx", "xls"], key="rp01_side",
-    st.markdown("### 📂 1 · ไฟล์ข้อมูล")
-    rp01_upload = st.file_uploader("ไฟล์ประมาณการหลัก · RP01", type=["xlsx","xls"], key="rp01_side", help="รองรับ Excel .xlsx และ .xls")
-    if rp01_upload is not None:
-        try:
-            with open(RP01_PATH, "wb") as f:
-                f.write(rp01_upload.getvalue())
-            st.success("อัปโหลด RP01 สำเร็จ")
-            st.cache_data.clear()
-        except Exception as e:
-            st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
             help="รองรับไฟล์ Excel .xlsx และ .xls"
         )
         if rp01_upload is not None:
@@ -542,28 +227,7 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
-    # Expander bodies execute on every Streamlit rerun even when visually collapsed.
-    st.markdown("---")
-    st.markdown("### 📅 2 · วันที่รายงาน")
-    raw_df = pd.DataFrame()
-    df = pd.DataFrame()
-    selected_date = dt.date.today()
-    if os.path.exists(RP01_PATH):
-        try:
-            with open(RP01_PATH, "rb") as f:
-                raw_bytes = f.read()
-            raw_df = read_rp01(raw_bytes)
-            delivery_col = find_col(raw_df, ["Delivery Date"], contains=["deliverydate"])
-            if delivery_col:
-                parsed = pd.to_datetime(raw_df[delivery_col], errors="coerce", dayfirst=True)
-                date_values = sorted(parsed.dropna().dt.date.unique())
-                if date_values:
-                    selected_date = st.selectbox(
-                        "เลือกวันที่", date_values, index=len(date_values)-1,
-                        format_func=fmt_date
-                    )
-                    df = raw_df.loc[parsed.dt.date == selected_date].copy()
-    # Keep data preparation here so the dashboard always has df and selected_date.
+    # Expander contents run on every Streamlit rerun; data preparation stays available when collapsed.
     with st.expander("📅 วันที่รายงาน", expanded=False):
         raw_df = pd.DataFrame()
         df = pd.DataFrame()
@@ -588,13 +252,6 @@ with st.sidebar:
                 else:
                     st.caption("ไม่พบ Delivery Date จึงแสดงข้อมูลทั้งหมด")
                     df = raw_df.copy()
-            else:
-                st.caption("ไม่พบ Delivery Date จึงแสดงข้อมูลทั้งหมด")
-                df = raw_df.copy()
-        except Exception as e:
-            st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
-    else:
-        st.info("ยังไม่มีไฟล์ RP01")
             except Exception as e:
                 st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
         else:
@@ -602,22 +259,6 @@ with st.sidebar:
 
     with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
         status_filter = st.selectbox(
-    st.markdown("---")
-    st.markdown("### 🏷️ 3 · ตัวกรองข้อมูล")
-    status_filter = st.selectbox("ประเภท Supplier", ["ทั้งหมด","STAMP","CARD","COINS"], help="เลือกดู Supplier ตามประเภท")
-    use_time = st.checkbox("⏰ กรองตามช่วงเวลา", value=False)
-    start_time, end_time = dt.time(2,0), dt.time(5,0)
-    if use_time:
-        tc1, tc2 = st.columns(2)
-        with tc1:
-            start_time = st.time_input("ตั้งแต่", value=dt.time(2,0))
-        with tc2:
-            end_time = st.time_input("ถึง", value=dt.time(5,0))
-        time_col = find_col(df, contains=["time","slot"])
-        if time_col:
-            parsed_time = pd.to_datetime(df[time_col].astype(str), errors="coerce").dt.time
-            if start_time <= end_time:
-                df = df.loc[parsed_time.between(start_time,end_time)].copy()
             "ประเภท Supplier", ["ทั้งหมด", "STAMP", "CARD", "COINS"],
             help="เลือกดู Supplier ตามประเภท"
         )
@@ -637,26 +278,8 @@ with st.sidebar:
                 else:
                     df = df.loc[(parsed_time >= start_time) | (parsed_time <= end_time)].copy()
             else:
-                df = df.loc[(parsed_time >= start_time) | (parsed_time <= end_time)].copy()
-        else:
-            st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
                 st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
 
-    st.markdown("---")
-    st.markdown("### ⏳ 4 · งานเลื่อนส่ง")
-    with st.form("postpone_form", clear_on_submit=False):
-        postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
-        p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
-        p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
-        p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
-        save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
-    if save_btn:
-        if p_in == 0 and p_out == 0:
-            st.warning("กรุณาระบุยอดเลื่อนเข้า หรือเลื่อนออก")
-        else:
-            save_postpone(str(postpone_date), p_in, p_out, p_note)
-            st.success("บันทึกข้อมูลแล้ว")
-    postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
     with st.expander("⏳ งานเลื่อนส่ง", expanded=False):
         with st.form("postpone_form", clear_on_submit=False):
             postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
@@ -671,8 +294,6 @@ with st.sidebar:
                 save_postpone(str(postpone_date), p_in, p_out, p_note)
                 st.success("บันทึกข้อมูลแล้ว")
         postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
-    # ซ่อนแถบสรุปงานเลื่อนส่งใต้ฟอร์มตามคำขอ
-
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
 <div class="hero">
@@ -955,10 +576,6 @@ with c3:
               help="กด Ctrl+P หรือเลือก Print จากเบราว์เซอร์ แล้วเลือก Save as PDF")
     st.caption("ใช้ Ctrl + P แล้วเลือก Save as PDF")
 st.caption("หมายเหตุ: การจัดสรรยอดกะดึก/กะเช้ายังคงใช้อัตราส่วนเป้าหมาย 3,879 : 1,663 ตามโค้ดเดิม")
-
-import sqlite3
-import streamlit as st
-
 st.subheader("⚙️ จัดการ Window Time สำหรับ New Supplier (Manual Setup)")
 
 # ช่องกรอกข้อมูลสำหรับเพิ่มหรืออแก้ไข Window Time ของ Supplier ใหม่
@@ -989,25 +606,3 @@ with st.form("manual_window_form"):
       )
     st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว!")
     st.rerun()
-    def get_window_time(vendor_id):
-      """ค้นหา Window Time ของ Supplier จากรหัส
-
-      หากไม่พบในระบบ จะคืนค่าเป็น N/A เพื่อให้เจ้าหน้าที่ตั้งค่าแบบ Manual
-      """
-      v_id = str(vendor_id).strip()
-      with sqlite3.connect(DB_PATH) as con:
-        cursor = con.cursor()
-        cursor.execute(
-            "SELECT vendor_name, window_time FROM vendor_window_time WHERE"
-            " vendor_id = ?",
-            (v_id,),
-        )
-        row = cursor.fetchone()
-        if row:
-          return {"vendor_name": row[0], "window_time": row[1]}
-        else:
-          # หากเป็น New Supplier ที่ไม่มีในระบบ จะแสดงผลเป็น N/A ทันที
-          return {
-              "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
-              "window_time": "N/A",
-          }  
