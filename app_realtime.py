@@ -36,61 +36,60 @@ footer { visibility:hidden; }
 section[data-testid="stSidebar"] {
   background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%);
   border-right:1px solid #48baff;
+}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
+  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
+  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
+}
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
+  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
+section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
+section[data-testid="stSidebar"] [data-testid="stForm"] {
+  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
 section[data-testid="stSidebar"] {
   background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%);
   border-right:1px solid #48baff;
-}
-section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
-  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
-  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
-  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
-  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
-}
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
-section[data-testid="stSidebar"] [data-testid="stExpander"] {
-  margin: .16rem 0;
-  border: 1px solid rgba(125,211,252,.35) !important;
-  border-left: 3px solid #38bdf8 !important;
-  border-radius: 11px !important;
-  background: rgba(255,255,255,.055) !important;
-}
-section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
-  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
-  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
-  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
-section[data-testid="stSidebar"] [data-testid="stExpander"] summary {
-  padding: .62rem .72rem !important;
-  font-weight: 800 !important;
-}
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
-  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
-section[data-testid="stSidebar"] [data-testid="stExpander"] details[open] {
-  background: rgba(255,255,255,.08) !important;
-}
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
-section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
-section[data-testid="stSidebar"] [data-testid="stForm"] {
-  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
-section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-  padding: .15rem .7rem .7rem !important;
-}
-section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
-section[data-testid="stSidebar"] [data-testid="stForm"] {
-  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
 }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
   color:#fff !important; font-weight:800 !important;
 }
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+  margin:.3rem 0 .65rem!important;padding:.65rem .75rem;
+  border:1px solid rgba(125,211,252,.24);border-left:4px solid #38bdf8;
+  border-radius:10px;background:rgba(255,255,255,.08);font-size:.98rem!important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] {
+  margin:.16rem 0;border:1px solid rgba(125,211,252,.35)!important;
+  border-left:3px solid #38bdf8!important;border-radius:11px!important;
+  background:rgba(255,255,255,.055)!important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+  padding:.62rem .72rem!important;font-weight:800!important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+  padding:.15rem .7rem .7rem!important;
+}
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+  padding:.45rem .55rem .15rem;margin:.25rem 0 .65rem;
+  border:1px solid rgba(125,211,252,.28);border-radius:12px;background:rgba(255,255,255,.07);
+}
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {
   background:#f4f9ff !important; border:2px dashed #42b8ff !important; border-radius:12px;
+  background:#f4f9ff!important;border:2px dashed #42b8ff!important;border-radius:12px;
 }
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#174477 !important; }
 .hero {
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * {color:#174477!important;}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap:.65rem;}
+section[data-testid="stSidebar"] [data-testid="stAlert"] {border-radius:10px;}
+section[data-testid="stSidebar"] [data-testid="stForm"] {
+  padding:.75rem;border:1px solid rgba(125,211,252,.3);border-radius:12px;background:rgba(3,24,55,.34);
+}.hero {
   background:linear-gradient(105deg,#062e72 0%,#075ed0 62%,#8bc8f6 100%);
   border:1px solid #b7d9ff; border-radius:16px; padding:19px 25px;
   color:white; box-shadow:0 7px 18px #164b8a35; margin-bottom:15px;
@@ -448,6 +447,29 @@ def init_db():
             updated_at TEXT NOT NULL
         )
         """)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS vendor_window_time (
+            vendor_id TEXT PRIMARY KEY,
+            vendor_name TEXT NOT NULL DEFAULT '',
+            window_time TEXT NOT NULL DEFAULT '00:00:00',
+            updated_at TEXT NOT NULL
+        )
+        """)
+
+def get_window_time(vendor_id):
+    """Return a saved supplier window time, or a setup hint when not found."""
+    v_id = str(vendor_id).strip()
+    with sqlite3.connect(DB_PATH) as con:
+        row = con.execute(
+            "SELECT vendor_name, window_time FROM vendor_window_time WHERE vendor_id = ?",
+            (v_id,),
+        ).fetchone()
+    if row:
+        return {"vendor_name": row[0], "window_time": row[1]}
+    return {
+        "vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)",
+        "window_time": "N/A",
+    }
 
 def save_postpone(date_key, incoming, outgoing, note):
     with sqlite3.connect(DB_PATH) as con:
@@ -496,6 +518,9 @@ with st.sidebar:
     </div><hr>
     """, unsafe_allow_html=True)
 
+    with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
+        rp01_upload = st.file_uploader(
+            "ไฟล์ประมาณการหลัก · RP01", type=["xlsx", "xls"], key="rp01_side",
     st.markdown("### 📂 1 · ไฟล์ข้อมูล")
     rp01_upload = st.file_uploader("ไฟล์ประมาณการหลัก · RP01", type=["xlsx","xls"], key="rp01_side", help="รองรับ Excel .xlsx และ .xls")
     if rp01_upload is not None:
@@ -506,7 +531,18 @@ with st.sidebar:
             st.cache_data.clear()
         except Exception as e:
             st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
+            help="รองรับไฟล์ Excel .xlsx และ .xls"
+        )
+        if rp01_upload is not None:
+            try:
+                with open(RP01_PATH, "wb") as f:
+                    f.write(rp01_upload.getvalue())
+                st.success("อัปโหลด RP01 สำเร็จ")
+                st.cache_data.clear()
+            except Exception as e:
+                st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
+    # Expander bodies execute on every Streamlit rerun even when visually collapsed.
     st.markdown("---")
     st.markdown("### 📅 2 · วันที่รายงาน")
     raw_df = pd.DataFrame()
@@ -527,17 +563,7 @@ with st.sidebar:
                         format_func=fmt_date
                     )
                     df = raw_df.loc[parsed.dt.date == selected_date].copy()
-    with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
-        rp01_upload = st.file_uploader("ไฟล์ประมาณการหลัก · RP01", type=["xlsx","xls"], key="rp01_side", help="รองรับ Excel .xlsx และ .xls")
-        if rp01_upload is not None:
-            try:
-                with open(RP01_PATH, "wb") as f:
-                    f.write(rp01_upload.getvalue())
-                st.success("อัปโหลด RP01 สำเร็จ")
-                st.cache_data.clear()
-            except Exception as e:
-                st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
-    
+    # Keep data preparation here so the dashboard always has df and selected_date.
     with st.expander("📅 วันที่รายงาน", expanded=False):
         raw_df = pd.DataFrame()
         df = pd.DataFrame()
@@ -553,7 +579,7 @@ with st.sidebar:
                     date_values = sorted(parsed.dropna().dt.date.unique())
                     if date_values:
                         selected_date = st.selectbox(
-                            "เลือกวันที่", date_values, index=len(date_values)-1,
+                            "เลือกวันที่", date_values, index=len(date_values) - 1,
                             format_func=fmt_date
                         )
                         df = raw_df.loc[parsed.dt.date == selected_date].copy()
@@ -562,28 +588,6 @@ with st.sidebar:
                 else:
                     st.caption("ไม่พบ Delivery Date จึงแสดงข้อมูลทั้งหมด")
                     df = raw_df.copy()
-            except Exception as e:
-                st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
-        else:
-            st.info("ยังไม่มีไฟล์ RP01")
-    
-    with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
-        status_filter = st.selectbox("ประเภท Supplier", ["ทั้งหมด","STAMP","CARD","COINS"], help="เลือกดู Supplier ตามประเภท")
-        use_time = st.checkbox("⏰ กรองตามช่วงเวลา", value=False)
-        start_time, end_time = dt.time(2,0), dt.time(5,0)
-        if use_time:
-            tc1, tc2 = st.columns(2)
-            with tc1:
-                start_time = st.time_input("ตั้งแต่", value=dt.time(2,0))
-            with tc2:
-                end_time = st.time_input("ถึง", value=dt.time(5,0))
-            time_col = find_col(df, contains=["time","slot"])
-            if time_col:
-                parsed_time = pd.to_datetime(df[time_col].astype(str), errors="coerce").dt.time
-                if start_time <= end_time:
-                    df = df.loc[parsed_time.between(start_time,end_time)].copy()
-                else:
-                    df = df.loc[(parsed_time >= start_time) | (parsed_time <= end_time)].copy()
             else:
                 st.caption("ไม่พบ Delivery Date จึงแสดงข้อมูลทั้งหมด")
                 df = raw_df.copy()
@@ -591,7 +595,13 @@ with st.sidebar:
             st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
     else:
         st.info("ยังไม่มีไฟล์ RP01")
+            except Exception as e:
+                st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
+        else:
+            st.info("ยังไม่มีไฟล์ RP01")
 
+    with st.expander("🏷️ ตัวกรองข้อมูล", expanded=False):
+        status_filter = st.selectbox(
     st.markdown("---")
     st.markdown("### 🏷️ 3 · ตัวกรองข้อมูล")
     status_filter = st.selectbox("ประเภท Supplier", ["ทั้งหมด","STAMP","CARD","COINS"], help="เลือกดู Supplier ตามประเภท")
@@ -608,22 +618,29 @@ with st.sidebar:
             parsed_time = pd.to_datetime(df[time_col].astype(str), errors="coerce").dt.time
             if start_time <= end_time:
                 df = df.loc[parsed_time.between(start_time,end_time)].copy()
-                st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
-    
-    with st.expander("⏳ งานเลื่อนส่ง", expanded=False):
-        with st.form("postpone_form", clear_on_submit=False):
-            postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
-            p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
-            p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
-            p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
-            save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
-        if save_btn:
-            if p_in == 0 and p_out == 0:
-                st.warning("กรุณาระบุยอดเลื่อนเข้า หรือเลื่อนออก")
+            "ประเภท Supplier", ["ทั้งหมด", "STAMP", "CARD", "COINS"],
+            help="เลือกดู Supplier ตามประเภท"
+        )
+        use_time = st.checkbox("⏰ กรองตามช่วงเวลา", value=False)
+        start_time, end_time = dt.time(2, 0), dt.time(5, 0)
+        if use_time:
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                start_time = st.time_input("ตั้งแต่", value=dt.time(2, 0))
+            with tc2:
+                end_time = st.time_input("ถึง", value=dt.time(5, 0))
+            time_col = find_col(df, contains=["time", "slot"])
+            if time_col:
+                parsed_time = pd.to_datetime(df[time_col].astype(str), errors="coerce").dt.time
+                if start_time <= end_time:
+                    df = df.loc[parsed_time.between(start_time, end_time)].copy()
+                else:
+                    df = df.loc[(parsed_time >= start_time) | (parsed_time <= end_time)].copy()
             else:
                 df = df.loc[(parsed_time >= start_time) | (parsed_time <= end_time)].copy()
         else:
             st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
+                st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
 
     st.markdown("---")
     st.markdown("### ⏳ 4 · งานเลื่อนส่ง")
@@ -640,13 +657,22 @@ with st.sidebar:
             save_postpone(str(postpone_date), p_in, p_out, p_note)
             st.success("บันทึกข้อมูลแล้ว")
     postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
-    # ซ่อนแถบสรุปงานเลื่อนส่งใต้ฟอร์มตามคำขอ
-
+    with st.expander("⏳ งานเลื่อนส่ง", expanded=False):
+        with st.form("postpone_form", clear_on_submit=False):
+            postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
+            p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
+            p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
+            p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
+            save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
+        if save_btn:
+            if p_in == 0 and p_out == 0:
+                st.warning("กรุณาระบุยอดเลื่อนเข้า หรือเลื่อนออก")
+            else:
                 save_postpone(str(postpone_date), p_in, p_out, p_note)
                 st.success("บันทึกข้อมูลแล้ว")
         postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
-        # ซ่อนแถบสรุปงานเลื่อนส่งใต้ฟอร์มตามคำขอ
-    
+    # ซ่อนแถบสรุปงานเลื่อนส่งใต้ฟอร์มตามคำขอ
+
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
 <div class="hero">
