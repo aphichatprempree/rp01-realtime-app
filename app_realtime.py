@@ -240,7 +240,7 @@ with st.sidebar:
                 st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
 
     # Expander contents run on every Streamlit rerun; data preparation stays available when collapsed.
-    with st.expander("📅 วันที่รายงาน", expanded=False):
+    with st.expander("📅 Date", expanded=False):
         raw_df = pd.DataFrame()
         df = pd.DataFrame()
         selected_date = dt.date.today()
@@ -492,7 +492,7 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-with st.sidebar.expander("✅ ตรวจสอบ Ti และ Hi", expanded=False):
+with st.sidebar.expander("✅ Checking Ti & Hi", expanded=False):
     if ti_col and hi_col:
         ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
         alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
@@ -505,7 +505,7 @@ with st.sidebar.expander("✅ ตรวจสอบ Ti และ Hi", expanded=F
     else:
         st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01")
 # RP03 out-of-cycle comparison
-with st.sidebar.expander("🔎 ตรวจสอบงาน RP03", expanded=False):
+with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)", expanded=False):
     rp03_upload = st.file_uploader(
         "อัปโหลด RP03 (Goods Receive Note Summary Report)",
         type=["xlsx", "xls", "csv"], key="rp03_upload"
@@ -544,7 +544,7 @@ with st.sidebar.expander("🔎 ตรวจสอบงาน RP03", expanded=Fa
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ ตั้งค่า Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ Checking Window Time Supplier", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
