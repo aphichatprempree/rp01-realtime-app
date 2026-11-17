@@ -35,6 +35,18 @@ header[data-testid="stHeader"] { background:transparent; }
 footer { visibility:hidden; }
 section[data-testid="stSidebar"] { background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%); border-right:1px solid #48baff; }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
+/* Keep text readable inside light cards rendered in the dark sidebar. */
+section[data-testid="stSidebar"] [data-testid="stMetric"] { background:#fff!important; }
+section[data-testid="stSidebar"] [data-testid="stMetric"] *,
+section[data-testid="stSidebar"] [data-testid="stMetricLabel"],
+section[data-testid="stSidebar"] [data-testid="stMetricValue"],
+section[data-testid="stSidebar"] [data-testid="stMetricDelta"] { color:#10234b!important; -webkit-text-fill-color:#10234b!important; }
+section[data-testid="stSidebar"] .stButton button,
+section[data-testid="stSidebar"] .stDownloadButton button { background:#fff!important; color:#10234b!important; -webkit-text-fill-color:#10234b!important; border:1px solid #b8cce3!important; }
+section[data-testid="stSidebar"] .stButton button *,
+section[data-testid="stSidebar"] .stDownloadButton button * { color:#10234b!important; -webkit-text-fill-color:#10234b!important; }
+section[data-testid="stSidebar"] [data-testid="stDataFrame"] { background:#fff!important; }
+section[data-testid="stSidebar"] [data-testid="stDataFrame"] * { color:#10234b!important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#fff !important; font-weight:800 !important; }
 section[data-testid="stSidebar"] [data-testid="stExpander"] { margin:.16rem 0; border:1px solid rgba(125,211,252,.35)!important; border-left:3px solid #38bdf8!important; border-radius:11px!important; background:rgba(255,255,255,.055)!important; }
 section[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding:.62rem .72rem!important; font-weight:800!important; }
@@ -480,7 +492,7 @@ else:
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
-with st.sidebar.expander("✅ ตรวจสอบ Ti และ Hi", expanded=False):
+with st.sidebar.expander("✅ 5 · ตรวจสอบ Ti และ Hi", expanded=False):
     if ti_col and hi_col:
         ti_num, hi_num = to_num(df[ti_col]), to_num(df[hi_col])
         alert = df.loc[(ti_num == 1) & (hi_num == 1)].copy()
@@ -493,7 +505,7 @@ with st.sidebar.expander("✅ ตรวจสอบ Ti และ Hi", expanded=F
     else:
         st.info("ไม่พบคอลัมน์ Ti และ/หรือ Hi ใน RP01")
 # RP03 out-of-cycle comparison
-with st.sidebar.expander("🔎 ตรวจสอบงาน RP03", expanded=False):
+with st.sidebar.expander("🔎 6 · ตรวจสอบงาน RP03", expanded=False):
     rp03_upload = st.file_uploader(
         "อัปโหลด RP03 (Goods Receive Note Summary Report)",
         type=["xlsx", "xls", "csv"], key="rp03_upload"
@@ -532,7 +544,7 @@ with st.sidebar.expander("🔎 ตรวจสอบงาน RP03", expanded=Fa
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ ตั้งค่า Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
