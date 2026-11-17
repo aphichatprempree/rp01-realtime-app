@@ -532,7 +532,7 @@ with st.sidebar.expander("🔎 6 · ตรวจสอบงาน RP03", expand
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
+with st.sidebar.expander("⚙️ 7 · ตั้งค่า Window Time Supplier", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
