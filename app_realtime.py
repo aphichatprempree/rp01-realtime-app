@@ -53,7 +53,7 @@ section[data-testid="stSidebar"] [data-testid="stForm"] {
 }
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
-  color:#000000 !important; font-weight:800 !important;
+  color:#fff !important; font-weight:800 !important;
 }
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section {
   background:#f4f9ff !important; border:2px dashed #42b8ff !important; border-radius:12px;
@@ -542,7 +542,7 @@ with st.sidebar:
             save_postpone(str(postpone_date), p_in, p_out, p_note)
             st.success("บันทึกข้อมูลแล้ว")
     postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
-    st.info(f"วันที่ {fmt_date(selected_date)} | เข้า +{postpone_in:,.0f} | ออก -{postpone_out:,.0f}")
+    # ซ่อนแถบสรุปงานเลื่อนส่งใต้ฟอร์มตามคำขอ
 
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
@@ -634,6 +634,12 @@ for i,(icon,label,value,note) in enumerate(kpis):
         f'<div class="kpi-value">{value}</div><div class="kpi-note">{html.escape(note)}</div></div>',
         unsafe_allow_html=True
     )
+
+if postpone_in or postpone_out:
+    st.warning(f"⚠️ มีการปรับแผนเลื่อนส่ง: เข้า +{postpone_in:,.0f} พาเลท | ออก -{postpone_out:,.0f} พาเลท"
+               + (f" | หมายเหตุ: {postpone_note}" if postpone_note else ""))
+else:
+    st.caption("ℹ️ แสดงยอดพาเลทตามแผนปกติ ไม่มีการปรับเลื่อนส่งในวันที่เลือก")
 
 # DCSBx and DCSB tables
 st.markdown('<div class="panel"><div class="panel-head">📊 DCSBx / DCSB — สรุปแยกประเภทพื้นที่จัดเก็บ</div><div class="panel-body">', unsafe_allow_html=True)
