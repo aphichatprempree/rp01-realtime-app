@@ -225,7 +225,7 @@ with st.sidebar:
     </div><hr>
     """, unsafe_allow_html=True)
 
-    with st.expander("📂 ไฟล์ข้อมูล", expanded=False):
+    with st.expander("📂 IMPORT RP01", expanded=False):
         rp01_upload = st.file_uploader(
             "ไฟล์ประมาณการหลัก · RP01", type=["xlsx", "xls"], key="rp01_side",
             help="รองรับไฟล์ Excel .xlsx และ .xls"
