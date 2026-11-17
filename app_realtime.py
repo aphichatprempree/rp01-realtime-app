@@ -532,39 +532,6 @@ with st.sidebar.expander("🔎 6 · ตรวจสอบงาน RP03", expand
             st.error(f"ประมวลผล RP03 ไม่สำเร็จ: {e}")
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
-# Grand total and export controls
-with st.sidebar.expander("📥 7 · ยอดรวมและดาวน์โหลด", expanded=False):
-    st.metric("GRAND TOTAL (NET PALLETS)", f"{total_pallets:,.0f}", f"UOM Qty: {total_uom:,.0f}")
-    summary = pd.DataFrame([{
-        "Date": fmt_date(selected_date), "Total Sup.": total_sup, "Item": total_item,
-        "UOM Qty": total_uom, "Net Pallets": total_pallets,
-        "Postpone In": postpone_in, "Postpone Out": postpone_out
-    }])
-    vendor_export = pd.DataFrame()
-    if vendor_id_col:
-        export_cols = [c for c in [vendor_id_col, vendor_name_col, po_col, item_col, pallet_col, uom_col] if c]
-        vendor_export = df[export_cols].copy()
-    st.download_button(
-        "📗 ดาวน์โหลดตารางสรุป (CSV)", summary.to_csv(index=False).encode("utf-8-sig"),
-        f"RP01_Summary_{selected_date}.csv", "text/csv", use_container_width=True
-    )
-    xout = io.BytesIO()
-    with pd.ExcelWriter(xout, engine="openpyxl") as writer:
-        summary.to_excel(writer, index=False, sheet_name="Summary")
-        dcsbx_table.to_excel(writer, index=False, sheet_name="DCSBx")
-        dcsb_table.to_excel(writer, index=False, sheet_name="DCSB")
-        vendor_export.to_excel(writer, index=False, sheet_name="RP01_Detail")
-    st.download_button(
-        "📘 ดาวน์โหลดรายงาน Excel", xout.getvalue(), f"RP01_Report_{selected_date}.xlsx",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
-    )
-    st.button(
-        "🖨️ พิมพ์ / บันทึก PDF", use_container_width=True,
-        help="กด Ctrl+P หรือเลือก Print จากเบราว์เซอร์ แล้วเลือก Save as PDF"
-    )
-    st.caption("ใช้ Ctrl + P แล้วเลือก Save as PDF")
-    st.caption("หมายเหตุ: การจัดสรรยอดกะดึก/กะเช้ายังคงใช้อัตราส่วน 3,879 : 1,663 ตามโค้ดเดิม")
 with st.sidebar.expander("⚙️ 8 · ตั้งค่า Window Time Supplier", expanded=False):
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
