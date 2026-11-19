@@ -126,6 +126,21 @@ def clean_po(series):
 def to_num(series):
     return pd.to_numeric(series.astype(str).str.replace(",", "", regex=False), errors="coerce").fillna(0)
 
+def parse_rp01_time(value):
+    """Convert RP01 Excel/text time values to minutes after midnight."""
+    if pd.isna(value):
+        return float("nan")
+    if isinstance(value, dt.datetime):
+        value = value.time()
+    if isinstance(value, dt.time):
+        return value.hour * 60 + value.minute + value.second / 60
+    if isinstance(value, (int, float)) and 0 <= float(value) < 1:
+        return float(value) * 24 * 60
+    parsed = pd.to_datetime(str(value).strip(), errors="coerce")
+    if pd.isna(parsed):
+        return float("nan")
+    return parsed.hour * 60 + parsed.minute + parsed.second / 60
+
 @st.cache_data(show_spinner=False)
 def read_rp01(file_bytes):
     xls = pd.ExcelFile(io.BytesIO(file_bytes))
@@ -347,14 +362,25 @@ total_uom = float(df["_UOM"].sum())
 raw_pallets = float(df["_PALLETS"].sum())
 total_pallets = max(0.0, raw_pallets + float(postpone_in) - float(postpone_out))
 
-# Keep original allocation ratio from the supplied application.
-night_target, morning_target = 3879, 1663
-night_ratio = night_target / (night_target + morning_target)
-night_pallets = round(total_pallets * night_ratio, 2)
-morning_pallets = round(total_pallets - night_pallets, 2)
-night_po = round(df["_PO"].replace("", pd.NA).nunique() * night_ratio)
-total_po = int(df["_PO"].replace("", pd.NA).nunique())
-morning_po = total_po - night_po
+# Assign actual RP01 records to shifts using the time/slot column.
+# Night: 18:00-06:00 (crosses midnight); morning: 07:00-18:00.
+# The 06:00-07:00 gap remains in the daily total but is not assigned to either shift.
+shift_time_col = find_col(df, contains=["time", "slot"])
+valid_po = df["_PO"].replace("", pd.NA)
+total_po = int(valid_po.nunique())
+if shift_time_col:
+    df["_TIME_MINUTES"] = df[shift_time_col].map(parse_rp01_time)
+    shift_minutes = df["_TIME_MINUTES"]
+    night_mask = (shift_minutes >= 18 * 60) | (shift_minutes < 6 * 60)
+    morning_mask = (shift_minutes >= 7 * 60) & (shift_minutes < 18 * 60)
+    night_pallets = round(float(df.loc[night_mask, "_PALLETS"].sum()), 2)
+    morning_pallets = round(float(df.loc[morning_mask, "_PALLETS"].sum()), 2)
+    night_po = int(df.loc[night_mask, "_PO"].replace("", pd.NA).nunique())
+    morning_po = int(df.loc[morning_mask, "_PO"].replace("", pd.NA).nunique())
+else:
+    night_pallets = morning_pallets = 0.0
+    night_po = morning_po = 0
+    st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01 จึงคำนวณยอดแยกกะไม่ได้")
 night_pct = night_pallets / total_pallets * 100 if total_pallets else 0
 morning_pct = morning_pallets / total_pallets * 100 if total_pallets else 0
 
@@ -385,8 +411,8 @@ kpis = [
     ("🛢️","UOM Qty",f"{total_uom:,.0f}",""),
     ("🪵","Net Pallets",f"{total_pallets:,.0f}",f"ปรับเข้า +{postpone_in:,.0f} / ออก -{postpone_out:,.0f}"),
     ("📋","PO รวมทั้งหมด",f"{total_po:,}",f"กะดึก {night_po:,} + กะเช้า {morning_po:,} PO"),
-    ("🌙","กะดึก (05:00-17:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
-    ("☀️","กะเช้า (17:00-05:00)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
+    ("🌙","กะดึก (18:00-06:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
+    ("☀️","กะเช้า (07:00-18:00)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
 ]
 cols = st.columns(7)
 for i,(icon,label,value,note) in enumerate(kpis):
