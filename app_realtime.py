@@ -141,6 +141,26 @@ def parse_rp01_time(value):
         return float("nan")
     return parsed.hour * 60 + parsed.minute + parsed.second / 60
 
+def shift_label(minutes):
+    """Night 18:00-06:00 (crosses midnight), morning 07:00-18:00. 06:00-07:00 is outside both shifts."""
+    if pd.isna(minutes):
+        return "ไม่ระบุเวลา"
+    if minutes >= 18 * 60 or minutes < 6 * 60:
+        return "🌙 กะดึก"
+    if 7 * 60 <= minutes < 18 * 60:
+        return "☀️ กะเช้า"
+    return "นอกกะ (06:00-07:00)"
+
+def minutes_to_hms(minutes):
+    if pd.isna(minutes):
+        return "N/A"
+    total = int(round(minutes * 60))
+    return f"{total // 3600 % 24:02d}:{total % 3600 // 60:02d}:{total % 60:02d}"
+
+def night_first_order(minutes):
+    """Sort key so the night shift runs 18:00 -> 06:00 in order, then the morning shift."""
+    return (minutes - 18 * 60) % (24 * 60)
+
 @st.cache_data(show_spinner=False)
 def read_rp01(file_bytes):
     xls = pd.ExcelFile(io.BytesIO(file_bytes))
@@ -571,6 +591,41 @@ with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)
     else:
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
 with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
+    # Window time comes from the RP01 time/slot column (per vendor), split by shift.
+    # Night 18:00-06:00 | Morning 07:00-18:00
+    if vendor_id_col and shift_time_col:
+        wt = df[[vendor_id_col, "_TIME_MINUTES"]].copy()
+        wt["Vendor ID"] = clean_po(wt[vendor_id_col])
+        wt = wt[(wt["Vendor ID"] != "") & wt["_TIME_MINUTES"].notna()]
+        if wt.empty:
+            st.info("ไม่พบเวลา Window ใน RP01 ของวันที่เลือก")
+        else:
+            wt["_ORDER"] = wt["_TIME_MINUTES"].map(night_first_order)
+            first = wt.sort_values("_ORDER").groupby("Vendor ID", as_index=False).first()
+            last = wt.sort_values("_ORDER").groupby("Vendor ID", as_index=False).last()
+            win = first[["Vendor ID", "_TIME_MINUTES", "_ORDER"]].rename(columns={"_TIME_MINUTES": "_FIRST"})
+            win["_LAST"] = last["_TIME_MINUTES"].values
+            if vendor_name_col:
+                names = (df.assign(**{"Vendor ID": clean_po(df[vendor_id_col])})
+                         .drop_duplicates("Vendor ID").set_index("Vendor ID")[vendor_name_col].astype(str))
+                win["Vendor Name"] = win["Vendor ID"].map(names).fillna("")
+            else:
+                win["Vendor Name"] = ""
+            win["Window Time (RP01)"] = win["_FIRST"].map(minutes_to_hms)
+            win["ถึงเวลา"] = win["_LAST"].map(minutes_to_hms)
+            win["กะ"] = win["_FIRST"].map(shift_label)
+            win = win.sort_values("_ORDER")
+            shift_pick = st.selectbox("แสดงกะ", ["ทั้งหมด", "🌙 กะดึก", "☀️ กะเช้า"], key="wt_shift")
+            if shift_pick != "ทั้งหมด":
+                win = win[win["กะ"] == shift_pick]
+            st.dataframe(
+                win[["Vendor ID", "Vendor Name", "Window Time (RP01)", "ถึงเวลา", "กะ"]],
+                use_container_width=True, hide_index=True
+            )
+            st.caption("กะดึก 18:00-06:00 | กะเช้า 07:00-18:00 · เวลาอ้างอิงจากคอลัมน์ Time/Slot ใน RP01")
+    else:
+        st.info("ไม่พบคอลัมน์ Vendor หรือเวลา/Slot ใน RP01")
+    st.markdown("**ตั้งค่า Manual (สำรองกรณี RP01 ไม่มีเวลา)**")
     with st.form("manual_window_form", clear_on_submit=False):
         new_v_id = st.text_input("รหัส Supplier ID")
         new_v_name = st.text_input("ชื่อ Supplier")
