@@ -142,10 +142,10 @@ def parse_rp01_time(value):
     return parsed.hour * 60 + parsed.minute + parsed.second / 60
 
 def shift_label(minutes):
-    """Night 17:00-05:00 (crosses midnight), morning 05:00-17:00. Every time falls in exactly one shift."""
+    """Night 00:00-05:00; morning = everything else (05:00 onward)."""
     if pd.isna(minutes):
         return "ไม่ระบุเวลา"
-    if minutes >= 17 * 60 or minutes < 5 * 60:
+    if minutes < 5 * 60:
         return "🌙 กะดึก"
     return "☀️ กะเช้า"
 
@@ -156,8 +156,8 @@ def minutes_to_hms(minutes):
     return f"{total // 3600 % 24:02d}:{total % 3600 // 60:02d}:{total % 60:02d}"
 
 def night_first_order(minutes):
-    """Sort key so the night shift runs 17:00 -> 05:00 in order, then the morning shift."""
-    return (minutes - 17 * 60) % (24 * 60)
+    """Sort key: plain time of day, so night 00:00-05:00 comes first."""
+    return minutes
 
 @st.cache_data(show_spinner=False)
 def read_rp01(file_bytes):
@@ -381,15 +381,15 @@ raw_pallets = float(df["_PALLETS"].sum())
 total_pallets = max(0.0, raw_pallets + float(postpone_in) - float(postpone_out))
 
 # Assign actual RP01 records to shifts using the time/slot column.
-# Night: 17:00-05:00 (crosses midnight); morning: 05:00-17:00 (no gap between shifts).
+# Night: 00:00-05:00; morning: everything else (including unreadable times).
 shift_time_col = find_col(df, ["Window Time"], contains=["windowtime", "slot"])
 valid_po = df["_PO"].replace("", pd.NA)
 total_po = int(valid_po.nunique())
 if shift_time_col:
     df["_TIME_MINUTES"] = df[shift_time_col].map(parse_rp01_time)
     shift_minutes = df["_TIME_MINUTES"]
-    night_mask = (shift_minutes >= 17 * 60) | (shift_minutes < 5 * 60)
-    morning_mask = (shift_minutes >= 5 * 60) & (shift_minutes < 17 * 60)
+    night_mask = shift_minutes < 5 * 60
+    morning_mask = ~night_mask
     night_pallets = round(float(df.loc[night_mask, "_PALLETS"].sum()), 2)
     morning_pallets = round(float(df.loc[morning_mask, "_PALLETS"].sum()), 2)
     night_po = int(df.loc[night_mask, "_PO"].replace("", pd.NA).nunique())
@@ -428,8 +428,8 @@ kpis = [
     ("🛢️","UOM Qty",f"{total_uom:,.0f}",""),
     ("🪵","Net Pallets",f"{total_pallets:,.0f}",f"ปรับเข้า +{postpone_in:,.0f} / ออก -{postpone_out:,.0f}"),
     ("📋","PO รวมทั้งหมด",f"{total_po:,}",f"กะดึก {night_po:,} + กะเช้า {morning_po:,} PO"),
-    ("🌙","กะดึก (17:00-05:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
-    ("☀️","กะเช้า (05:00-17:00)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
+    ("🌙","กะดึก (00:00-05:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
+    ("☀️","กะเช้า (ที่เหลือทั้งหมด)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
 ]
 cols = st.columns(7)
 for i,(icon,label,value,note) in enumerate(kpis):
@@ -589,7 +589,7 @@ with st.sidebar.expander("🔎 IMPORT RP03(งานรับนอกรอบ)
         st.caption("อัปโหลด RP03 เพื่อเปรียบเทียบ PO และตรวจหารายการที่ไม่มีใน RP01")
 with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
     # Window time comes from the RP01 time/slot column (per vendor), split by shift.
-    # Night 17:00-05:00 | Morning 05:00-17:00
+    # Night 00:00-05:00 | Morning = the rest
     if vendor_id_col and shift_time_col:
         wt = df[[vendor_id_col, "_TIME_MINUTES"]].copy()
         wt["Vendor ID"] = clean_po(wt[vendor_id_col])
@@ -619,7 +619,7 @@ with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
                 win[["Vendor ID", "Vendor Name", "Window Time (RP01)", "ถึงเวลา", "กะ"]],
                 use_container_width=True, hide_index=True
             )
-            st.caption("กะดึก 17:00-05:00 | กะเช้า 05:00-17:00 · เวลาอ้างอิงจากคอลัมน์ Time/Slot ใน RP01")
+            st.caption("กะดึก 00:00-05:00 | กะเช้า ที่เหลือทั้งหมด · เวลาอ้างอิงจากคอลัมน์ Time/Slot ใน RP01")
     else:
         st.info("ไม่พบคอลัมน์ Vendor หรือเวลา/Slot ใน RP01")
     st.markdown("**ตั้งค่า Manual (สำรองกรณี RP01 ไม่มีเวลา)**")
