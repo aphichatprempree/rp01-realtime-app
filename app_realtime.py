@@ -428,8 +428,8 @@ kpis = [
     ("🛢️","UOM Qty",f"{total_uom:,.0f}",""),
     ("🪵","Net Pallets",f"{total_pallets:,.0f}",f"ปรับเข้า +{postpone_in:,.0f} / ออก -{postpone_out:,.0f}"),
     ("📋","PO รวมทั้งหมด",f"{total_po:,}",f"กะดึก {night_po:,} + กะเช้า {morning_po:,} PO"),
-    ("🌙","กะดึก (00:00-05:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
-    ("☀️","กะเช้า (ที่เหลือทั้งหมด)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
+    ("🌙","กะดึก (17:00-05:00)",f"{night_pallets:,.0f}",f"{night_po:,} PO ({night_pct:.1f}%)"),
+    ("☀️","กะเช้า (05:00-17:00)",f"{morning_pallets:,.0f}",f"{morning_po:,} PO ({morning_pct:.1f}%)"),
 ]
 cols = st.columns(7)
 for i,(icon,label,value,note) in enumerate(kpis):
@@ -619,7 +619,7 @@ with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
                 win[["Vendor ID", "Vendor Name", "Window Time (RP01)", "ถึงเวลา", "กะ"]],
                 use_container_width=True, hide_index=True
             )
-            st.caption("กะดึก 00:00-05:00 | กะเช้า ที่เหลือทั้งหมด · เวลาอ้างอิงจากคอลัมน์ Time/Slot ใน RP01")
+            st.caption("กะดึก 17:00-05:00 | กะเช้า 05:00-17:00 · เวลาอ้างอิงจากคอลัมน์ Time/Slot ใน RP01")
     else:
         st.info("ไม่พบคอลัมน์ Vendor หรือเวลา/Slot ใน RP01")
     st.markdown("**ตั้งค่า Manual (สำรองกรณี RP01 ไม่มีเวลา)**")
