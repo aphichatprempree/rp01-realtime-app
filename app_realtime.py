@@ -33,7 +33,29 @@ html, body, [class*="css"], .stApp { font-family:'Prompt',sans-serif !important;
 .block-container { padding-top:1rem !important; padding-bottom:1.5rem !important; max-width:1800px; }
 header[data-testid="stHeader"] { background:transparent; }
 footer { visibility:hidden; }
-section[data-testid="stSidebar"] { background:linear-gradient(180deg,#062958 0%,#0b3b78 58%,#082f60 100%); border-right:1px solid #48baff; }
+/* Sidebar: layered black–navy–white lighting with crisp, dimensional edges */
+section[data-testid="stSidebar"] {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at 8% 3%, rgba(255,255,255,.24) 0%, rgba(150,220,255,.12) 15%, transparent 39%),
+    radial-gradient(ellipse at 98% 22%, rgba(27,139,255,.38) 0%, transparent 35%),
+    radial-gradient(ellipse at 35% 100%, rgba(255,255,255,.12) 0%, transparent 38%),
+    linear-gradient(155deg,#020611 0%,#071a36 27%,#0b3976 58%,#dceeff 100%);
+  border-right:2px solid rgba(191,231,255,.9);
+  box-shadow: inset -10px 0 24px rgba(1,12,31,.58), inset 0 1px 0 rgba(255,255,255,.48), 8px 0 28px rgba(1,18,47,.24);
+}
+section[data-testid="stSidebar"]::before {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.18) 0%,transparent 20%,transparent 70%,rgba(255,255,255,.2) 100%);
+  opacity:.8;
+}
+section[data-testid="stSidebar"]::after {
+  content:""; position:absolute; top:0; right:0; bottom:0; width:2px; pointer-events:none;
+  background:linear-gradient(180deg,#fff 0%,#66d7ff 28%,#1d78ff 58%,#fff 100%);
+  box-shadow:0 0 9px rgba(117,216,255,.9),0 0 20px rgba(42,135,255,.52);
+}
 section[data-testid="stSidebar"] * { color:#f8fbff !important; }
 /* Keep text readable inside light cards rendered in the dark sidebar. */
 section[data-testid="stSidebar"] [data-testid="stMetric"] { background:#fff!important; }
@@ -48,12 +70,13 @@ section[data-testid="stSidebar"] .stDownloadButton button * { color:#10234b!impo
 section[data-testid="stSidebar"] [data-testid="stDataFrame"] { background:#fff!important; }
 section[data-testid="stSidebar"] [data-testid="stDataFrame"] * { color:#10234b!important; }
 section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#fff !important; font-weight:800 !important; }
-section[data-testid="stSidebar"] [data-testid="stExpander"] { margin:.16rem 0; border:1px solid rgba(125,211,252,.35)!important; border-left:3px solid #38bdf8!important; border-radius:11px!important; background:rgba(255,255,255,.055)!important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] { margin:.22rem 0; border:1px solid rgba(211,239,255,.56)!important; border-left:3px solid #71dcff!important; border-radius:12px!important; background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(3,15,36,.48))!important; box-shadow:0 5px 13px rgba(0,7,21,.3),inset 0 1px 0 rgba(255,255,255,.2),inset 0 -2px 5px rgba(0,0,0,.2)!important; backdrop-filter:blur(7px); }
+section[data-testid="stSidebar"] [data-testid="stExpander"]:hover { border-color:#fff!important; box-shadow:0 7px 18px rgba(0,7,21,.38),0 0 12px rgba(106,211,255,.32),inset 0 1px 0 rgba(255,255,255,.36)!important; }
 section[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding:.62rem .72rem!important; font-weight:800!important; }
 section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding:.15rem .7rem .7rem!important; }
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section { background:#f4f9ff!important; border:2px dashed #42b8ff!important; border-radius:12px; }
 section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#174477!important; }
-section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid rgba(125,211,252,.3); border-radius:12px; background:rgba(3,24,55,.34); }
+section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid rgba(221,242,255,.55); border-radius:13px; background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(1,13,34,.58)); box-shadow:0 7px 17px rgba(0,7,21,.34),inset 0 1px 0 rgba(255,255,255,.2); }
 section[data-testid="stSidebar"] input { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:700!important; background:#fff!important; border-radius:9px!important; }
 section[data-testid="stSidebar"] [data-baseweb="select"] > div { background:#fff!important; border-radius:9px!important; }
 section[data-testid="stSidebar"] [data-baseweb="select"] span { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:800!important; }
