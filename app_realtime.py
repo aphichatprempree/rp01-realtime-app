@@ -38,55 +38,90 @@ html, body, [class*="css"], .stApp { font-family:'Prompt',sans-serif !important;
 .block-container { padding-top:1rem !important; padding-bottom:1.5rem !important; max-width:1800px; }
 header[data-testid="stHeader"] { background:transparent; }
 footer { visibility:hidden; }
-/* Sidebar: layered black–navy–white lighting with crisp, dimensional edges */
+/* Sidebar: light blue-grey theme, navy text on white cards, collapsible expanders */
 section[data-testid="stSidebar"] {
-  position:relative;
-  isolation:isolate;
-  overflow:hidden;
-  background:
-    radial-gradient(ellipse at 8% 3%, rgba(255,255,255,.24) 0%, rgba(150,220,255,.12) 15%, transparent 39%),
-    radial-gradient(ellipse at 98% 22%, rgba(27,139,255,.38) 0%, transparent 35%),
-    radial-gradient(ellipse at 35% 100%, rgba(255,255,255,.12) 0%, transparent 38%),
-    linear-gradient(155deg,#020611 0%,#071a36 27%,#0b3976 58%,#dceeff 100%);
-  border-right:2px solid rgba(191,231,255,.9);
-  box-shadow: inset -10px 0 24px rgba(1,12,31,.58), inset 0 1px 0 rgba(255,255,255,.48), 8px 0 28px rgba(1,18,47,.24);
+  background:linear-gradient(180deg,#f3f7fc 0%,#e4edf8 100%);
+  border-right:1px solid #bcd0e8;
+  box-shadow:4px 0 16px rgba(16,35,75,.10);
+  color:#10234b;
 }
-section[data-testid="stSidebar"]::before {
-  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:linear-gradient(115deg,rgba(255,255,255,.18) 0%,transparent 20%,transparent 70%,rgba(255,255,255,.2) 100%);
-  opacity:.8;
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] *,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stCheckbox"] *,
+section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
+  color:#10234b !important; -webkit-text-fill-color:#10234b !important; font-weight:600;
 }
-section[data-testid="stSidebar"]::after {
-  content:""; position:absolute; top:0; right:0; bottom:0; width:2px; pointer-events:none;
-  background:linear-gradient(180deg,#fff 0%,#66d7ff 28%,#1d78ff 58%,#fff 100%);
-  box-shadow:0 0 9px rgba(117,216,255,.9),0 0 20px rgba(42,135,255,.52);
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] { opacity:1 !important; }
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] * { color:#35507a !important; -webkit-text-fill-color:#35507a !important; }
+section[data-testid="stSidebar"] hr { border-color:#b9cfe8; }
+section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button,
+section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] svg { color:#10234b !important; fill:#10234b !important; }
+/* Expanders (kept collapsed by default) */
+section[data-testid="stSidebar"] [data-testid="stExpander"] {
+  margin:.35rem 0; background:#fff !important; border:1px solid #b9d0ea !important; border-left:4px solid #0759c7 !important;
+  border-radius:12px !important; box-shadow:0 2px 8px rgba(16,35,75,.10); overflow:hidden;
 }
-section[data-testid="stSidebar"] * { color:#f8fbff !important; }
-/* Keep text readable inside light cards rendered in the dark sidebar. */
+section[data-testid="stSidebar"] [data-testid="stExpander"]:hover { border-color:#0759c7 !important; box-shadow:0 3px 12px rgba(7,89,199,.20); }
+section[data-testid="stSidebar"] [data-testid="stExpander"] details,
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary { background:#fff !important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding:.62rem .75rem !important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary * { color:#082d62 !important; -webkit-text-fill-color:#082d62 !important; font-weight:700 !important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary svg { fill:#082d62 !important; color:#082d62 !important; }
+section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding:.3rem .75rem .8rem !important; background:#fff; }
+/* Inputs */
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] textarea {
+  color:#10234b !important; -webkit-text-fill-color:#10234b !important; font-weight:600 !important; background:#fff !important;
+}
+section[data-testid="stSidebar"] input::placeholder { color:#6b7f9e !important; -webkit-text-fill-color:#6b7f9e !important; }
+section[data-testid="stSidebar"] [data-baseweb="input"],
+section[data-testid="stSidebar"] [data-baseweb="base-input"],
+section[data-testid="stSidebar"] [data-baseweb="select"] > div {
+  background:#fff !important; border:1px solid #9db8d8 !important; border-radius:9px !important;
+}
+section[data-testid="stSidebar"] [data-baseweb="select"] span,
+section[data-testid="stSidebar"] [data-baseweb="select"] div { color:#10234b !important; -webkit-text-fill-color:#10234b !important; font-weight:600 !important; }
+section[data-testid="stSidebar"] [data-baseweb="select"] svg,
+section[data-testid="stSidebar"] [data-testid="stDateInput"] svg,
+section[data-testid="stSidebar"] [data-testid="stTimeInput"] svg { fill:#174477 !important; color:#174477 !important; }
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] button { background:#e6f0fb !important; color:#10234b !important; }
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] button svg { fill:#10234b !important; }
+/* Forms */
+section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid #c4d9f1; border-radius:12px; background:#f4f8fd; box-shadow:none; }
+/* Buttons: solid blue, white text */
+section[data-testid="stSidebar"] .stButton button,
+section[data-testid="stSidebar"] .stDownloadButton button,
+section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button,
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] button {
+  background:linear-gradient(135deg,#0759c7,#0a7be0) !important; border-color:#064aa8 !important;
+}
+section[data-testid="stSidebar"] .stButton button *,
+section[data-testid="stSidebar"] .stDownloadButton button *,
+section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button *,
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] button *,
+section[data-testid="stSidebar"] .stButton button,
+section[data-testid="stSidebar"] .stDownloadButton button,
+section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button,
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] button { color:#fff !important; -webkit-text-fill-color:#fff !important; font-weight:700 !important; }
+/* File uploader */
+section[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"],
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section { background:#f2f8ff !important; border:2px dashed #4aa3e8 !important; border-radius:12px; }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] *:not(button):not(button *),
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] small,
+section[data-testid="stSidebar"] [data-testid="stFileUploader"] section *:not(button):not(button *) { color:#174477 !important; -webkit-text-fill-color:#174477 !important; }
+section[data-testid="stSidebar"] [data-testid="stFileUploaderFile"] * { color:#10234b !important; -webkit-text-fill-color:#10234b !important; }
+/* Alerts / metrics / tables: light card, navy text */
+section[data-testid="stSidebar"] [data-testid="stAlert"] { background:#fff !important; border:1px solid #b9d0ea; border-radius:10px; }
+section[data-testid="stSidebar"] [data-testid="stAlert"] * { color:#10234b !important; -webkit-text-fill-color:#10234b !important; }
 section[data-testid="stSidebar"] [data-testid="stMetric"] { background:#fff!important; }
 section[data-testid="stSidebar"] [data-testid="stMetric"] *,
 section[data-testid="stSidebar"] [data-testid="stMetricLabel"],
 section[data-testid="stSidebar"] [data-testid="stMetricValue"],
 section[data-testid="stSidebar"] [data-testid="stMetricDelta"] { color:#10234b!important; -webkit-text-fill-color:#10234b!important; }
-section[data-testid="stSidebar"] .stButton button,
-section[data-testid="stSidebar"] .stDownloadButton button { background:#fff!important; color:#10234b!important; -webkit-text-fill-color:#10234b!important; border:1px solid #b8cce3!important; }
-section[data-testid="stSidebar"] .stButton button *,
-section[data-testid="stSidebar"] .stDownloadButton button * { color:#10234b!important; -webkit-text-fill-color:#10234b!important; }
 section[data-testid="stSidebar"] [data-testid="stDataFrame"] { background:#fff!important; }
-section[data-testid="stSidebar"] [data-testid="stDataFrame"] * { color:#10234b!important; }
-section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#fff !important; font-weight:800 !important; }
-section[data-testid="stSidebar"] [data-testid="stExpander"] { margin:.22rem 0; border:1px solid rgba(211,239,255,.56)!important; border-left:3px solid #71dcff!important; border-radius:12px!important; background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(3,15,36,.48))!important; box-shadow:0 5px 13px rgba(0,7,21,.3),inset 0 1px 0 rgba(255,255,255,.2),inset 0 -2px 5px rgba(0,0,0,.2)!important; backdrop-filter:blur(7px); }
-section[data-testid="stSidebar"] [data-testid="stExpander"]:hover { border-color:#fff!important; box-shadow:0 7px 18px rgba(0,7,21,.38),0 0 12px rgba(106,211,255,.32),inset 0 1px 0 rgba(255,255,255,.36)!important; }
-section[data-testid="stSidebar"] [data-testid="stExpander"] summary { padding:.62rem .72rem!important; font-weight:800!important; }
-section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] { padding:.15rem .7rem .7rem!important; }
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] section { background:#f4f9ff!important; border:2px dashed #42b8ff!important; border-radius:12px; }
-section[data-testid="stSidebar"] [data-testid="stFileUploader"] section * { color:#174477!important; }
-section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid rgba(221,242,255,.55); border-radius:13px; background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(1,13,34,.58)); box-shadow:0 7px 17px rgba(0,7,21,.34),inset 0 1px 0 rgba(255,255,255,.2); }
-section[data-testid="stSidebar"] input { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:700!important; background:#fff!important; border-radius:9px!important; }
-section[data-testid="stSidebar"] [data-baseweb="select"] > div { background:#fff!important; border-radius:9px!important; }
-section[data-testid="stSidebar"] [data-baseweb="select"] span { color:#10234b!important; -webkit-text-fill-color:#10234b!important; font-weight:800!important; }
-section[data-testid="stSidebar"] [data-baseweb="select"] svg, section[data-testid="stSidebar"] [data-testid="stDateInput"] svg { fill:#174477!important; color:#174477!important; }
-section[data-testid="stSidebar"] input::placeholder { color:#64748b!important; -webkit-text-fill-color:#64748b!important; }
 .hero {
   background:linear-gradient(105deg,#062e72 0%,#075ed0 62%,#8bc8f6 100%);
   border:1px solid #b7d9ff; border-radius:16px; padding:19px 25px;
@@ -332,9 +367,9 @@ if not list_snapshot_dates() and os.path.exists(RP01_PATH):
 with st.sidebar:
     st.markdown("""
     <div style="text-align:center;padding:8px 0 14px">
-      <div style="display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#38bdf8,#0b62c4);font-size:27px;box-shadow:0 5px 16px #031b3c80">📦</div>
-      <div style="font-size:19px;font-weight:800;margin-top:9px;letter-spacing:.3px">DATA ENTRY <span style="color:#7dd3fc!important">(DCSB)</span></div>
-      <div style="font-size:12px;color:#c7e7ff!important;margin-top:3px">RECEIVING FORECAST</div>
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#38bdf8,#0b62c4);font-size:27px;box-shadow:0 5px 14px #0b3d7a40">📦</div>
+      <div style="font-size:19px;font-weight:800;margin-top:9px;letter-spacing:.3px;color:#082d62!important">DATA ENTRY <span style="color:#0759c7!important">(DCSB)</span></div>
+      <div style="font-size:12px;color:#35507a!important;font-weight:600;margin-top:3px">RECEIVING FORECAST</div>
     </div><hr>
     """, unsafe_allow_html=True)
 
