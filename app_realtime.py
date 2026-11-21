@@ -91,6 +91,24 @@ section[data-testid="stSidebar"] [data-testid="stNumberInput"] button { backgrou
 section[data-testid="stSidebar"] [data-testid="stNumberInput"] button svg { fill:#10234b !important; }
 /* Forms */
 section[data-testid="stSidebar"] [data-testid="stForm"] { padding:.75rem; border:1px solid #c4d9f1; border-radius:12px; background:#f4f8fd; box-shadow:none; }
+/* Postpone: separate framed boxes for เลื่อนเข้า (green) and เลื่อนออก (orange) with depth */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.st-key-pp_in),
+section[data-testid="stSidebar"] .st-key-pp_in {
+  background:linear-gradient(145deg,#ffffff 0%,#e9f8ef 100%) !important; border:1.5px solid #3fb878 !important; border-left:6px solid #13a35f !important;
+  border-radius:13px !important; padding:.55rem .65rem .35rem !important; margin:.5rem 0 .75rem !important;
+  box-shadow:0 6px 14px rgba(19,163,95,.28), 0 2px 4px rgba(16,35,75,.14), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.st-key-pp_out),
+section[data-testid="stSidebar"] .st-key-pp_out {
+  background:linear-gradient(145deg,#ffffff 0%,#fff0e6 100%) !important; border:1.5px solid #f08a4b !important; border-left:6px solid #e8590c !important;
+  border-radius:13px !important; padding:.55rem .65rem .35rem !important; margin:.5rem 0 .75rem !important;
+  box-shadow:0 6px 14px rgba(232,89,12,.28), 0 2px 4px rgba(16,35,75,.14), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+/* avoid double frame when both wrapper and inner block match */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.st-key-pp_in) .st-key-pp_in,
+section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"]:has(.st-key-pp_out) .st-key-pp_out {
+  background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:0 !important;
+}
 /* Buttons: solid blue, white text */
 section[data-testid="stSidebar"] .stButton button,
 section[data-testid="stSidebar"] .stDownloadButton button,
@@ -490,12 +508,14 @@ with st.sidebar:
     with st.expander("⏳ งานเลื่อนส่ง", expanded=False):
         with st.form("postpone_form", clear_on_submit=False):
             postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
-            p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
-            p_from = st.date_input("เลื่อนเข้ามาจากวันที่", value=None, format="DD/MM/YYYY",
-                                   help="ระบุเมื่อมียอดเลื่อนเข้า — จะแสดงต้นทางในรายงาน")
-            p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
-            p_to = st.date_input("เลื่อนออกไปวันที่", value=None, format="DD/MM/YYYY",
-                                 help="ระบุเมื่อมียอดเลื่อนออก — จะแสดงปลายทางในรายงาน")
+            with st.container(border=True, key="pp_in"):
+                p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
+                p_from = st.date_input("เลื่อนเข้ามาจากวันที่", value=None, format="DD/MM/YYYY",
+                                       help="ระบุเมื่อมียอดเลื่อนเข้า — จะแสดงต้นทางในรายงาน")
+            with st.container(border=True, key="pp_out"):
+                p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
+                p_to = st.date_input("เลื่อนออกไปวันที่", value=None, format="DD/MM/YYYY",
+                                     help="ระบุเมื่อมียอดเลื่อนออก — จะแสดงปลายทางในรายงาน")
             p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
             save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
         if save_btn:
