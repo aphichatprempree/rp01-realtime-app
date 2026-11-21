@@ -6,6 +6,8 @@ import io
 import os
 import re
 import html
+import hashlib
+import pickle
 
 # =========================================================
 # DATA ENTRY (DCSB) | Receiving Forecast Dashboard
@@ -19,6 +21,9 @@ st.set_page_config(
 
 RP01_PATH = "latest_uploaded_rp01.xlsx"
 DB_PATH = "receiving_dashboard.db"
+# Column skeleton used for a day that has never been imported (every number = 0)
+DEFAULT_COLS = ["Delivery Date", "Vendor", "Vendor Name", "Item Name", "P/O", "UOM Qty",
+                "Pallets Qty", "ASRS_ITEM", "Ti", "Hi", "Window Time", "PMA"]
 
 # PMA TYP lookup from the supplied "TYP PMA" workbook
 PMA_TYPE_MAP = {1: 'Fresh RTE Food', 2: 'Fresh RTE Food', 3: 'Fresh RTE Food', 5: 'Counter Drink', 6: 'Fresh RTE Food', 7: 'Fresh RTE Food', 8: 'Fresh RTE Food', 10: 'Package Bev.', 11: 'Package Bev.', 12: 'Non Food', 14: 'Non Food', 16: 'Fresh RTE Food', 18: 'Non Food', 19: 'Fresh RTE Food', 20: 'Fresh RTE Food', 21: 'Fresh RTE Food', 22: 'Fresh RTE Food', 23: 'Fresh RTE Food', 24: 'Fresh RTE Food', 25: 'Fresh RTE Food', 27: 'Non Food', 28: 'Non Food', 29: 'Package Bev.', 32: 'Process Food', 33: 'Process Food', 34: 'Process Food', 35: 'Non Food', 36: 'Fresh RTE Food', 38: 'Package Bev.', 39: 'Non Food', 40: 'Process Food', 41: 'Process Food', 42: 'Package Bev.', 43: 'Non Food', 44: 'Package Bev.', 45: 'Package Bev.', 46: 'Non Food', 49: 'Package Bev.', 50: 'Non Food', 51: 'Non Food', 52: 'Non Food', 53: 'Non Food', 54: 'Non Food', 55: 'Non Food', 56: 'Non Food', 58: 'Non Food', 59: 'Non Food', 60: 'Fresh RTE Food', 61: 'Fresh RTE Food', 63: 'Process Food', 64: 'Non Food', 66: 'Non Food', 68: 'Non Food', 69: 'Non Food', 70: 'Non Food', 71: 'Non Food', 72: 'Non Food', 74: 'Non Food', 78: 'Fresh RTE Food', 80: 'Fresh RTE Food', 82: 'Fresh RTE Food', 83: 'Fresh RTE Food', 85: 'Fresh RTE Food', 86: 'Non Food', 30: 'Counter Drink', 31: 'Counter Drink', 75: 'Counter Drink', 76: 'Counter Drink', 62: 'Counter Drink', 79: 'Counter Drink', 87: 'Counter Drink', 95: 'Counter Drink', 73: 'Counter Drink'}
@@ -120,7 +125,7 @@ def norm_name(value):
     return re.sub(r"[^a-z0-9]", "", str(value).lower())
 
 def find_col(df, candidates=(), contains=()):
-    if df is None or df.empty:
+    if df is None:
         return None
     lookup = {norm_name(c): c for c in df.columns}
     for candidate in candidates:
@@ -222,6 +227,15 @@ def init_db():
             updated_at TEXT NOT NULL
         )
         """)
+        # One stored snapshot of the RP01 rows per delivery date (keeps each day's numbers)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS daily_snapshot (
+            report_date TEXT PRIMARY KEY,
+            payload BLOB NOT NULL,
+            row_count INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL
+        )
+        """)
 
 def get_window_time(vendor_id):
     """Return the stored supplier window or a manual setup prompt."""
@@ -269,7 +283,50 @@ def section_end():
     st.markdown("</div></div>", unsafe_allow_html=True)
 
 
+def save_rp01_snapshots(raw_df):
+    """Split RP01 by Delivery Date and store every day in SQLite (re-import overwrites that day)."""
+    delivery_col = find_col(raw_df, ["Delivery Date"], contains=["deliverydate"])
+    if delivery_col:
+        parsed = pd.to_datetime(raw_df[delivery_col], errors="coerce", dayfirst=True)
+        day_keys = parsed.dt.date
+        groups = {d: raw_df.loc[day_keys == d] for d in sorted(parsed.dropna().dt.date.unique())}
+    else:
+        groups = {dt.date.today(): raw_df}
+    now = dt.datetime.now().isoformat(timespec="seconds")
+    with sqlite3.connect(DB_PATH) as con:
+        for d, g in groups.items():
+            con.execute(
+                "INSERT OR REPLACE INTO daily_snapshot(report_date,payload,row_count,updated_at) VALUES(?,?,?,?)",
+                (str(d), pickle.dumps(g.reset_index(drop=True), protocol=4), int(len(g)), now),
+            )
+    return list(groups)
+
+def list_snapshot_dates():
+    with sqlite3.connect(DB_PATH) as con:
+        rows = con.execute("SELECT report_date FROM daily_snapshot ORDER BY report_date").fetchall()
+    return [dt.date.fromisoformat(r[0]) for r in rows]
+
+def load_snapshot(date_value):
+    """Return the stored RP01 rows for the day, or None if that day was never imported."""
+    with sqlite3.connect(DB_PATH) as con:
+        row = con.execute("SELECT payload FROM daily_snapshot WHERE report_date=?", (str(date_value),)).fetchone()
+    if not row:
+        return None
+    try:
+        return pickle.loads(row[0])
+    except Exception:
+        return None
+
+
 init_db()
+
+# One-time migration: if an RP01 file exists from the old version but nothing is stored yet.
+if not list_snapshot_dates() and os.path.exists(RP01_PATH):
+    try:
+        with open(RP01_PATH, "rb") as f:
+            save_rp01_snapshots(read_rp01(f.read()))
+    except Exception:
+        pass
 
 # ------------------------- Sidebar ----------------------
 with st.sidebar:
@@ -287,43 +344,41 @@ with st.sidebar:
             help="รองรับไฟล์ Excel .xlsx และ .xls"
         )
         if rp01_upload is not None:
-            try:
-                with open(RP01_PATH, "wb") as f:
-                    f.write(rp01_upload.getvalue())
-                st.success("อัปโหลด RP01 สำเร็จ")
-                st.cache_data.clear()
-            except Exception as e:
-                st.error(f"บันทึกไฟล์ไม่สำเร็จ: {e}")
+            up_bytes = rp01_upload.getvalue()
+            up_sig = hashlib.md5(up_bytes).hexdigest()
+            # Process each uploaded file once, so later reruns don't reset the chosen date.
+            if st.session_state.get("rp01_sig") != up_sig:
+                try:
+                    with open(RP01_PATH, "wb") as f:
+                        f.write(up_bytes)
+                    saved_days = save_rp01_snapshots(read_rp01(up_bytes))
+                    st.session_state["rp01_sig"] = up_sig
+                    if saved_days:
+                        st.session_state["sel_date"] = saved_days[-1]
+                    st.success(f"นำเข้า RP01 สำเร็จ · บันทึก {len(saved_days)} วัน")
+                except Exception as e:
+                    st.error(f"นำเข้าไฟล์ไม่สำเร็จ: {e}")
+            else:
+                st.caption("✅ ไฟล์นี้นำเข้าและบันทึกแล้ว")
 
     # Expander contents run on every Streamlit rerun; data preparation stays available when collapsed.
     with st.expander("📅 Date", expanded=False):
-        raw_df = pd.DataFrame()
-        df = pd.DataFrame()
-        selected_date = dt.date.today()
-        if os.path.exists(RP01_PATH):
-            try:
-                with open(RP01_PATH, "rb") as f:
-                    raw_bytes = f.read()
-                raw_df = read_rp01(raw_bytes)
-                delivery_col = find_col(raw_df, ["Delivery Date"], contains=["deliverydate"])
-                if delivery_col:
-                    parsed = pd.to_datetime(raw_df[delivery_col], errors="coerce", dayfirst=True)
-                    date_values = sorted(parsed.dropna().dt.date.unique())
-                    if date_values:
-                        selected_date = st.selectbox(
-                            "เลือกวันที่", date_values, index=len(date_values) - 1,
-                            format_func=fmt_date
-                        )
-                        df = raw_df.loc[parsed.dt.date == selected_date].copy()
-                    else:
-                        df = raw_df.copy()
-                else:
-                    st.caption("ไม่พบ Delivery Date จึงแสดงข้อมูลทั้งหมด")
-                    df = raw_df.copy()
-            except Exception as e:
-                st.error(f"อ่าน RP01 ไม่สำเร็จ: {e}")
+        saved_dates = list_snapshot_dates()
+        if "sel_date" not in st.session_state:
+            st.session_state["sel_date"] = saved_dates[-1] if saved_dates else dt.date.today()
+        selected_date = st.date_input("เลือกวันที่", key="sel_date", format="DD/MM/YYYY")
+        if selected_date is None:
+            selected_date = saved_dates[-1] if saved_dates else dt.date.today()
+
+        # Each day is read back from the database; a day never imported has no data (all zeros).
+        snapshot = load_snapshot(selected_date)
+        has_data = snapshot is not None
+        df = snapshot.copy() if has_data else pd.DataFrame(columns=DEFAULT_COLS)
+        if has_data:
+            st.caption(f"✅ มีข้อมูลที่บันทึกไว้ · {len(df):,} แถว")
         else:
-            st.info("ยังไม่มีไฟล์ RP01")
+            st.caption("⚪ วันนี้ยังไม่เคย Import · ทุกตัวเลข = 0")
+        st.caption(f"วันที่ที่บันทึกไว้แล้ว: {len(saved_dates):,} วัน")
 
     with st.expander("🏷️ Fillter time", expanded=False):
         status_filter = st.selectbox(
@@ -339,7 +394,9 @@ with st.sidebar:
             with tc2:
                 end_time = st.time_input("ถึง", value=dt.time(5, 0))
             time_col = find_col(df, ["Window Time"], contains=["windowtime", "slot"])
-            if time_col:
+            if df.empty:
+                st.caption("ไม่มีข้อมูลในวันที่เลือก")
+            elif time_col:
                 parsed_time = pd.to_datetime(df[time_col].astype(str), errors="coerce").dt.time
                 if start_time <= end_time:
                     df = df.loc[parsed_time.between(start_time, end_time)].copy()
@@ -371,9 +428,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-if df.empty:
-    st.info("📂 กรุณาอัปโหลดไฟล์ RP01 ที่แถบด้านซ้าย เพื่อเริ่มแสดงรายงาน")
-    st.stop()
+if not has_data:
+    st.info("📂 วันที่นี้ยังไม่เคย Import ข้อมูล RP01 — ทุกตัวเลขแสดงเป็น 0 (Import ไฟล์ RP01 ที่แถบด้านซ้ายเพื่อบันทึกข้อมูลวันนี้)")
 
 # Identify core columns safely
 vendor_name_col = find_col(df, ["Vendor Name"], contains=["vendorname","suppliername"])
@@ -409,7 +465,7 @@ shift_time_col = find_col(df, ["Window Time"], contains=["windowtime", "slot"])
 valid_po = df["_PO"].replace("", pd.NA)
 total_po = int(valid_po.nunique())
 if shift_time_col:
-    df["_TIME_MINUTES"] = df[shift_time_col].map(parse_rp01_time)
+    df["_TIME_MINUTES"] = df[shift_time_col].map(parse_rp01_time).astype(float)
     shift_minutes = df["_TIME_MINUTES"]
     night_mask = shift_minutes < 5 * 60
     morning_mask = ~night_mask
@@ -541,20 +597,17 @@ else:
     pma_view = pma_view.dropna(subset=["PMA"])
     pma_view["PMA"] = pma_view["PMA"].astype(int)
     pma_view["PMA TYP"] = pma_view["PMA"].map(PMA_TYPE_MAP).fillna("ไม่พบประเภท")
-    if pma_view.empty:
-        st.info("ไม่พบข้อมูล PMA ที่ใช้คำนวณได้ใน RP01")
-    else:
-        pma_summary = (pma_view.groupby("PMA TYP", as_index=False)
-                       .agg(**{"จำนวน PMA": ("PMA", "nunique"), "ยอด Pallets": ("_PALLETS", "sum")})
-                       .sort_values("ยอด Pallets", ascending=False))
-        total_pma_pallets = float(pma_summary["ยอด Pallets"].sum())
-        total_pma_count = int(pma_view["PMA"].nunique())
-        total_types = int(pma_summary["PMA TYP"].nunique())
-        k1, k2, k3 = st.columns(3)
-        k1.metric("ยอด Pallets รวม", f"{total_pma_pallets:,.0f} พาเลท")
-        k2.metric("จำนวน PMA", f"{total_pma_count:,} หมายเลข")
-        k3.metric("จำนวน PMA TYP", f"{total_types:,} ประเภท")
-        st.dataframe(pma_summary, use_container_width=True, hide_index=True)
+    pma_summary = (pma_view.groupby("PMA TYP", as_index=False)
+                   .agg(**{"จำนวน PMA": ("PMA", "nunique"), "ยอด Pallets": ("_PALLETS", "sum")})
+                   .sort_values("ยอด Pallets", ascending=False))
+    total_pma_pallets = float(pma_summary["ยอด Pallets"].sum()) if not pma_summary.empty else 0.0
+    total_pma_count = int(pma_view["PMA"].nunique())
+    total_types = int(pma_summary["PMA TYP"].nunique()) if not pma_summary.empty else 0
+    k1, k2, k3 = st.columns(3)
+    k1.metric("ยอด Pallets รวม", f"{total_pma_pallets:,.0f} พาเลท")
+    k2.metric("จำนวน PMA", f"{total_pma_count:,} หมายเลข")
+    k3.metric("จำนวน PMA TYP", f"{total_types:,} ประเภท")
+    st.dataframe(pma_summary, use_container_width=True, hide_index=True)
 st.markdown("</div></div>", unsafe_allow_html=True)
 
 # Ti / Hi validation
