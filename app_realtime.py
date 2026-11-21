@@ -31,9 +31,9 @@ PMA_TYPE_MAP = {1: 'Fresh RTE Food', 2: 'Fresh RTE Food', 3: 'Fresh RTE Food', 5
 # ------------------------- CSS --------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap');
 :root { --navy:#082d62; --blue:#0759c7; --cyan:#08a7e5; --ink:#10234b; }
-html, body, [class*="css"], .stApp { font-family:'Prompt',sans-serif !important; }
+html, body, [class*="css"], .stApp { font-family:'Noto Sans Thai',sans-serif !important; }
 .stApp { background:linear-gradient(135deg,#eaf4ff 0%,#f7fbff 55%,#e6f2ff 100%); color:#10234b; }
 .block-container { padding-top:1rem !important; padding-bottom:1.5rem !important; max-width:1800px; }
 header[data-testid="stHeader"] { background:transparent; }
