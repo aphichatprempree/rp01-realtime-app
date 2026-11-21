@@ -488,21 +488,6 @@ with st.sidebar:
                 st.warning("ไม่พบคอลัมน์เวลา/Slot ใน RP01")
 
     with st.expander("⏳ งานเลื่อนส่ง", expanded=False):
-        st.markdown("""
-        <div style="background:#fff8e1;border:1px solid #f0b429;border-left:5px solid #e08a00;border-radius:10px;padding:9px 11px;margin-bottom:10px;font-size:12.5px;line-height:1.55;color:#4a3000">
-          <div style="font-weight:800;font-size:13.5px;margin-bottom:3px">⚠️ วิธีบันทึกงานเลื่อนส่ง (อ่านก่อนกด)</div>
-          <div>1) <b>"วันที่บันทึก" = วันที่ของรายงานที่ยอดเปลี่ยน</b> (วันที่ที่จะรับสินค้า) ไม่ใช่วันที่ที่ทำรายการ และต้องบันทึก <b>แยกทีละวันที่</b></div>
-          <div>2) <b>📥 เลื่อนเข้า (+)</b> = งานจากวันอื่นเลื่อนมารับ<b>ในวันนี้</b> → ยอดเพิ่ม</div>
-          <div>3) <b>📤 เลื่อนออก (-)</b> = งานของ<b>วันนี้</b>ถูกเลื่อนไปรับวันอื่น → ยอดลด</div>
-          <div style="margin-top:4px"><b>ตัวอย่าง:</b> วันที่ 21 ทำรายงานของวันที่ 22 และมีงาน 10 พาเลท เลื่อนจากวันที่ 23 มารับวันที่ 22</div>
-          <div>&nbsp;• วันที่บันทึก <b>22</b> → เลื่อนเข้า <b>10</b></div>
-          <div>&nbsp;• วันที่บันทึก <b>23</b> → เลื่อนออก <b>10</b></div>
-          <div style="margin-top:4px">4) ยอดสุทธิ = พาเลทใน RP01 + เลื่อนเข้า − เลื่อนออก</div>
-          <div>5) ถ้าวันเดียวกันมีทั้งเข้าและออก ให้ใส่<b>ทั้งสองช่องแล้วกดบันทึกครั้งเดียว</b> (บันทึกซ้ำจะ<b>ทับ</b>ค่าเดิม ไม่ได้บวกเพิ่ม)</div>
-          <div>6) ระบุ <b>"เลื่อนเข้ามาจากวันที่"</b> / <b>"เลื่อนออกไปวันที่"</b> ด้วย เพื่อให้รายงานแสดงต้นทาง-ปลายทาง</div>
-          <div>7) บันทึกวันอื่นแล้ว ต้องเลือกวันนั้นที่ช่อง "Date" เพื่อดูผล</div>
-        </div>
-        """, unsafe_allow_html=True)
         with st.form("postpone_form", clear_on_submit=False):
             postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
             p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
