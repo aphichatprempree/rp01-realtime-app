@@ -4,3 +4,5 @@ openpyxl
 matplotlib
 seaborn
 plotly
+sqlalchemy
+psycopg2-binary
