@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime as dt
-import sqlite3
+from sqlalchemy import create_engine, text
 import io
 import os
 import re
@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 RP01_PATH = "latest_uploaded_rp01.xlsx"
-DB_PATH = "receiving_dashboard.db"
+DB_PATH = os.environ.get("DCSB_DB_PATH", "receiving_dashboard.db")  # local fallback only
 # Column skeleton used for a day that has never been imported (every number = 0)
 DEFAULT_COLS = ["Delivery Date", "Vendor", "Vendor Name", "Item Name", "P/O", "UOM Qty",
                 "Pallets Qty", "ASRS_ITEM", "Ti", "Hi", "Window Time", "PMA"]
@@ -243,65 +243,102 @@ def read_uploaded_table(upload):
             return pd.read_csv(io.BytesIO(raw), encoding="cp874")
     return pd.read_excel(io.BytesIO(raw))
 
+@st.cache_resource(show_spinner=False)
+def get_engine():
+    """Persistent external Postgres (Supabase / Neon ...) when secrets [database] url is set;
+    otherwise a local SQLite file (lost when Streamlit Cloud restarts)."""
+    url = ""
+    try:
+        url = str(st.secrets["database"]["url"]).strip()
+    except Exception:
+        url = ""
+    if url:
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            url = "postgresql+psycopg2://" + url[len("postgresql://"):]
+        return create_engine(url, pool_pre_ping=True, pool_recycle=300)
+    return create_engine(f"sqlite:///{DB_PATH}")
+
+ENGINE = get_engine()
+IS_PERSISTENT = ENGINE.dialect.name != "sqlite"
+
 def init_db():
-    with sqlite3.connect(DB_PATH) as con:
-        con.execute("""
+    blob = "BYTEA" if ENGINE.dialect.name == "postgresql" else "BLOB"
+    with ENGINE.begin() as con:
+        con.execute(text("""
         CREATE TABLE IF NOT EXISTS postpone (
             report_date TEXT PRIMARY KEY,
-            in_pallets REAL NOT NULL DEFAULT 0,
-            out_pallets REAL NOT NULL DEFAULT 0,
+            in_pallets DOUBLE PRECISION NOT NULL DEFAULT 0,
+            out_pallets DOUBLE PRECISION NOT NULL DEFAULT 0,
             note TEXT DEFAULT '',
             updated_at TEXT NOT NULL
         )
-        """)
-        con.execute("""
+        """))
+        con.execute(text("""
         CREATE TABLE IF NOT EXISTS vendor_window_time (
             vendor_id TEXT PRIMARY KEY,
             vendor_name TEXT NOT NULL DEFAULT '',
             window_time TEXT NOT NULL DEFAULT '00:00:00',
             updated_at TEXT NOT NULL
         )
-        """)
+        """))
         # One stored snapshot of the RP01 rows per delivery date (keeps each day's numbers)
-        con.execute("""
+        con.execute(text(f"""
         CREATE TABLE IF NOT EXISTS daily_snapshot (
             report_date TEXT PRIMARY KEY,
-            payload BLOB NOT NULL,
+            payload {blob} NOT NULL,
             row_count INTEGER NOT NULL DEFAULT 0,
             updated_at TEXT NOT NULL
         )
-        """)
+        """))
+
+def migrate_db():
+    """Add the source/target date columns to an existing postpone table (safe to run every time)."""
+    for col in ("in_from_date", "out_to_date"):
+        try:
+            with ENGINE.begin() as con:
+                con.execute(text(f"ALTER TABLE postpone ADD COLUMN {col} TEXT DEFAULT ''"))
+        except Exception:
+            pass  # column already exists
+
+def now_iso():
+    return dt.datetime.now().isoformat(timespec="seconds")
 
 def get_window_time(vendor_id):
     """Return the stored supplier window or a manual setup prompt."""
     v_id = str(vendor_id).strip()
-    with sqlite3.connect(DB_PATH) as con:
+    with ENGINE.connect() as con:
         row = con.execute(
-            "SELECT vendor_name, window_time FROM vendor_window_time WHERE vendor_id = ?",
-            (v_id,),
+            text("SELECT vendor_name, window_time FROM vendor_window_time WHERE vendor_id = :v"),
+            {"v": v_id},
         ).fetchone()
     if row:
         return {"vendor_name": row[0], "window_time": row[1]}
     return {"vendor_name": "New Supplier (กรุณาตั้งค่า Manual ด้านล่าง)", "window_time": "N/A"}
-def save_postpone(date_key, incoming, outgoing, note):
-    with sqlite3.connect(DB_PATH) as con:
-        con.execute("""
-        INSERT INTO postpone(report_date,in_pallets,out_pallets,note,updated_at)
-        VALUES(?,?,?,?,?)
+
+def save_postpone(date_key, incoming, outgoing, note, in_from="", out_to=""):
+    with ENGINE.begin() as con:
+        con.execute(text("""
+        INSERT INTO postpone(report_date,in_pallets,out_pallets,note,updated_at,in_from_date,out_to_date)
+        VALUES(:d,:i,:o,:n,:u,:f,:t)
         ON CONFLICT(report_date) DO UPDATE SET
           in_pallets=excluded.in_pallets,
           out_pallets=excluded.out_pallets,
           note=excluded.note,
-          updated_at=excluded.updated_at
-        """, (date_key, incoming, outgoing, note, dt.datetime.now().isoformat(timespec="seconds")))
+          updated_at=excluded.updated_at,
+          in_from_date=excluded.in_from_date,
+          out_to_date=excluded.out_to_date
+        """), {"d": date_key, "i": float(incoming), "o": float(outgoing), "n": note, "u": now_iso(),
+               "f": in_from or "", "t": out_to or ""})
 
 def get_postpone(date_key):
-    with sqlite3.connect(DB_PATH) as con:
+    with ENGINE.connect() as con:
         row = con.execute(
-            "SELECT in_pallets,out_pallets,note FROM postpone WHERE report_date=?",
-            (date_key,)
+            text("SELECT in_pallets,out_pallets,note,in_from_date,out_to_date FROM postpone WHERE report_date=:d"),
+            {"d": date_key},
         ).fetchone()
-    return row if row else (0.0, 0.0, "")
+    return (float(row[0]), float(row[1]), row[2] or "", row[3] or "", row[4] or "") if row else (0.0, 0.0, "", "", "")
 
 def fmt_date(date_value):
     try:
@@ -319,7 +356,7 @@ def section_end():
 
 
 def save_rp01_snapshots(raw_df):
-    """Split RP01 by Delivery Date and store every day in SQLite (re-import overwrites that day)."""
+    """Split RP01 by Delivery Date and store every day in the database (re-import overwrites that day)."""
     delivery_col = find_col(raw_df, ["Delivery Date"], contains=["deliverydate"])
     if delivery_col:
         parsed = pd.to_datetime(raw_df[delivery_col], errors="coerce", dayfirst=True)
@@ -327,33 +364,39 @@ def save_rp01_snapshots(raw_df):
         groups = {d: raw_df.loc[day_keys == d] for d in sorted(parsed.dropna().dt.date.unique())}
     else:
         groups = {dt.date.today(): raw_df}
-    now = dt.datetime.now().isoformat(timespec="seconds")
-    with sqlite3.connect(DB_PATH) as con:
+    now = now_iso()
+    with ENGINE.begin() as con:
         for d, g in groups.items():
-            con.execute(
-                "INSERT OR REPLACE INTO daily_snapshot(report_date,payload,row_count,updated_at) VALUES(?,?,?,?)",
-                (str(d), pickle.dumps(g.reset_index(drop=True), protocol=4), int(len(g)), now),
-            )
+            con.execute(text("""
+                INSERT INTO daily_snapshot(report_date,payload,row_count,updated_at) VALUES(:d,:p,:n,:u)
+                ON CONFLICT(report_date) DO UPDATE SET
+                  payload=excluded.payload, row_count=excluded.row_count, updated_at=excluded.updated_at
+            """), {"d": str(d), "p": pickle.dumps(g.reset_index(drop=True), protocol=4), "n": int(len(g)), "u": now})
     return list(groups)
 
 def list_snapshot_dates():
-    with sqlite3.connect(DB_PATH) as con:
-        rows = con.execute("SELECT report_date FROM daily_snapshot ORDER BY report_date").fetchall()
+    with ENGINE.connect() as con:
+        rows = con.execute(text("SELECT report_date FROM daily_snapshot ORDER BY report_date")).fetchall()
     return [dt.date.fromisoformat(r[0]) for r in rows]
 
 def load_snapshot(date_value):
     """Return the stored RP01 rows for the day, or None if that day was never imported."""
-    with sqlite3.connect(DB_PATH) as con:
-        row = con.execute("SELECT payload FROM daily_snapshot WHERE report_date=?", (str(date_value),)).fetchone()
+    with ENGINE.connect() as con:
+        row = con.execute(text("SELECT payload FROM daily_snapshot WHERE report_date=:d"), {"d": str(date_value)}).fetchone()
     if not row:
         return None
     try:
-        return pickle.loads(row[0])
+        return pickle.loads(bytes(row[0]))
     except Exception:
         return None
 
 
-init_db()
+try:
+    init_db()
+    migrate_db()
+except Exception as e:
+    st.error(f"เชื่อมต่อฐานข้อมูลไม่สำเร็จ: {e}")
+    st.stop()
 
 # One-time migration: if an RP01 file exists from the old version but nothing is stored yet.
 if not list_snapshot_dates() and os.path.exists(RP01_PATH):
@@ -372,6 +415,10 @@ with st.sidebar:
       <div style="font-size:12px;color:#35507a!important;font-weight:600;margin-top:3px">RECEIVING FORECAST</div>
     </div><hr>
     """, unsafe_allow_html=True)
+    if IS_PERSISTENT:
+        st.caption("💾 ฐานข้อมูลถาวร เชื่อมต่อแล้ว — ข้อมูลไม่หายเมื่อรีสตาร์ท")
+    else:
+        st.caption("⚠️ ใช้ไฟล์ชั่วคราว — ข้อมูลจะหายเมื่อแอปรีสตาร์ท (ตั้งค่า secrets [database] เพื่อเก็บถาวร)")
 
     with st.expander("📂 IMPORT RP01", expanded=False):
         rp01_upload = st.file_uploader(
@@ -452,23 +499,37 @@ with st.sidebar:
           <div>&nbsp;• วันที่บันทึก <b>23</b> → เลื่อนออก <b>10</b></div>
           <div style="margin-top:4px">4) ยอดสุทธิ = พาเลทใน RP01 + เลื่อนเข้า − เลื่อนออก</div>
           <div>5) ถ้าวันเดียวกันมีทั้งเข้าและออก ให้ใส่<b>ทั้งสองช่องแล้วกดบันทึกครั้งเดียว</b> (บันทึกซ้ำจะ<b>ทับ</b>ค่าเดิม ไม่ได้บวกเพิ่ม)</div>
-          <div>6) บันทึกวันอื่นแล้ว ต้องเลือกวันนั้นที่ช่อง "Date" เพื่อดูผล</div>
+          <div>6) ระบุ <b>"เลื่อนเข้ามาจากวันที่"</b> / <b>"เลื่อนออกไปวันที่"</b> ด้วย เพื่อให้รายงานแสดงต้นทาง-ปลายทาง</div>
+          <div>7) บันทึกวันอื่นแล้ว ต้องเลือกวันนั้นที่ช่อง "Date" เพื่อดูผล</div>
         </div>
         """, unsafe_allow_html=True)
         with st.form("postpone_form", clear_on_submit=False):
             postpone_date = st.date_input("วันที่บันทึก", value=selected_date)
             p_in = st.number_input("📥 เลื่อนเข้า (+)", min_value=0.0, step=1.0, value=0.0)
+            p_from = st.date_input("เลื่อนเข้ามาจากวันที่", value=None, format="DD/MM/YYYY",
+                                   help="ระบุเมื่อมียอดเลื่อนเข้า — จะแสดงต้นทางในรายงาน")
             p_out = st.number_input("📤 เลื่อนออก (-)", min_value=0.0, step=1.0, value=0.0)
+            p_to = st.date_input("เลื่อนออกไปวันที่", value=None, format="DD/MM/YYYY",
+                                 help="ระบุเมื่อมียอดเลื่อนออก — จะแสดงปลายทางในรายงาน")
             p_note = st.text_input("หมายเหตุ", placeholder="เช่น เลื่อนเข้า/เลื่อนออก")
             save_btn = st.form_submit_button("💾 บันทึกเก็บไว้", use_container_width=True)
         if save_btn:
             if p_in == 0 and p_out == 0:
                 st.warning("กรุณาระบุยอดเลื่อนเข้า หรือเลื่อนออก")
             else:
-                save_postpone(str(postpone_date), p_in, p_out, p_note)
+                if p_in > 0 and p_from is None:
+                    st.warning("ยังไม่ได้ระบุ 'เลื่อนเข้ามาจากวันที่' — บันทึกแล้วแต่รายงานจะไม่แสดงต้นทาง")
+                if p_out > 0 and p_to is None:
+                    st.warning("ยังไม่ได้ระบุ 'เลื่อนออกไปวันที่' — บันทึกแล้วแต่รายงานจะไม่แสดงปลายทาง")
+                save_postpone(str(postpone_date), p_in, p_out, p_note,
+                              str(p_from) if (p_in > 0 and p_from) else "",
+                              str(p_to) if (p_out > 0 and p_to) else "")
                 st.success("บันทึกข้อมูลแล้ว")
-        postpone_in, postpone_out, postpone_note = get_postpone(str(selected_date))
-        st.caption(f"ค่าที่บันทึกไว้ของวันที่ {fmt_date(selected_date)}: เข้า +{postpone_in:,.0f} / ออก -{postpone_out:,.0f}")
+        postpone_in, postpone_out, postpone_note, postpone_from, postpone_to = get_postpone(str(selected_date))
+        st.caption(f"ค่าที่บันทึกไว้ของวันที่ {fmt_date(selected_date)}: เข้า +{postpone_in:,.0f}"
+                   + (f" (จาก {fmt_date(postpone_from)})" if postpone_from else "")
+                   + f" / ออก -{postpone_out:,.0f}"
+                   + (f" (ไป {fmt_date(postpone_to)})" if postpone_to else ""))
 # ---------------------- Main Dashboard -------------------
 st.markdown(f"""
 <div class="hero">
@@ -570,7 +631,10 @@ for i,(icon,label,value,note) in enumerate(kpis):
     )
 
 if postpone_in or postpone_out:
-    st.warning(f"⚠️ มีการปรับแผนเลื่อนส่ง: เข้า +{postpone_in:,.0f} พาเลท | ออก -{postpone_out:,.0f} พาเลท"
+    st.warning(f"⚠️ มีการปรับแผนเลื่อนส่ง: เข้า +{postpone_in:,.0f} พาเลท"
+               + (f" (เลื่อนมาจากวันที่ {fmt_date(postpone_from)})" if postpone_in and postpone_from else "")
+               + f" | ออก -{postpone_out:,.0f} พาเลท"
+               + (f" (เลื่อนไปวันที่ {fmt_date(postpone_to)})" if postpone_out and postpone_to else "")
                + (f" | หมายเหตุ: {postpone_note}" if postpone_note else ""))
 else:
     st.caption("ℹ️ แสดงยอดพาเลทตามแผนปกติ ไม่มีการปรับเลื่อนส่งในวันที่เลือก")
@@ -758,17 +822,17 @@ with st.sidebar.expander("⚙️ Checking Window Time", expanded=False):
         if not new_v_id.strip():
             st.warning("กรุณากรอกรหัส Supplier ID")
         else:
-            with sqlite3.connect(DB_PATH) as con:
+            with ENGINE.begin() as con:
                 con.execute(
-                    """
+                    text("""
                     INSERT INTO vendor_window_time (vendor_id, vendor_name, window_time, updated_at)
-                    VALUES (?, ?, ?, datetime('now'))
+                    VALUES (:v, :n, :w, :u)
                     ON CONFLICT(vendor_id) DO UPDATE SET
                         vendor_name = excluded.vendor_name,
                         window_time = excluded.window_time,
-                        updated_at = datetime('now')
-                    """,
-                    (new_v_id.strip(), new_v_name.strip(), new_w_time.strip()),
+                        updated_at = excluded.updated_at
+                    """),
+                    {"v": new_v_id.strip(), "n": new_v_name.strip(), "w": new_w_time.strip(), "u": now_iso()},
                 )
             st.success(f"บันทึก Window Time สำหรับรหัส {new_v_id} เรียบร้อยแล้ว")
             st.rerun()
